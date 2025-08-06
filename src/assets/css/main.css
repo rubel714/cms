@@ -1,0 +1,785 @@
+/* ########--- THIS SETTING CONTAINS GLOBAL VARIABLE AND CLASS FOR THIS SITE ---######### */
+
+/* GLOBAL VARIABLE */
+:root {
+  --primary-color: #18b3d6;
+  --secondary-color: rgb(235, 218, 39);
+  --bg-color: rgb(245, 223, 198);
+  /* --primary-color: rgb(131, 131, 243); */
+  --secondary-color: rgb(235, 218, 39);
+  --headerFont-color: white;
+  --paginationFont-color: white;
+  --modalbg-color: bisque;
+  --gray-color: rgb(214, 212, 212);
+   --red-color: #f02d37;
+
+  /* BORDER */
+  --container-border: 1px solid black;
+  --header-border: 2px solid white;
+  --subcontainer-border: 2px solid white;
+  --box-border: 2px solid white;
+  --input-border: 1px solid gray;
+
+  /* BUTTON */
+  --btnAdd-color: lightgreen;
+
+  /* TABLE */
+  --table-borderAround: 1px solid white;
+  --table-rowEvenBackground: rgb(203, 220, 177);
+  --table-rowOddBackground: rgb(213, 196, 178);
+}
+
+/* Reset browser */
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    /* margin-right: -20px; */
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--secondary-color);
+  }
+ 
+}
+
+label {
+  /* color: white; */
+  font-size: 0.7rem;
+  margin-right: 2px;
+  padding: 0px;
+  text-align: end;
+}
+
+p {
+  font-size: 1rem;
+  text-align: center;
+  color: black;
+  margin-top: 4px;
+  padding: 2px 2px 2px 2px;
+}
+
+/* ALL INPUT DEFAULT */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  width: 100%;
+  height: 20px;
+  font-size: 0.9rem;
+  border: var(--input-border);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+input[type="number"] {
+  text-align: right;
+}
+
+/* #############---GLOBAL CLASS---############### */
+
+/* Body Container */
+.bodyContainer {
+  /* padding: 4px 4px; */
+  border-radius: 8px;
+}
+
+/* Container Header, its not NAVBAR */
+/* .topHeader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 50px;
+    background-color: var(--secondary-color);
+    border: var(--header-border);
+    color: var(--headerFont-color);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.topHeader h4 {
+    font-size: 1rem;
+}
+
+.topHeader h4 a {
+    text-decoration: none;
+    color: var(--headerFont-color);
+    font-size: 1.5rem;
+} */
+
+.topHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* Flex */
+  height: 40px;
+  background-color: var(--primary-color);
+  border: var(--box-border);
+  color: var(--headerFont-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.topHeader h4 {
+  padding-left: 8px;
+  font-size: 1rem;
+}
+
+.topHeader h4 a {
+  text-decoration: none;
+  color: var(--headerFont-color);
+  font-size: 1rem;
+}
+
+/* THIS CLASS USE FOR CREATE CONTENT WITHIN BODY */
+.subContainer {
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  padding: 2px;
+  width: 100%;
+}
+
+.subContainertwo {
+  /* background-color: var(--primary-color); */
+  border: var(--box-border);
+  border-radius: 8px;
+  padding: 4px;
+  width: 100%;
+}
+
+.usersProfile {
+  /* background-color: var(--primary-color); */
+  border: var(--box-border);
+  background-color: var(--secondary-color);
+  border-radius: 8px;
+  margin: auto;
+  padding: 4px;
+  width: 60%;
+  margin-top: 90px;
+}
+
+/* THIS CLASS IS USE FOR SEARCH TABLE AND ADD TABLE ITEM */
+.searchAdd {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  align-items: end;
+  border: var(--box-border);
+  border-radius: 8px;
+  gap: 12px;
+  /* height: 60px; */
+  padding: 4px;
+}
+
+.searchAdd input {
+  width: 140px !important;
+  font-size: 0.9rem !important;
+  border: 2px solid black;
+  height: 25px;
+  padding-right: 0px !important;
+}
+
+.searchAdd label {
+  font-size: .8rem !important;
+}
+
+
+
+.MuiAutocomplete-hasPopupIcon .MuiAutocomplete-inputRoot, .MuiAutocomplete-hasClearIcon .MuiAutocomplete-inputRoot {
+  padding-right: 0px !important;
+  /* width: 230px !important; */
+}
+
+button {
+  min-width: 90px;
+  height: 30px;
+  border: 2px solid white;
+  border-radius: 8px;
+  color: white;
+  padding: 4px 4px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btnAdd {
+  /* THIS CLASS IS USE FOR ADD BUTTON FOR ANY SECTION */
+  background-color: rgb(120, 200, 10);
+  min-width: 90px;
+}
+
+.btnPrint {
+  background-color: rgb(105, 175, 178);
+  min-width: 90px;
+}
+
+.btnClose {
+  background-color: rgb(150, 75, 75);
+  min-width: 90px;
+}
+
+.btnSave {
+  background-color: rgb(110, 190, 110);
+  min-width: 90px;
+}
+
+.btnPost {
+  background-color: rgb(120, 200, 10);
+  min-width: 90px;
+}
+
+.btnUpdate {
+  background-color: rgb(120, 200, 10);
+  min-width: 90px;
+}
+
+.btnAddBlock {
+  background-color: rgb(10, 40, 200);
+  min-width: 40px;
+}
+
+.btnSales {
+  width: 100%;
+  background-color: green;
+  border: none;
+  /* border-radius: 0px; */
+  margin-top: 4px;
+  align-self: flex-end;
+}
+
+.btnSearch {
+  /* background-color: rgb(120, 200, 10);   */
+
+  width: 60px;
+  height: 20px;
+  background-color: var(--secondary-color);
+  font-size: 13px;
+  margin-left: 8px;
+  border-radius: 4px !important;
+  padding: 0;
+}
+
+.btnDisable {
+  background-color: rgb(186 191 186);
+  min-width: 90px;
+}
+
+.btnDisable:hover {
+  background-color: rgb(186 191 186);
+  /* border-color: #7f9ca6; */
+  color: white;
+}
+
+.invoiceSearch h4 {
+  padding: 4px;
+  color: var(--headerFont-color);
+}
+
+/* THIS CLASS TO ADJUST DROPDOWN AND + BUTTON ASSIGNED DIV */
+.plusGroup {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plusGroup :nth-child(1) {
+  /* TO ADJUST DROPDOWN-BAR  25px PLUS BUTTON  PRESENT AT RIGHT SIDE*/
+  width: calc(100% - 28px);
+}
+
+/* #######------ STYLE FOR GLOBAL TABLE -------####### */
+
+.tableGlobal {
+  margin-top: 4px;
+  width: 100%;
+  border-radius: 8px 8px 0px 0px;
+  border-collapse:separate;
+  border-radius: 4px;
+}
+
+.tableGlobal thead{
+  position: sticky;
+  top: -2px;
+}
+.tableGlobal tr {
+  height: 20px;
+}
+
+.tableGlobal thead tr {
+  background-color: var(--primary-color);
+  color: white;
+  height: 30px;
+  /* font-size: .8rem; */
+}
+
+.tableGlobal th,
+td {
+  font-size: 0.8rem;
+  text-align: left;
+  padding: 2px;
+}
+
+tr:nth-child(even) {
+  background-color: var(--table-rowEvenBackground);
+}
+
+tr:nth-child(odd) {
+  background-color: var(--table-rowOddBackground);
+}
+
+.tableGlobal tr th select {
+  /* THIS CLASS USE FOR ADJUST DROPDOWN AREA INSIDE TABLE HEAD */
+  width: 100% !important;
+  margin: 0px !important;
+  padding: 0px !important;
+  font-size: 0.8rem !important;
+  background-color: lightgray;
+}
+
+.pagination {
+  /* THIS CLASS USED FOR TABLE PAGINATION */
+  display: flex;
+  height: 24px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 4px;
+  /* border: 1px solid black; */
+  width: 100%;
+}
+
+.pagination a {
+  color: var(--paginationFont-color);
+  background-color: var(--secondary-color);
+  border: 1px solid white;
+  border-radius: 4px;
+  text-decoration: none;
+  padding: 2px 8px;
+  margin-left: 4px;
+  font-size: 0.8rem;
+}
+
+.pagination a:hover {
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.pagination label {
+  font-size: 0.9rem;
+  margin: 0px 12px;
+  color: white;
+}
+
+.pagination span {
+  font-size: 0.9rem;
+  margin: 0px 12px;
+  color: white;
+}
+
+/* FOOTER DESIGN */
+.footer {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  height: 30px;
+  background-color: var(--secondary-color);
+  border: var(--box-border);
+  display: flex;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.footer h6 {
+  color: var(--primary-color);
+}
+
+/* LOGIN DESIGN */
+.LoginBody {
+  /* background-color: var(--container-color);
+    height: 100vh; */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px;
+  /* background-color: var(--secondary-color); */
+}
+
+.loginContainer {
+  background-color: var(--secondary-color);
+  border: 2px solid var(--secondary-color);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  height: 200px;
+  width: 30%;
+  padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.loginHeader {
+  background-color: var(--primary-color);
+  border-radius: 8px 8px 0px 0px;
+  height: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.userLogin {
+  width: 90%;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-row-gap: 8px;
+  align-items: center;
+  /* background-color: var(--secondary-color); */
+}
+
+.userLogin input[type="text"],
+.userLogin input[type="password"] {
+  height: 25px !important;
+  font-size: 0.9rem;
+  border: var(--input-border);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.userLogin label {
+  font-size: 0.9rem;
+  padding-right: 8px;
+}
+
+.btnLogin {
+  /* background-color: var(--primary-color);
+    margin-right: 20px; */
+  background-color: var(--primary-color);
+  height: 30px;
+  width: 80px;
+  border: var(--box-border);
+  border-radius: 4px;
+  color: greenyellow !important;
+  cursor: pointer;
+  align-self: flex-end;
+  margin-right: 20px;
+}
+
+.loginContainer span {
+  color: black;
+  font-size: 0.7rem;
+  align-self: center;
+  /* margin-top: 10px; */
+  /* padding: 4px; */
+}
+
+.loginContainer a {
+  text-decoration: none;
+  color: white;
+}
+
+.settingHeight {
+  height: calc(100vh - 186px);
+}
+
+/*Added by Rubel*/
+input {
+  /* -webkit-appearance: none; */
+  /* border: 1px solid gray; */
+  padding: 2px;
+  width: 100%;
+  max-width: 100%;
+  /* background: #f0f0f0; */
+}
+
+.btn-table-sort {
+  margin: 0px;
+  padding: 0px;
+  width: 12px !important;
+  min-width: 12px !important;
+  background: none;
+  border: none;
+  height: auto;
+}
+
+.MuiSvgIcon-root {
+  cursor: pointer;
+}
+
+.table-edit-icon {
+  color: black;
+  height: 16px !important;
+}
+
+.table-delete-icon {
+  color: red;
+  height: 16px !important;
+}
+.table-addimg-icon {
+  color: green;
+  height: 16px !important;
+}
+.table-generate-icon {
+  color: brown;
+  height: 16px !important;
+}
+
+/* .table-view-icon{
+    color:black;
+    height: 16px !important;
+} */
+
+.table-view-icon {
+  color: brown;
+  height: 16px !important;
+}
+
+.validation-style {
+  border: 2px solid red !important;
+}
+
+.permission_card {
+  text-align: center;
+  padding-top: 20px;
+}
+
+.goto_btn {
+  background: red;
+  text-decoration: none;
+  padding: 5px;
+  color: white;
+  border-radius: 5px;
+}
+
+.pt-10 {
+  padding-top: 10px;
+}
+.pt-5 {
+  padding-top: 5px;
+}
+.chosen_dropdown_font {
+  font-size: 12px !important;
+}
+
+.chosen_dropdown input {
+  padding: 6px 2px !important;
+  /* height: 6px; */
+  background-color: var(--bg-color);
+  /*font-size: 12px !important;*/
+  width: 100% !important;
+}
+
+.swal-button {
+  padding: 8px 24px;
+}
+
+.mt-10 {
+  margin-top: 10px !important;
+}
+
+.mt-5 {
+  margin-top: 5px !important;
+}
+
+.wrapper {
+  margin: 5px;
+}
+
+.widthauto {
+  width: auto !important;
+}
+
+.formControl-filter label {
+  font-size: 1.1rem;
+  /* font-weight: bold;*/
+  padding-top: 7px !important;
+  text-align: end;
+  padding-right: 8px;
+}
+
+.formControl-filter select {
+  border: var(--input-border);
+  border-radius: 4px;
+  /* width: calc(100% - (38px)); */
+}
+
+.MuiIconButton-root {
+  display: none !important;
+}
+
+.MuiInput-underline:before {
+  display: none !important;
+}
+
+.MuiInput-underline:after {
+  display: none !important;
+}
+
+.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon
+  .MuiAutocomplete-inputRoot {
+  padding-right: 0px !important;
+}
+
+#visitList{
+  min-width: 300px;
+}
+
+.MuiInputBase-input {
+  box-sizing: inherit !important;
+}
+
+.pl-10 {
+  padding-left: 10px !important;
+}
+
+.pl-5 {
+  padding-left: 5px !important;
+}
+
+.pb-30 {
+  padding-bottom: 30px !important;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.wd-40p {
+  width: 40% !important;
+}
+
+.wd-50p {
+  width: 50% !important;
+}
+
+.rpt-subheader {
+  justify-content: center;
+  background: peachpuff;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 3px;
+}
+
+.rpt-subheader label {
+  font-size: 14px;
+}
+
+.demotext {
+  font-weight: bold;
+  color: rgb(249, 249, 249);
+  background-color: red;
+}
+
+.block-box1 {
+  margin: 5px;
+  padding: 5px;
+  color: white;
+  width: 23%;
+  height: 115px;
+  float: left;
+  text-align: center;
+  background-color: #01b0f1;
+  border-radius: 5px;
+}
+
+.block-box1 p {
+  padding: 15px;
+  font-size: 25px;
+  color: darkmagenta;
+}
+
+.block-box2 {
+  margin: 5px;
+  padding: 5px;
+  color: white;
+  width: 23%;
+  height: 115px;
+  float: left;
+  text-align: center;
+  background-color: cornflowerblue;
+  border-radius: 5px;
+}
+
+.block-box2 p {
+  padding: 15px;
+  font-size: 25px;
+  color: darkmagenta;
+}
+
+.block-box3 {
+  margin: 5px;
+  height: 420px;
+  width: 47%;
+  float: left;
+  border: 1px solid #01b0f1;
+}
+
+/* TABLE height control */
+/* User INFORMATION */
+.tableHeight {
+  max-height: calc(100vh - 214px);
+  overflow-y: scroll;
+  overflow-x: scroll;
+  /* -webkit-overflow-scrolling: touch; */
+}
+
+/* Media for Mobile device. */
+@media only screen and (min-width: 0px) and (max-width: 767px) {
+  .tableHeight {
+    height: auto;
+  }
+  th,
+  td {
+    text-wrap: nowrap;
+  }
+}
+
+/* Media Query for Medium Device Mobile Mobile/Tablet */
+@media only screen and (min-width: 768px) and (max-width: 992px) {
+  .tableHeight {
+    height: auto;
+    overflow-x: scroll;
+    overflow-x: scroll;
+  }
+  th,
+  td {
+    text-wrap: nowrap;
+  }
+}
+
+/* Media Query for Large Device Mobile Tablet/Computer */
+@media only screen and (min-width: 993px) and (max-width: 1199px) {
+}
+/* Media Query for Large Device Mobile Tablet/Computer */
+@media only screen and (min-width: 1200px) and (max-width: 4000px) {
+}

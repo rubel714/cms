@@ -1,0 +1,50 @@
+.expenseHeader {
+    background-color: var(--primary-color);
+    display: grid;
+    grid-template-columns: 1fr 2fr 7fr 3fr;
+    align-items: center;
+    grid-column-gap: 12px;
+    height: 36px;
+    border-radius: 8px;
+    padding: 4px;
+    margin: 2px;
+}
+
+.ExpenseInputArea {
+    height: 64px;
+    padding: 4px;
+    border-radius: 8px;
+    background-color: bisque;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 3fr 1fr 4fr 1fr 4fr;
+    grid-column-gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ExpenseInputArea :nth-child(13) {
+    grid-column: 8;
+    grid-row: 2;
+    justify-self: end;
+    align-self: last baseline;
+}
+
+.ExpenseBody{
+    height: calc(100vh - 248px);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ExpenseFooter{
+    background-color: bisque;
+    border-radius: 8px;
+    padding: 4px;
+    height: 48px;
+    display: grid;
+    grid-template-columns: 8fr 1fr 1fr 1fr 1fr 1fr;
+    grid-column-gap: 12px;
+    align-items: center;
+    justify-items: end;
+}

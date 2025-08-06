@@ -1,0 +1,166 @@
+.navbar {
+    /*  NAVIGATION BAR */
+
+    width: 100%;
+    height: 80px;
+    padding: 0px 8px 0px 8px;
+    border: var(--box-border);
+    border-radius: 8px;
+    background-color: var(--secondary-color);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;  
+}
+
+.logo {
+    width: 10%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    /* justify-content: space-around; */
+}
+
+.logo img {
+    /* STYLE FOR LOGO IMAGE */
+    height: 60px;
+    width: 60px;
+    border-radius: 4px;
+}
+
+.menuBar {
+    /* flex-shrink: 1; */
+    height: 80px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.menuListBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+    padding: 4px 0px;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+}
+
+.menuListBar li,
+.userPanel li {
+    /* STYLE FOR MENUE BAR ITEM */
+    text-decoration: none;
+    list-style: none;
+    color: white;
+    /* display: inline-block; */
+    margin-right: 16px;
+    padding-left: 8px;
+    font-size: .9rem;
+}
+
+.dropdownMenu {
+    /* STYLE FOR DROPDOWN ITEM */
+    position: relative;
+    display: inline-block;
+}
+
+.dropdownList {
+    /* STYLE FOR DROPDOWN LIST */
+    display: none;
+    position: absolute;
+    background-color: var(--primary-color);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+    min-width: 220px;
+    /* margin-left: -2px; */
+    border-radius: 4px;
+    padding: 8px 8px;
+    z-index: 1;
+}
+
+.dropdownList li {
+    /* STYLE FOR MENUE LIST ITEM */
+    margin: 10px 0px;
+}
+
+.dropdownMenu:hover .dropdownList {
+    display: block;
+}
+
+.dropdownList li a {
+    text-decoration: none;
+    list-style: none;
+    color: white;
+    display: inline-block;
+    font-size: .9rem;
+}
+
+.dropdownList li a:hover {
+    color: greenyellow;
+}
+
+
+.parentMenu {
+    text-decoration: none;
+    list-style: none;
+    color: white;
+    display: inline-block;
+}
+
+
+.userPanel {
+    padding-right: 8px;
+    width: 16%;
+    display: flex;
+    flex-wrap: wrap;
+    /* flex-direction: column; */
+    align-items: end;
+    justify-content: space-between;
+
+   
+}
+
+.user {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: end; 
+    align-items: center;
+}
+
+.userPanel img {
+    height: 40px;
+    width: 40px;
+    border: 1px solid white;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.userPanel li {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: .9rem;
+    height: 30px;
+    margin-right: 0px;
+}
+
+/* .userPanel li a {
+    font-size: .8rem;
+} */
+
+.userPanel .dropdownList {
+    /* STYLE FOR DROPDOWN LIST */
+    width: 100px;
+    display: none;
+    position: absolute;
+    margin-left: -8px;
+    border-radius: 4px;
+    background-color: var(--primary-color);
+    z-index: 1;
+}
+
+.userPanel label{
+    color: greenyellow;
+}

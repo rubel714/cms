@@ -1,0 +1,453 @@
+/* SALES HEADER DESIGN */
+
+/* SALES MASTER HEADER */
+.salesMasterHeader{
+    height: 32px;
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr 3fr 1fr 3fr 1fr 4fr 1fr 2fr;
+    align-items: center;
+}
+
+.salesMasterHeader label{
+    padding-right: 4px;
+    color: white;
+}
+
+/* Sales Header */
+.salesHeader {
+    height: 66px;
+    display: flex;
+    background-color: bisque;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.salesHeader label,
+.salesCalculation label {
+    text-align: end;
+    padding-right: 4px;
+}
+
+.salesHeader-part1 {
+
+    width: 75%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-row-gap: 4px;
+    align-items: center;
+    justify-content: center;
+    grid-column-gap: 4px;
+}
+.salesHeader-part1 :nth-child(2){
+    grid-column: 2 / span 9;
+    /* grid-row: 1; */
+}
+
+/* .salesHeader-part1 {
+
+    width: 65%;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-row-gap: 4px;
+    align-items: center;
+} */
+
+/* .salesHeader-part2 {
+    width: 15%;
+    display: grid;
+    grid-template-columns: 2fr 2fr;
+    align-items: center;
+}
+
+.salesHeader-part3 {
+    width: 20%;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+} */
+
+.salesHeader-part2 {
+    width: 8%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.salesHeader-part3 {
+    width: 24%;
+    background-color: var(--primary-color);
+    border: var(--box-border);
+    border-radius: 8px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 2fr;
+    align-items: center;
+    grid-column-gap: 4px;
+    grid-row-gap: 2px;
+}
+
+#mrp {
+    width: 50%;
+}
+#vat{
+    width: 50%;
+}
+#total{
+    font-weight: bold;
+}
+
+
+.btnHold {
+    background-color: rgba(108, 220, 181, 0.5);
+}
+
+.btnRecall {
+    background-color: rgb(205, 155, 155);
+}
+
+.btnVoid {
+    background-color: rgb(97, 177, 206);
+}
+
+.btnExchange {
+    background-color: rgb(208, 179, 110);
+}
+
+/* SALES BODY */
+.salesBody {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.salesTableHeight{
+    max-height: calc(100vh - 220px);
+    overflow-y: scroll;
+}
+.salesDetail {
+    background-color: var(--container-color);
+    width: 60%;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px;
+}
+
+.adjustmentDetail {
+    background-color: var(--container-color);
+    width: 100%;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px;
+}
+
+.salesBodyAction{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    /* padding: 4px; */
+}
+
+/* .invDiscount{
+    width: 40%;
+    background-color: var(--table-rowOddBackground);
+    border-radius: 4px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 2fr;
+    grid-column-gap: 8px;
+    grid-row-gap: 2px;
+}
+.invDiscount label{
+padding-top: 4px;
+} */
+
+.btnAction{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap:8px;
+    justify-content: end;
+    align-items: center;
+
+}
+
+/* SALES CALCULATION PART */
+
+.salesCalculation {
+    width: 18%;
+    border: var(--header-border);
+    background-color: var(--container-color);
+    border-radius: 8px;
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-between; */
+    align-items: center;
+}
+
+.salesCalculation h4 {
+    text-align: center;
+    width: 100%;
+    display: inline-block;
+    background-color: var(--secondary-color);
+    color: var(--headerFont-color);
+    /* margin-bottom: 8px; */
+    height: 20px;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.autoCalc{
+    background-color:var(--table-rowEvenBackground);
+    border-radius: 4px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 8px;
+    grid-row-gap: 2px;
+    align-items: center;
+}
+
+
+.salesCalculation h3{
+    text-align: center;
+    width: 100%;
+    display: inline-block;
+    height: 20px;
+}
+
+.netPayment{
+    height: 34px !important;
+    font-size: 2rem !important;
+    background-color: green;
+    color: yellow;
+    text-align: center !important;
+}
+
+.payment{
+    margin-top: 4px;
+    background-color: goldenrod;
+    border-radius: 4px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 8px;
+    grid-row-gap: 2px;
+    align-items: center;
+}
+/* .payment input,
+.payment select{
+    height: 25px;
+    font-size: 1rem;
+} */
+.payment label{
+    font-size: .7rem;
+    font-weight: bold;
+    padding-right: 0px;
+}
+
+.holdDetail {
+    background-color: var(--container-color);
+    width: 21.5%;
+    border: var(--header-border);
+    border-radius: 8px;
+    padding: 2px;
+    /* display: flex; */
+    flex-wrap: wrap;
+}
+
+/* START - Printing sales invoice*/
+.print-invoice * {
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    color: black;
+}
+
+.print-invoice .text-left{
+    text-align: left;
+}
+.print-invoice .text-right{
+    text-align: right;
+}
+.print-invoice .text-end{
+    text-align: end;
+}
+
+.print-invoice .text-bold{
+    font-weight: bold;
+}
+
+.print-invoice .invoicePrintHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid black;
+    width: 100%;
+    margin: 0;
+}
+.text-center{
+    text-align: center;
+}
+.print-invoice .invoiceInfo{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 4px;            
+}
+
+.print-invoice span {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12px;
+}
+
+.print-invoice .invoicePrintBody {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding-top: 5px;
+    margin: 0;
+}
+
+.print-invoice .invoicePrintBody table {
+    width: 100%;
+}
+
+.print-invoice .invoicePrintBody th,
+.print-invoice .invoicePrintBody td {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 10px;
+    padding-bottom: 2px;
+    border-bottom: 1px dashed black;
+}
+
+.print-invoice .invoicePrintCalculation {
+    /* border: 1px solid black; */
+    width: 100%;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    justify-content: center;
+    align-items: end;
+    border-bottom: 1px solid black;
+}
+
+.print-invoice .invoicePrintFooter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
+}
+
+.print-invoice p {
+    font-size: 8px;
+    text-align: center;
+}
+
+/* RETURN SALES */
+.salesReturnDetail {
+    background-color: var(--container-color);
+    width: 81.5%;
+    border-radius: 8px;
+    display: flex;
+    /* gap: 8px; */
+    flex-direction: column;
+    /* align-items: flex-end; */
+    justify-content: space-between;
+}
+
+.returnMasterHeader{
+    height: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 2fr 1fr 2fr 1fr 2fr 1fr 2fr;
+    align-items: center;
+}
+
+.returnMasterHeader label{
+    padding-right: 4px;
+    color: white;
+}
+
+
+/* return Header */
+.returnHeader {
+    height: 66px;
+    display: flex;
+    background-color: bisque;
+    justify-content: space-between;
+}
+
+.returnHeader label,
+.returnCalculation label {
+    text-align: end;
+    padding-right: 4px;
+}
+
+.returnHeader-part1 {
+
+    width: 30%;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-row-gap: 4px;
+    align-items: center;
+}
+
+.returnHeader-part2 {
+    width: 15%;
+    display: grid;
+    grid-template-columns: 2fr 2fr;
+    align-items: center;
+}
+
+.returnHeader-part3 {
+    width: 15%;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+}
+
+.returnHeader-part4 {
+    width: 18%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.returnHeader-part5 {
+    width: 22%;
+    background-color: var(--primary-color);
+    border: var(--box-border);
+    border-radius: 8px;
+    padding: 2px 4px 2px 4px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 2fr;
+    grid-column-gap: 4px;
+    align-items: center;
+}
+.returnExp{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+}
+
+@media print{
+    .non-printable { display: none; }
+    .printable { display: block; }
+}
+
+@media screen {
+    .invoice-hidden {
+        display: none;
+    }
+}
+/* END - Printing sales invoice */

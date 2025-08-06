@@ -1,0 +1,16 @@
+
+
+==========
+TotalPrice=53912.500488281, NewNewCost=1347.812512207
+
+
+==========
+StockQuantity=45, ProdNewCost=1347.81
+TransQuantity=20, TransNewCost=1565.1999511719
+TotalPrice=29347.450976562, NewNewCost=1173.8980390625
+
+
+==========
+StockQuantity=35, ProdNewCost=1173.9
+TransQuantity=15, TransNewCost=1565.1999511719
+TotalPrice=17608.500732422, NewNewCost=880.42503662109

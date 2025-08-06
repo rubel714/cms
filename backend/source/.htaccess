@@ -1,0 +1,5 @@
+# Add these three lines to CORSify your server for everyone.
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>

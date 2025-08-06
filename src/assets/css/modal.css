@@ -1,0 +1,396 @@
+/* The Modal (background) */
+.modal {
+    /*display: none;*/
+    position: fixed;
+    z-index: 99;
+    /* Sit on top */
+    padding-top: 124px;
+    /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+}
+
+.modal .btnPlus {
+    height: 25px;
+    width: 25px;
+}
+
+/* GLOBAL SETTING FOR ALL MODAL INPUT */
+.modal input[type=text],
+.modal input[type=number],
+.modal select {
+    height: 25px;
+    width: 100%;
+    font-size: .9rem;
+}
+
+.modal textarea {
+    /* height: 30px; */
+    width: 100%;
+    border: var(--input-border);
+    border-radius: 4px;
+    padding: 4px 4px;
+    font-size: .9rem;
+    font-family: sans-serif, 'Lucida Grande', 'Lucida Sans', Arial;
+}
+
+/* STYLE FOR EACH MODAL CHECKBOX */
+.modal input[type=checkbox] {
+    height: 18px;
+    width: 18px;
+}
+
+
+/* Modal Content */
+.modal-content {
+    background-color: var(--secondary-color);
+    margin: auto;
+    /* padding: 4px; */
+    border: 1px solid black;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 60%;
+    word-wrap: break-word;
+}
+
+.modal-content span {
+    padding-left: 16px;
+}
+
+/* Modal Content Small */
+.modal-content-small {
+    background-color: var(--secondary-color);
+    margin: auto;
+    padding: 4px;
+    border: 1px solid black;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 40%;
+    word-wrap: break-word;
+
+}
+
+/* STYLE FOR MODAL HEADER */
+.modalHeader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding-left: 8px;
+    /* margin-bottom: 50px; */
+    background-color: var(--primary-color);
+    border-radius: 8px 8px 0px 0px;
+    color: var(--headerFont-color);
+}
+
+/* STYLE FOR EACH MODAL DIV */
+.modalItem {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    justify-content: end !important;
+}
+
+
+/* STYLE FOR CUSTOM BUTTON ALIGNMENT */
+
+.modalItem label {
+    font-size: .8rem;
+    font-weight: bold;
+    text-align: end;
+    padding-right: 8px;
+}
+
+.modalItem .btnClose {
+    margin-right: 8px;
+}
+
+.modalItem .btnUpdate {
+    margin-right: 8px;
+}
+
+.modal .modalItem input[type=text] {
+    width: 50%;
+}
+
+.modal .modalItem input[type=number] {
+    width: 50%;
+}
+
+.modal .modalItem input[type=file] {
+    width: 100px;
+    height: 40px;
+}
+
+.modal .modalItem select {
+
+    width: 50%;
+
+}
+
+/* MANUFACTURER MODAL EXTENSION */
+.contactmodalBody {
+    display: grid;
+    grid-template-columns: 18% 30% 20% 30%;
+    row-gap: 8px;
+}
+
+.contactmodalBody :nth-child(5) {
+    grid-column: 1;
+    grid-row: 2/ span 2;
+}
+
+.contactmodalBody :nth-child(6) {
+    grid-column: 2;
+    grid-row: 2/ span 2;
+}
+
+.modal .contactmodalBody label {
+    font-size: .8rem;
+    font-weight: bold;
+    padding-top: 6px;
+    text-align: end;
+    padding-right: 8px;
+}
+
+/* PRODUCT MODAL CONTENT EXTENSION */
+.product-content {
+    background-color: var(--modalbg-color);
+    margin: auto;
+    padding: 20px;
+    border: 1px solid black;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 80%;
+}
+
+.product-content .modalHeader {
+    margin-bottom: 20px !important;
+}
+
+.productmodalBody {
+    /* border: 1px solid black; */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+/* Product Entry Part */
+.productEntry {
+    width: 75%;
+    border-radius: 8px;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 2fr;
+}
+
+.productEntry label {
+    font-size: .8rem;
+    font-weight: bold;
+    padding-top: 4px;
+    text-align: end;
+    padding-right: 8px;
+}
+
+.productEntry select {
+    border: var(--input-border);
+    border-radius: 4px;
+    /* width: calc(100% - (38px)); */
+}
+
+/* Product Settings */
+.productSettings {
+    border: 2px solid black;
+    border-radius: 8px;
+    width: 23%;
+    padding: 4px;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-row-gap: 4px;
+}
+
+.productSettings :nth-child(1) {
+    grid-column: 1 / span 2;
+    text-align: center;
+    background-color: var(--primary-color);
+    color: var(--headerFont-color);
+    height: 20px;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.productSettings label {
+    font-size: .8rem;
+    padding-top: 2px;
+    padding-right: 8px;
+    text-align: end;
+
+}
+
+.productSettings input {
+    height: 20px !important;
+    font-size: .8rem !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+.contactmodalBodyImage {
+    display: grid;
+    grid-template-columns: 18% 29% 8% 84%;
+    row-gap: 8px;
+}
+ 
+
+.contactmodalBodyImage :nth-child(5) {
+    grid-column: 1;
+    grid-row: 2/ span 2;
+}
+
+.contactmodalBodyImage :nth-child(6) {
+    grid-column: 2;
+    grid-row: 2/ span 2;
+}
+*/
+.image-preview {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border: 2px solid #c8baba;
+    /* Add a border style */
+    box-sizing: border-box;
+    /* Include the border in the box model */
+}
+
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.width50p {
+    width: 50%;
+}
+
+.pad-10p {
+    padding-left: 10%;
+}
+
+.transaction-report-style {
+    background-color: var(--modalbg-color);
+    margin: auto;
+    padding: 16px;
+    border: 1px solid black;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 40%;
+    word-wrap: break-word;
+    float: left;
+    margin-left: 5px;
+}
+
+.transaction-report-style .modalItem {
+    justify-content: start;
+}
+
+.reportslist {
+    width: 5% !important;
+}
+
+
+
+
+/* Modal Content */
+.modal-content-reportblock {
+    background-color: var(--secondary-color);
+    margin: auto;
+    /* padding: 4px; */
+    border: 1px solid black;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 40%;
+    word-wrap: break-word;
+    margin-bottom: 35px;
+}
+.reportcheckblock {
+    display: inline-table;
+    border: 2px solid gray;
+    margin: 5px;
+    text-align: center;
+    /* width: 286px; */
+}
+
+.reportcheckblock-image {
+    /* width: 284px; */
+    /* height: 300px; */
+    overflow: hidden;
+    border: 2px solid var(--input-border);
+    /* Add a border style */
+    box-sizing: border-box;
+    /* Include the border in the box model */
+}
+.reportcheckblock-width-half {
+    width: 286px;
+}
+.reportcheckblock-width-full {
+    width: 583px;
+}
+
+.reportcheckblock-height-onethird {
+    height: 290px;
+}
+.reportcheckblock-height-half {
+    height: 330px;
+}
+.reportcheckblock-height-full {
+    height: 360px;
+}
+
+
+.btnreportcheckblockwidth {
+    min-width: 30px;
+    font-size: 10px;
+    color:darkblue;
+}
+
+.btnreportcheckblockheight {
+    min-width: 30px;
+    font-size: 10px;
+    color:darkblue;
+}
+
+
+/* .bgunselect{
+    background-color: var(--gray-color);
+} */
+
+.bgselect{
+    background-color: var(--primary-color);
+}
+
+
+.btnreportcheckblockdelete {
+    min-width: 30px;
+    font-size: 10px;
+    margin-left: 36px;
+    background-color: var(--red-color);
+    color:darkblue;
+}
+  /* background-color: var(--primary-color); */
