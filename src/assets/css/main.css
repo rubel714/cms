@@ -2,16 +2,16 @@
 
 /* GLOBAL VARIABLE */
 :root {
-  --primary-color: #18b3d6;
-  --secondary-color: rgb(235, 218, 39);
-  --bg-color: rgb(245, 223, 198);
+  --primary-color: #06213d;
+  --secondary-color: #FFC900;
+  --bg-color: #f5f0df;
   /* --primary-color: rgb(131, 131, 243); */
-  --secondary-color: rgb(235, 218, 39);
+  /* --secondary-color: rgb(235, 218, 39); */
   --headerFont-color: white;
   --paginationFont-color: white;
   --modalbg-color: bisque;
   --gray-color: rgb(214, 212, 212);
-   --red-color: #f02d37;
+  --red-color: #f02d37;
 
   /* BORDER */
   --container-border: 1px solid black;
@@ -25,9 +25,10 @@
 
   /* TABLE */
   --table-borderAround: 1px solid white;
-  --table-rowEvenBackground: rgb(203, 220, 177);
-  --table-rowOddBackground: rgb(213, 196, 178);
+  --table-rowEvenBackground: #f5f0df;
+  --table-rowOddBackground: #dfe0e0;
 }
+
 
 /* Reset browser */
 * {
@@ -147,7 +148,7 @@ input[type="number"] {
 
 /* THIS CLASS USE FOR CREATE CONTENT WITHIN BODY */
 .subContainer {
-  background-color: var(--primary-color);
+  background-color:var(--secondary-color);
   border-radius: 8px;
   padding: 2px;
   width: 100%;
@@ -314,7 +315,7 @@ button:hover {
   margin-top: 4px;
   width: 100%;
   border-radius: 8px 8px 0px 0px;
-  border-collapse:separate;
+  border-collapse: collapse;
   border-radius: 4px;
 }
 
@@ -327,9 +328,10 @@ button:hover {
 }
 
 .tableGlobal thead tr {
-  background-color: var(--primary-color);
-  color: white;
+  background-color:var(--secondary-color);
+  color: rgb(0, 0, 0);
   height: 30px;
+  
   /* font-size: .8rem; */
 }
 
@@ -372,7 +374,7 @@ tr:nth-child(odd) {
 .pagination a {
   color: var(--paginationFont-color);
   background-color: var(--secondary-color);
-  border: 1px solid white;
+  border: 1px solid black;
   border-radius: 4px;
   text-decoration: none;
   padding: 2px 8px;
@@ -388,13 +390,13 @@ tr:nth-child(odd) {
 .pagination label {
   font-size: 0.9rem;
   margin: 0px 12px;
-  color: white;
+  color: black;
 }
 
 .pagination span {
   font-size: 0.9rem;
   margin: 0px 12px;
-  color: white;
+  color: black;
 }
 
 /* FOOTER DESIGN */
@@ -404,7 +406,7 @@ tr:nth-child(odd) {
   left: 0px;
   width: 100%;
   height: 30px;
-  background-color: var(--secondary-color);
+  background-color: var(--primary-color);
   border: var(--box-border);
   display: flex;
   border-radius: 8px;
@@ -414,7 +416,7 @@ tr:nth-child(odd) {
 }
 
 .footer h6 {
-  color: var(--primary-color);
+  color: var(--headerFont-color);
 }
 
 /* LOGIN DESIGN */
@@ -485,10 +487,13 @@ tr:nth-child(odd) {
   width: 80px;
   border: var(--box-border);
   border-radius: 4px;
-  color: greenyellow !important;
+  color: white !important;
   cursor: pointer;
   align-self: flex-end;
   margin-right: 20px;
+}
+.btnLogin p{
+  color: inherit;
 }
 
 .loginContainer span {

@@ -131,11 +131,11 @@ function CustomTable({
                 const sortIcon = () => {
                   if (column.field === sort.orderBy) {
                     if (sort.order === "asc") {
-                      return "⬆️";
+                      return "⬆";
                     }
-                    return "⬇️";
+                    return "⬇";
                   } else {
-                    return "️↕️";
+                    return "️↕";
                   }
                 };
 

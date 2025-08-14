@@ -5,7 +5,7 @@
     height: 80px;
     padding: 0px 8px 0px 8px;
     border: var(--box-border);
-    border-radius: 8px;
+    /* border-radius: 8px; */
     background-color: var(--secondary-color);
     display: flex;
     flex-wrap: wrap;
@@ -96,7 +96,7 @@
 }
 
 .dropdownList li a:hover {
-    color: greenyellow;
+    color:var(--secondary-color);
 }
 
 
