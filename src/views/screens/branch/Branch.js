@@ -247,15 +247,15 @@ const Branch = (props) => {
         </div>
 
         {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
-        <div class="subContainer">
-          <div className="App">
+        {/* <div class="subContainer">
+          <div className="App"> */}
             <CustomTable
               columns={columnList}
               rows={dataList?dataList:{}}
               actioncontrol={actioncontrol}
             />
-          </div>
-        </div>
+          {/* </div>
+        </div> */}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
 

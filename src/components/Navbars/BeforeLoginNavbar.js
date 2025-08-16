@@ -9,6 +9,7 @@ function BeforeLoginNavbar(props) {
         {/* <!-- LOGO --> */}
         <div class="logo">
           <img alt="..." src={require("assets/img/logo.png")}></img>
+          <label >CMS</label>
         </div>
         {/* <span class="demotext">This is DEMO site</span> */}
 

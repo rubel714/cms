@@ -28,7 +28,11 @@
     width: 60px;
     border-radius: 4px;
 }
-
+.logo label{
+    font-size: 25px;
+    font-weight: bold;
+    margin-left: 12px;
+}
 .menuBar {
     /* flex-shrink: 1; */
     height: 80px;

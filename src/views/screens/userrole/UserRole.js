@@ -233,15 +233,15 @@ const UserRole = (props) => {
         </div>
 
         {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
-        <div class="subContainer tableHeight">
-          <div className="App">
+        {/* <div class="subContainer tableHeight">
+          <div className="App"> */}
             <CustomTable
               columns={columnList}
               rows={dataList?dataList:{}}
               actioncontrol={actioncontrol}
             />
-          </div>
-        </div>
+          {/* </div>
+        </div> */}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
 

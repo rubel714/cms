@@ -672,15 +672,15 @@ const InvoiceUpload = (props) => {
               />
             </div>
 
-            <div class="subContainer tableHeight">
-              <div className="App">
+            {/* <div class="subContainer tableHeight">
+              <div className="App"> */}
                 <CustomTable
                   columns={columnList}
                   rows={dataList ? dataList : {}}
                   // actioncontrol={actioncontrol}
                 />
-              </div>
-            </div>
+              {/* </div>
+            </div> */}
           </div>
         )}
       </div>

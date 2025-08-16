@@ -777,15 +777,15 @@ const VisitSummaryReport = (props) => {
           </div>
         </div> */}
 
-        <div class="subContainer ">
-          <div className="App">
+        {/* <div class="subContainer ">
+          <div className="App"> */}
             <CustomTable
               columns={columnList}
               rows={dataList ? dataList : {}}
             // actioncontrol={actioncontrol}
             />
-          </div>
-        </div>
+          {/* </div>
+        </div> */}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
     </>

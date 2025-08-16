@@ -19,8 +19,7 @@ function CustomTable({
   //   { field: 'custom', label: 'Action',width:'10%',align:'center',visible:true,sort:false,filter:false },
   // ]
 
-  console.log('paginationsize: ', paginationsize);
-
+  console.log("paginationsize: ", paginationsize);
 
   const [activePage, setActivePage] = useState(1);
   const [filters, setFilters] = useState({});
@@ -30,8 +29,8 @@ function CustomTable({
 
   if (!ispagination) {
     rowsPerPage = rows.length;
-  }else{
-    if(paginationsize){
+  } else {
+    if (paginationsize) {
       rowsPerPage = paginationsize;
     }
   }
@@ -59,7 +58,7 @@ function CustomTable({
     }
 
     if (!row.hasOwnProperty("type")) {
-      columns[i].type = 'string';
+      columns[i].type = "string";
     }
   });
   // console.log("columns: ", columns);
@@ -68,7 +67,7 @@ function CustomTable({
     () => filterRows(rows, filters),
     [rows, filters]
   );
-  
+
   const sortedRows = useMemo(
     () => sortRows(filteredRows, sort),
     [filteredRows, sort]
@@ -123,124 +122,155 @@ function CustomTable({
         </h4>
       </div> */}
 
-      <div class="">
-        <table id="salesitemtbl" class="tableGlobal">
-          <thead>
-            <tr>
-              {columns.map((column) => {
-                const sortIcon = () => {
-                  if (column.field === sort.orderBy) {
-                    if (sort.order === "asc") {
-                      return "⬆";
+      <div class="subContainer tableHeight">
+        <div className="App">
+          <table id="salesitemtbl" class="tableGlobal">
+            <thead>
+              <tr>
+                {columns.map((column) => {
+                  const sortIcon = () => {
+                    if (column.field === sort.orderBy) {
+                      if (sort.order === "asc") {
+                        return "⬆";
+                      }
+                      return "⬇";
+                    } else {
+                      return "️↕";
                     }
-                    return "⬇";
-                  } else {
-                    return "️↕";
-                  }
-                };
+                  };
 
-                // { field: 'ProductCetegoryName', label: 'Product Cetegory Name',width:'30%',align:'center',visible:true,sort:true,filter:true },
+                  // { field: 'ProductCetegoryName', label: 'Product Cetegory Name',width:'30%',align:'center',visible:true,sort:true,filter:true },
 
-                return (
-                  <>
-                    {column.visible && (
-                      <th
-                        key={column.field}
-                        style={{ textAlign: column.align, width: column.width }}
-                      >
-                        <span>{column.label}</span>
+                  return (
+                    <>
+                      {column.visible && (
+                        <th
+                          key={column.field}
+                          style={{
+                            textAlign: column.align,
+                            width: column.width,
+                          }}
+                        >
+                          <span>{column.label}</span>
 
-                        {column.sort && (
-                          <button
-                            class="btn-table-sort"
-                            onClick={() => handleSort(column.field)}
-                          >
-                            {sortIcon()}
-                          </button>
-                        )}
-                      </th>
-                    )}
-                  </>
-                );
-              })}
-            </tr>
-            <tr>
-              {columns.map((column) => {
-                return (
-                  <>
-                    {column.visible && (
-                      <th>
-                        {column.filter && (
-                          <input
-                            key={`${column.field}-search`}
-                            type="search"
-                            placeholder={`Search ${column.label}`}
-                            value={filters[column.field]}
-                            onChange={(event) =>
-                              handleSearch(event.target.value, column.field)
-                            }
-                          />
-                        )}
-                      </th>
-                    )}
-                  </>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {calculatedRows.length > 0 &&
-              calculatedRows.map((row, rowsl) => {
-                return (
-                  <tr key={row.id}>
-                    {columns.map((column, i) => {
-                      if (columns[i].visible) {
-                        // if (column.format) {
-                        //   return (
-                        //     <td key={column.field} style={{ textAlign : columns[i].align }}>
-                        //       {column.format(column.field==="rownumber"?(rowsl+1):row[column.field])}
-                        //     </td>
-                        //   );
-                        // }
+                          {column.sort && (
+                            <button
+                              class="btn-table-sort"
+                              onClick={() => handleSort(column.field)}
+                            >
+                              {sortIcon()}
+                            </button>
+                          )}
+                        </th>
+                      )}
+                    </>
+                  );
+                })}
+              </tr>
+              <tr>
+                {columns.map((column) => {
+                  return (
+                    <>
+                      {column.visible && (
+                        <th>
+                          {column.filter && (
+                            <input
+                              key={`${column.field}-search`}
+                              type="search"
+                              placeholder={`Search ${column.label}`}
+                              value={filters[column.field]}
+                              onChange={(event) =>
+                                handleSearch(event.target.value, column.field)
+                              }
+                            />
+                          )}
+                        </th>
+                      )}
+                    </>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {calculatedRows.length > 0 &&
+                calculatedRows.map((row, rowsl) => {
+                  return (
+                    <tr key={row.id}>
+                      {columns.map((column, i) => {
+                        if (columns[i].visible) {
+                          // if (column.format) {
+                          //   return (
+                          //     <td key={column.field} style={{ textAlign : columns[i].align }}>
+                          //       {column.format(column.field==="rownumber"?(rowsl+1):row[column.field])}
+                          //     </td>
+                          //   );
+                          // }
 
-                        if (column.field === "custom") {
-                          // formatter
-                          // return (
-                          //   <td key={column.field} style={{ textAlign:columns[i].align }}>{ columns[i].formatter }</td>
-                          // );
+                          if (column.field === "custom") {
+                            // formatter
+                            // return (
+                            //   <td key={column.field} style={{ textAlign:columns[i].align }}>{ columns[i].formatter }</td>
+                            // );
+
+                            return (
+                              <td
+                                key={column.field}
+                                style={{ textAlign: columns[i].align }}
+                              >
+                                {actioncontrol(row)}
+                              </td>
+                            );
+                          }
 
                           return (
                             <td
                               key={column.field}
                               style={{ textAlign: columns[i].align }}
                             >
-                              {actioncontrol(row)}
+                              {
+                                column.field === "rownumber"
+                                  ? (activePage - 1) * rowsPerPage + (rowsl + 1)
+                                  : column.type === "number"
+                                  ? new Intl.NumberFormat("hi-IN").format(
+                                      row[column.field]
+                                    )
+                                  : row[column.field]
+                                //new Intl.NumberFormat('hi-IN').format(56325320)
+                                //row[column.field]
+                                // new Intl.NumberFormat('hi-IN', { style: 'currency', currency: 'INR' }).format(3636)
+                              }
                             </td>
                           );
                         }
+                      })}
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+          {/* isPagination */}
+          {/* {ispagination && (
+          <>
+            {count > 0 ? (
+              <Pagination
+                activePage={activePage}
+                count={count}
+                rowsPerPage={rowsPerPage}
+                totalPages={totalPages}
+                setActivePage={setActivePage}
+                clearAll={clearAll}
+              />
+            ) : (
+              <p>No data found</p>
+            )}
+          </>
+        )} */}
+        </div>
+      </div>
 
-                        return (
-                          <td
-                            key={column.field}
-                            style={{ textAlign: columns[i].align }}
-                          >
-                            {column.field === "rownumber"
-                              ? (activePage - 1) * rowsPerPage + (rowsl + 1)
-                              : (column.type==="number"?new Intl.NumberFormat('hi-IN').format(row[column.field]):row[column.field])
-                              //new Intl.NumberFormat('hi-IN').format(56325320)
-                              //row[column.field]
-                              // new Intl.NumberFormat('hi-IN', { style: 'currency', currency: 'INR' }).format(3636)
-                              }
-                          </td>
-                        );
-                      }
-                    })}
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
-        {/* isPagination */}
+      {/* isPagination */}
+
+      <div>
         {ispagination && (
           <>
             {count > 0 ? (
@@ -258,7 +288,6 @@ function CustomTable({
           </>
         )}
       </div>
-      {/* </div> */}
     </>
   );
 }

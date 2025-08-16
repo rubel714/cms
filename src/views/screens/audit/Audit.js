@@ -1402,15 +1402,15 @@ const Audit = (props) => {
             </div>
 
             {/* <!-- ####---Master invoice list---####s --> */}
-            <div class="subContainer">
-              <div className="App tableHeight">
+            {/* <div class="subContainer">
+              <div className="App tableHeight"> */}
                 <CustomTable
                   columns={masterColumnList}
                   rows={dataList ? dataList : {}}
                   actioncontrol={actioncontrolmaster}
                 />
-              </div>
-            </div>
+              {/* </div>
+            </div> */}
           </>
         )}
 

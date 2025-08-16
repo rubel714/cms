@@ -44,8 +44,8 @@ html {
 body {
   background-color: var(--bg-color);
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   ::-webkit-scrollbar-track {
@@ -53,7 +53,7 @@ body {
     /* margin-right: -20px; */
   }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--secondary-color);
+       background-color: var(--primary-color);
   }
  
 }
@@ -154,13 +154,7 @@ input[type="number"] {
   width: 100%;
 }
 
-.subContainertwo {
-  /* background-color: var(--primary-color); */
-  border: var(--box-border);
-  border-radius: 8px;
-  padding: 4px;
-  width: 100%;
-}
+
 
 .usersProfile {
   /* background-color: var(--primary-color); */
@@ -312,7 +306,7 @@ button:hover {
 /* #######------ STYLE FOR GLOBAL TABLE -------####### */
 
 .tableGlobal {
-  margin-top: 4px;
+  /* margin-top: 4px; */
   width: 100%;
   border-radius: 8px 8px 0px 0px;
   border-collapse: collapse;
@@ -752,9 +746,9 @@ input {
 /* TABLE height control */
 /* User INFORMATION */
 .tableHeight {
-  max-height: calc(100vh - 214px);
-  overflow-y: scroll;
-  overflow-x: scroll;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overflow-x: auto;
   /* -webkit-overflow-scrolling: touch; */
 }
 
@@ -781,7 +775,9 @@ input {
     text-wrap: nowrap;
   }
 }
-
+.homecontent p{
+text-align: left !important;
+}
 /* Media Query for Large Device Mobile Tablet/Computer */
 @media only screen and (min-width: 993px) and (max-width: 1199px) {
 }

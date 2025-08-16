@@ -417,16 +417,16 @@ const RoleToMenuPermission = (props) => {
 
 
             {/* <!-- ####---Master invoice list---####s --> */}
-             <div class="subContainer tableHeight">
-              <div className="App">
+             {/* <div class="subContainer tableHeight">
+              <div className="App"> */}
                 <CustomTable
                   columns={masterColumnList}
                   rows={dataList ? dataList : {}}
                   actioncontrol={actioncontrolmaster}
                   ispagination={false}
                 />
-              </div>
-            </div> 
+              {/* </div>
+            </div>  */}
           </>
         )}
 
