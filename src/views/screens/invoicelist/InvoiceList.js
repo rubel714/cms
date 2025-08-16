@@ -552,7 +552,7 @@ const InvoiceList = (props) => {
         {/* <!-- TABLE SEARCH AND GROUP ADD --> */}
        <div class="searchAdd">
           <div class="">
-            <label>Show Last Number of Inoice: </label>
+            <label>Show Last Number of Invoice: </label>
             <input
               type="text"
               id="lastInvoiceLimit"

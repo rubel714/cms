@@ -9,7 +9,7 @@ function BeforeLoginNavbar(props) {
         {/* <!-- LOGO --> */}
         <div class="logo">
           <img alt="..." src={require("assets/img/logo.png")}></img>
-          <label >CMS</label>
+          <label>CMS</label>
         </div>
         {/* <span class="demotext">This is DEMO site</span> */}
 
@@ -17,6 +17,7 @@ function BeforeLoginNavbar(props) {
         <div class="userPanel">
           {/* <div><label>{userInfo.ClientName}</label></div>
         <div><label>{userInfo.BranchName}</label></div> */}
+          <div></div>
 
           <a
             id="login"

@@ -1,6 +1,6 @@
 
 =================Domai================================================
-URL: https://inspection.ng-pl.com
+URL: https://cms.ng-pl.com
 User: admin
 Password: Net@pp096
 
@@ -16,13 +16,13 @@ REACT_APP_FRONT_URL= http://localhost/cms/
 
 
 =================Local env.php================================================
-define("DB_NAME", "inspection_db");
+define("DB_NAME", "cms_db");
 define("DB_USER", "root");
 define("DB_PASSWORD", "");
 define("DB_SERVER", "localhost");
-define("sitetitleeng", "Inspection");
+define("sitetitleeng", "CMS");
 define("domainurl", "http://localhost");
-define("reportsitetitleeng", "Inspection");
+define("reportsitetitleeng", "CMS");
 define("loginonlyadmin", "0");  /*0=production mode, 1=maintanance mode*/
 
 
@@ -31,11 +31,11 @@ define("loginonlyadmin", "0");  /*0=production mode, 1=maintanance mode*/
 FAST_REFRESH = false
 CHOKIDAR_USEPOLLING=true
 REACT_APP_BASE_NAME=
-REACT_APP_API_URL=https://inspection.ng-pl.com/backend/
-REACT_APP_FRONT_URL=https://inspection.ng-pl.com/
+REACT_APP_API_URL=https://cms.ng-pl.com/backend/
+REACT_APP_FRONT_URL=https://cms.ng-pl.com/
 
 =================Web env.php================================================
-define("DB_NAME", "ngplcom_inspection_db");
+define("DB_NAME", "ngplcom_cms_db");
 define("DB_USER", "ngplcom_ngplcom");
 define("DB_PASSWORD", "12@ASasdfghjkl");
 define("DB_SERVER", "localhost");

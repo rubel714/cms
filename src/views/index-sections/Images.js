@@ -10,7 +10,7 @@ function Images() {
     <>
       <div class="homecontent">
         <p>
-          yIntertek has made every attempt to ensure the accuracy and
+          Intertek has made every attempt to ensure the accuracy and
           reliability of the information provided on this website. However, the
           information is provided "as is" without warranty of any kind. Intertek
           does not accept any responsibility or liability for the accuracy,
