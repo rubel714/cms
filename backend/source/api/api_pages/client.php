@@ -37,8 +37,10 @@ function getDataList($data){
 		a.Designation,  a.ContactPhone, a.CompanyName, a.NatureOfBusiness,
 		a.CompanyEmail,a.CompanyAddress,a.IsActive,a.UserId
 		, case when a.IsActive=1 then 'Active' else 'In Active' end IsActiveName
+		,a.CustomerGroupId,b.CustomerGroupName
 		FROM t_customer a
-		ORDER BY a.CustomerName ASC;";		
+		inner join t_customergroup b on a.CustomerGroupId=b.CustomerGroupId
+		ORDER BY a.CustomerName ASC;";
 
 		$resultdata = $dbh->query($query);
 		
@@ -77,10 +79,11 @@ function dataAddEdit($data) {
 		}
 
 		$CustomerName = $data->rowData->CustomerName;
+		$CustomerGroupId = $data->rowData->CustomerGroupId;
 		$Designation = isset($data->rowData->Designation) && ($data->rowData->Designation !== "") ? $data->rowData->Designation : NULL;
 		$ContactPhone = isset($data->rowData->ContactPhone) && ($data->rowData->ContactPhone !== "")? $data->rowData->ContactPhone : NULL;
 		$CompanyName = isset($data->rowData->CompanyName) && ($data->rowData->CompanyName !== "")? $data->rowData->CompanyName : NULL;
-		$NatureOfBusiness = isset($data->rowData->NatureOfBusiness) && ($data->rowData->NatureOfBusiness !== "")? $data->rowData->NatureOfBusiness : NULL;
+		// $NatureOfBusiness = isset($data->rowData->NatureOfBusiness) && ($data->rowData->NatureOfBusiness !== "")? $data->rowData->NatureOfBusiness : NULL;
 		$CompanyEmail = isset($data->rowData->CompanyEmail) && ($data->rowData->CompanyEmail !== "")? $data->rowData->CompanyEmail : NULL;
 		$CompanyAddress = isset($data->rowData->CompanyAddress) && ($data->rowData->CompanyAddress !== "")? $data->rowData->CompanyAddress : NULL;
 		$IsActive = 1;//isset($data->rowData->IsActive) ? $data->rowData->IsActive : 0;
@@ -93,8 +96,8 @@ function dataAddEdit($data) {
 			if($CustomerId == ""){
 				$q = new insertq();
 				$q->table = 't_customer';
-				$q->columns = ['ClientId','CustomerCode','CustomerName','Designation','ContactPhone','CompanyName','NatureOfBusiness','CompanyEmail','CompanyAddress','IsActive','UserId'];
-				$q->values = [$ClientId,$CustomerCode,$CustomerName,$Designation,$ContactPhone,$CompanyName,$NatureOfBusiness,$CompanyEmail,$CompanyAddress,$IsActive,$UserId];
+				$q->columns = ['ClientId','CustomerCode','CustomerName','CustomerGroupId','Designation','ContactPhone','CompanyName','CompanyEmail','CompanyAddress','IsActive','UserId'];
+				$q->values = [$ClientId,$CustomerCode,$CustomerName,$CustomerGroupId,$Designation,$ContactPhone,$CompanyName,$CompanyEmail,$CompanyAddress,$IsActive,$UserId];
 				$q->pks = ['CustomerId'];
 				$q->bUseInsetId = false;
 				$q->build_query();
@@ -103,8 +106,8 @@ function dataAddEdit($data) {
 			}else{
 				$u = new updateq();
 				$u->table = 't_customer';
-				$u->columns = ['CustomerCode','CustomerName','Designation','ContactPhone','CompanyName','NatureOfBusiness','CompanyEmail','CompanyAddress'];
-				$u->values = [$CustomerCode,$CustomerName,$Designation,$ContactPhone,$CompanyName,$NatureOfBusiness,$CompanyEmail,$CompanyAddress];
+				$u->columns = ['CustomerCode','CustomerName','CustomerGroupId','Designation','ContactPhone','CompanyName','CompanyEmail','CompanyAddress'];
+				$u->values = [$CustomerCode,$CustomerName,$CustomerGroupId,$Designation,$ContactPhone,$CompanyName,$CompanyEmail,$CompanyAddress];
 				$u->pks = ['CustomerId'];
 				$u->pk_values = [$CustomerId];
 				$u->build_query();
@@ -144,13 +147,11 @@ function deleteData($data) {
 		
 		$CustomerId = $data->rowData->id;
 		$lan = trim($data->lan); 
-		$UserId = trim($data->UserId); 
-		//$ClientId = trim($data->ClientId); 
-		//$BranchId = trim($data->BranchId); 
+		$UserId = trim($data->UserId);
 
 		try{
 
-			$dbh = new Db();
+			// $dbh = new Db();
 			
             $d = new deleteq();
             $d->table = 't_customer';

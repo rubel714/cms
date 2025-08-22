@@ -7,10 +7,10 @@ import CustomTable from "components/CustomTable/CustomTable";
 import { apiCall, apiOption, LoginUserInfo, language } from "../../../actions/api";
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 
-import BusinessLineAddEditModal from "./BusinessLineAddEditModal";
+import CustomerGroupAddEditModal from "./CustomerGroupAddEditModal";
 
-const BusinessLine = (props) => {
-  const serverpage = "businessline"; // this is .php server page
+const CustomerGroup = (props) => {
+  const serverpage = "customergroup"; // this is .php server page
 
   const permissionType = props.permissionType;
   const { useState } = React;
@@ -29,7 +29,7 @@ const BusinessLine = (props) => {
 
     window.open(
       finalUrl +
-      "?action=BusinessLinetExport" +
+      "?action=CustomerGroupExport" +
       "&reportType=excel" +
       "&ClientId=" + UserInfo.ClientId +
       "&BranchId=" + UserInfo.BranchId +
@@ -43,17 +43,10 @@ const BusinessLine = (props) => {
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "5%" },
     // { field: 'SL', label: 'SL',width:'10%',align:'center',visible:true,sort:false,filter:false },
-    {
-      field: "BusinessLineCode",
-      label: "Business Line Code",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+
         {
-      field: "BusinessLineName",
-      label: "Business Line Name",
+      field: "CustomerGroupName",
+      label: "Customer Group Name",
       align: "left",
       visible: true,
       sort: true,
@@ -120,8 +113,7 @@ const BusinessLine = (props) => {
 
     setCurrentRow({
       id: "",
-      BusinessLineCode: "",
-      BusinessLineName: "",
+      CustomerGroupName: "",
     });
     openModal();
   };
@@ -203,7 +195,7 @@ const BusinessLine = (props) => {
         {/* <!-- ######-----TOP HEADER-----####### --> */}
         <div class="topHeader">
           <h4>
-            <a href="#">Home</a> ❯ Basic Setup ❯ Business Line
+            <a href="#">Home</a> ❯ Basic Setup ❯ Customer Group
           </h4>
         </div>
 
@@ -229,11 +221,11 @@ const BusinessLine = (props) => {
       {/* <!-- BODY CONTAINER END --> */}
 
 
-      {showModal && (<BusinessLineAddEditModal masterProps={props} currentRow={currentRow} modalCallback={modalCallback} />)}
+      {showModal && (<CustomerGroupAddEditModal masterProps={props} currentRow={currentRow} modalCallback={modalCallback} />)}
 
 
     </>
   );
 };
 
-export default BusinessLine;
+export default CustomerGroup;

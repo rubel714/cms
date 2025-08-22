@@ -6,7 +6,8 @@ import {
   LoginUserInfo,
   language,
 } from "../../../actions/api";
-
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Typography, TextField } from "@material-ui/core";
 const ClientAddEditModal = (props) => {
   // console.log('props modal: ', props);
   const serverpage = "client"; // this is .php server page
@@ -16,10 +17,47 @@ const ClientAddEditModal = (props) => {
   const [errorObject, setErrorObject] = useState({});
   const UserInfo = LoginUserInfo();
 
+  const [CustomerGroupList, setCustomerGroupList] = useState(null);
+  const [currCustomerGroupId, setCurrCustomerGroupId] = useState(null);
+
+
   React.useEffect(() => {
+    getCustomerGroupList(props.currentRow.CustomerGroupId);
     setCurrentRow(props.currentRow);
-    // getMembershipType();
+    
   }, []);
+
+  
+    function getCustomerGroupList(selectCustomerGroupId) {
+      let params = {
+        action: "CustomerGroupList",
+        lan: language(),
+        UserId: UserInfo.UserId,
+      };
+  
+      apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+        setCustomerGroupList(
+          [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist)
+        );
+  
+        setCurrCustomerGroupId(selectCustomerGroupId);
+      });
+    }
+
+
+  const handleChangeFilterDropDown = (name, value) => {
+    let data = { ...currentRow };
+    if (name === "CustomerGroupId") {
+      data["CustomerGroupId"] = value;
+      setCurrCustomerGroupId(value);
+    }
+    
+    setErrorObject({ ...errorObject, [name]: null });
+    setCurrentRow(data);
+ 
+  };
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,7 +80,7 @@ const ClientAddEditModal = (props) => {
 
   const validateForm = () => {
     // let validateFields = ["GroupName", "DiscountAmount", "DiscountPercentage"]
-    let validateFields = ["CustomerName"];
+    let validateFields = ["CustomerName","CustomerGroupId"];
     let errorData = {};
     let isValid = true;
     validateFields.map((field) => {
@@ -122,19 +160,56 @@ const ClientAddEditModal = (props) => {
             />
           </div>
 
-
           <div class="contactmodalBody pt-10">
-          <label>Address</label>
+            <label>Customer Group *</label>
+
+            <Autocomplete
+              autoHighlight
+              disableClearable
+              className="chosen_dropdown"
+              id="CustomerGroupId"
+              name="CustomerGroupId"
+              autoComplete
+              class={errorObject.CustomerGroupId}
+              options={CustomerGroupList ? CustomerGroupList : []}
+              getOptionLabel={(option) => option.name}
+              defaultValue={{ id: 0, name: "Select Designation" }}
+              value={
+                CustomerGroupList
+                  ? CustomerGroupList[
+                      CustomerGroupList.findIndex(
+                        (list) => list.id === currCustomerGroupId
+                      )
+                    ]
+                  : null
+              }
+              onChange={(event, valueobj) =>
+                handleChangeFilterDropDown(
+                  "CustomerGroupId",
+                  valueobj ? valueobj.id : ""
+                )
+              }
+              renderOption={(option) => (
+                <Typography className="chosen_dropdown_font">
+                  {option.name}
+                </Typography>
+              )}
+              renderInput={(params) => (
+                <TextField {...params} variant="standard" fullWidth />
+              )}
+            />
+
+            <label>Address</label>
             <input
               type="text"
               id="CompanyAddress"
               name="CompanyAddress"
               // class={errorObject.CompanyAddress}
-              placeholder="Enter company address"
+              placeholder="Enter address"
               value={currentRow.CompanyAddress}
               onChange={(e) => handleChange(e)}
             />
-  <label>Type</label>
+            {/* <label>Type</label>
             <input
               type="text"
               id="NatureOfBusiness"
@@ -143,10 +218,7 @@ const ClientAddEditModal = (props) => {
               placeholder="Enter type"
               value={currentRow.NatureOfBusiness}
               onChange={(e) => handleChange(e)}
-            />
-
-
-           
+            /> */}
           </div>
 
           <div class="contactmodalBody pt-10">
@@ -161,7 +233,7 @@ const ClientAddEditModal = (props) => {
               onChange={(e) => handleChange(e)}
             />
 
- <label>Designation</label>
+            <label>Designation</label>
             <input
               type="text"
               id="Designation"
@@ -171,12 +243,10 @@ const ClientAddEditModal = (props) => {
               value={currentRow.Designation}
               onChange={(e) => handleChange(e)}
             />
-
           </div>
 
           <div class="contactmodalBody pt-10">
-            
-          <label>Phone</label>
+            <label>Phone</label>
             <input
               type="text"
               id="ContactPhone"
@@ -186,31 +256,18 @@ const ClientAddEditModal = (props) => {
               value={currentRow.ContactPhone}
               onChange={(e) => handleChange(e)}
             />
-          
+
             <label>Email</label>
             <input
               type="text"
               id="CompanyEmail"
               name="CompanyEmail"
               // class={errorObject.ContactPhone}
-              placeholder="Enter company email"
+              placeholder="Enter email"
               value={currentRow.CompanyEmail}
               onChange={(e) => handleChange(e)}
             />
-
-           
           </div>
-
-          {/* <div class="contactmodalBody pt-10">
-            <label>Is Active?</label>
-            <input
-              id="IsActive"
-              name="IsActive"
-              type="checkbox"
-              checked={currentRow.IsActive}
-              onChange={handleChangeCheck}
-            />
-          </div> */}
 
           <div class="modalItem">
             <Button label={"Close"} class={"btnClose"} onClick={modalClose} />

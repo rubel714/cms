@@ -17,7 +17,12 @@ switch ($task) {
 		$returnData = CheckList($data);
 		break;
 
-
+	case "BusinessLineList":
+		$returnData = BusinessLineList($data);
+		break;
+	case "CustomerGroupList":
+		$returnData = CustomerGroupList($data);
+		break;
 
 	case "CustomerList":
 		$returnData = CustomerList($data);
@@ -28,9 +33,7 @@ switch ($task) {
 	case "DepartmentList":
 		$returnData = DepartmentList($data);
 		break;
-	case "BusinessLineList":
-		$returnData = BusinessLineList($data);
-		break;
+ 
 	case "MonthList":
 		$returnData = MonthList($data);
 		break;
@@ -312,14 +315,12 @@ function BusinessLineList($data)
 {
 	try {
 
-		// $ClientId = trim($data->ClientId);
-		// $BranchId = trim($data->BranchId);
-
+ 
 		$dbh = new Db();
 
-		$query = "SELECT `BusinessLineId` id,`BusinessLineName` `name`
+		$query = "SELECT `BusinessLineId` id,concat(`BusinessLineCode`,' - ',BusinessLineName) `name`
 	 			 	FROM `t_businessline` 
-					ORDER BY BusinessLineName;";
+					ORDER BY BusinessLineCode;";
 
 		$resultdata = $dbh->query($query);
 
@@ -337,6 +338,31 @@ function BusinessLineList($data)
 }
 
 
+function CustomerGroupList($data)
+{
+	try {
+
+ 
+		$dbh = new Db();
+
+		$query = "SELECT `CustomerGroupId` id,CustomerGroupName `name`
+	 			 	FROM `t_customergroup` 
+					ORDER BY CustomerGroupName;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
 function MonthList($data)
 {
 	try {

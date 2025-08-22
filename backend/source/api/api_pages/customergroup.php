@@ -28,9 +28,9 @@ function getDataList($data){
 
 	try{
 		$dbh = new Db();
-		$query = "SELECT BusinessLineId AS id,BusinessLineCode, BusinessLineName
-		FROM t_businessline 
-		ORDER BY `BusinessLineCode` ASC;";		
+		$query = "SELECT CustomerGroupId AS id,CustomerGroupName
+		FROM t_customergroup 
+		ORDER BY `CustomerGroupName` ASC;";		
 		
 		$resultdata = $dbh->query($query);
 		
@@ -60,31 +60,30 @@ function dataAddEdit($data) {
 		$lan = trim($data->lan); 
 		$UserId = trim($data->UserId); 
 
-		$BusinessLineId = $data->rowData->id;
-		$BusinessLineCode = $data->rowData->BusinessLineCode;
-		$BusinessLineName = $data->rowData->BusinessLineName;
+		$CustomerGroupId = $data->rowData->id;
+		$CustomerGroupName = $data->rowData->CustomerGroupName; 
 
 		try{
 
 			$dbh = new Db();
 			$aQuerys = array();
 
-			if($BusinessLineId == ""){
+			if($CustomerGroupId == ""){
 				$q = new insertq();
-				$q->table = 't_businessline';
-				$q->columns = ['BusinessLineCode','BusinessLineName'];
-				$q->values = [$BusinessLineCode, $BusinessLineName];
-				$q->pks = ['BusinessLineId'];
+				$q->table = 't_customergroup';
+				$q->columns = ['CustomerGroupName'];
+				$q->values = [$CustomerGroupName];
+				$q->pks = ['CustomerGroupId'];
 				$q->bUseInsetId = false;
 				$q->build_query();
 				$aQuerys = array($q); 
 			}else{
 				$u = new updateq();
-				$u->table = 't_businessline';
-				$u->columns = ['BusinessLineCode','BusinessLineName'];
-				$u->values = [$BusinessLineCode, $BusinessLineName];
-				$u->pks = ['BusinessLineId'];
-				$u->pk_values = [$BusinessLineId];
+				$u->table = 't_customergroup';
+				$u->columns = ['CustomerGroupName'];
+				$u->values = [$CustomerGroupName];
+				$u->pks = ['CustomerGroupId'];
+				$u->pk_values = [$CustomerGroupId];
 				$u->build_query();
 				$aQuerys = array($u);
 			}
@@ -120,7 +119,7 @@ function deleteData($data) {
 		return $returnData = msg(0,422,'Please Fill in all Required Fields!',$fields);
 	}else{
 		
-		$BusinessLineId = $data->rowData->id;
+		$CustomerGroupId = $data->rowData->id;
 		$lan = trim($data->lan); 
 		$UserId = trim($data->UserId); 
 
@@ -129,9 +128,9 @@ function deleteData($data) {
 			$dbh = new Db();
 			
             $d = new deleteq();
-            $d->table = 't_businessline';
-            $d->pks = ['BusinessLineId'];
-            $d->pk_values = [$BusinessLineId];
+            $d->table = 't_customergroup';
+            $d->pks = ['CustomerGroupId'];
+            $d->pk_values = [$CustomerGroupId];
             $d->build_query();
             $aQuerys = array($d);
 

@@ -126,6 +126,31 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
+
+          {menuShowPermision("businessline") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("businessline")}
+                        >
+                          Business Line
+                        </a>
+                      </li>
+                    )}
+
+                    
+          {menuShowPermision("customergroup") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("customergroup")}
+                        >
+                          Customer Group
+                        </a>
+                      </li>
+                    )}
+
+                    
                     {menuShowPermision("client") === 1 && (
                       <li>
                         <a
@@ -137,16 +162,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    {/* {menuShowPermision("businessline") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("businessline")}
-                        >
-                          Business Line
-                        </a>
-                      </li>
-                    )} */}
+          
 
                     {menuShowPermision("userrole") === 1 && (
                       <li>

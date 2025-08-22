@@ -38,6 +38,9 @@ switch ($task) {
 	case "BusinessLinetExport":
 		BusinessLinetExport();
 		break;
+	case "CustomerGroupExport":
+		CustomerGroupExport();
+		break;
 	case "MachineExport":
 		MachineExport();
 		break;
@@ -261,22 +264,20 @@ function DepartmentExport()
 
 function BusinessLinetExport()
 {
-
 	global $sql, $tableProperties, $TEXT, $siteTitle;
-	$ClientId = $_REQUEST['ClientId'];
 
-	$sql = "SELECT `BusinessLineName`
+	$sql = "SELECT BusinessLineCode,`BusinessLineName`
 	FROM t_businessline 
-	ORDER BY `BusinessLineName`;";
+	ORDER BY `BusinessLineCode`;";
 
-	$tableProperties["query_field"] = array("BusinessLineName");
-	$tableProperties["table_header"] = array('Business Line');
-	$tableProperties["align"] = array("left");
-	$tableProperties["width_print_pdf"] = array("100%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("80");
-	$tableProperties["precision"] = array("string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0); //colorcode field = 1 not color code field = 0
+	$tableProperties["query_field"] = array("BusinessLineCode","BusinessLineName");
+	$tableProperties["table_header"] = array('Business Line Code','Business Line Name');
+	$tableProperties["align"] = array("left","left");
+	$tableProperties["width_print_pdf"] = array("40%","60%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("30","40");
+	$tableProperties["precision"] = array("string","string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0,0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0,0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
 
@@ -289,6 +290,34 @@ function BusinessLinetExport()
 	$tableProperties["report_save_name"] = 'BusinessLine';
 }
 
+
+function CustomerGroupExport()
+{
+	global $sql, $tableProperties, $TEXT, $siteTitle;
+
+	$sql = "SELECT CustomerGroupName
+	FROM t_customergroup 
+	ORDER BY `CustomerGroupName`;";
+
+	$tableProperties["query_field"] = array("CustomerGroupName");
+	$tableProperties["table_header"] = array('Customer Group Name');
+	$tableProperties["align"] = array("left");
+	$tableProperties["width_print_pdf"] = array("100%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("50");
+	$tableProperties["precision"] = array("string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0); //colorcode field = 1 not color code field = 0
+	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
+	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
+
+	//Report header list
+	$tableProperties["header_list"][0] = $siteTitle;
+	$tableProperties["header_list"][1] = 'Customer Groups';
+	// $tableProperties["header_list"][1] = 'Heading 2';
+
+	//Report save name. Not allow any type of special character
+	$tableProperties["report_save_name"] = 'CustomerGroups';
+}
 
 function MachineExport()
 {
@@ -508,13 +537,14 @@ function ClientExport()
 
 	global $sql, $tableProperties, $TEXT, $siteTitle;
 
-	$sql = "SELECT a.CustomerCode,a.CustomerName,a.CompanyAddress, a.NatureOfBusiness, a.CompanyName, 
+	$sql = "SELECT a.CustomerCode,a.CustomerName,b.CustomerGroupName,a.CompanyAddress,  a.CompanyName, 
 	a.Designation,  a.ContactPhone,	a.CompanyEmail
 		FROM t_customer a
+		inner join t_customergroup b on a.CustomerGroupId=b.CustomerGroupId
 		ORDER BY a.CustomerName ASC;";
 
-	$tableProperties["query_field"] = array("CustomerCode", "CustomerName", "CompanyAddress", "NatureOfBusiness", "CompanyName", "Designation",  "ContactPhone", "CompanyEmail");
-	$tableProperties["table_header"] = array('Code', 'Client Name', 'Address', 'Type', 'Contact Person', 'Designation', 'Phone', 'Email');
+	$tableProperties["query_field"] = array("CustomerCode", "CustomerName","CustomerGroupName",  "CompanyAddress", "CompanyName", "Designation",  "ContactPhone", "CompanyEmail");
+	$tableProperties["table_header"] = array('Code', 'Client Name','Customer Group', 'Address', 'Contact Person', 'Designation', 'Phone', 'Email');
 	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "left");
 	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%",  "10%", "10%", "10%", "10%"); //when exist serial then here total 95% and 5% use for serial
 	$tableProperties["width_excel"] = array("18", "30", "30", "20",  "20", "20", "20", "20");

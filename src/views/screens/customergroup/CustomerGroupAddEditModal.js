@@ -3,9 +3,9 @@ import {Button}  from "../../../components/CustomControl/Button";
 import {apiCall, apiOption, LoginUserInfo, language}  from "../../../actions/api";
 
 
-const BusinessLineAddEditModal = (props) => { 
+const CustomerGroupAddEditModal = (props) => { 
   // console.log('props modal: ', props);
-  const serverpage = "businessline";// this is .php server page
+  const serverpage = "customergroup";// this is .php server page
   const [currentRow, setCurrentRow] = useState(props.currentRow);
   const [errorObject, setErrorObject] = useState({});
   const UserInfo = LoginUserInfo();
@@ -23,7 +23,7 @@ const BusinessLineAddEditModal = (props) => {
   
   const validateForm = () => {
 
-    let validateFields = ["BusinessLineCode","BusinessLineName"]
+    let validateFields = ["CustomerGroupName"]
     let errorData = {}
     let isValid = true
     validateFields.map((field) => {
@@ -87,35 +87,21 @@ const BusinessLineAddEditModal = (props) => {
         {/* <!-- Modal content --> */}
         <div class="modal-content">
           <div class="modalHeader">
-            <h4>Add/Edit Business Line</h4>
+            <h4>Add/Edit Customer Group</h4>
           </div>
 
           <div class="modalItem">
-            <label>Business Line Code *</label>
+            <label>Customer Group Name *</label>
             <input
               type="text"
-              id="BusinessLineCode"
-              name="BusinessLineCode"
-              class={errorObject.BusinessLineCode}
-              placeholder="Enter Business Line Code"
-              value={currentRow.BusinessLineCode}
+              id="CustomerGroupName"
+              name="CustomerGroupName"
+              class={errorObject.CustomerGroupName}
+              placeholder="Enter Customer Group"
+              value={currentRow.CustomerGroupName}
               onChange={(e) => handleChange(e)}
             />
           </div>
-
-          <div class="modalItem">
-            <label>Business Line Name *</label>
-            <input
-              type="text"
-              id="BusinessLineName"
-              name="BusinessLineName"
-              class={errorObject.BusinessLineName}
-              placeholder="Enter Business Line"
-              value={currentRow.BusinessLineName}
-              onChange={(e) => handleChange(e)}
-            />
-          </div>
-  
 
           <div class="modalItem">
 
@@ -134,4 +120,4 @@ const BusinessLineAddEditModal = (props) => {
   );
 };
 
-export default BusinessLineAddEditModal;
+export default CustomerGroupAddEditModal;

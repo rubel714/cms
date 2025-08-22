@@ -18,6 +18,7 @@ import MyProfile from "views/screens/myprofile/index.js";
 import CheckPermission from "views/screens/CheckPermission.js";
 import Dashboard from "views/screens/dashboard/index.js";
 import BusinessLine from "views/screens/businessline/index.js";
+import CustomerGroup from "views/screens/customergroup/index.js";
 // import Customer from "views/screens/customer/index.js";
 import UserEntry from "views/screens/userentry/index.js";
 import Team from "views/screens/team/index.js";
@@ -80,10 +81,9 @@ ReactDOM.render(
             {/* <Route path="/dashboard" render={(props) => <DashboardPage {...props} />} /> */}
       			<Route path="/myprofileweb" render={(props) => <MyProfile {...props} />} />
             <Route path="/check-permission" render={(props) => <CheckPermission {...props} />} />
-
             <Route path="/dashboard" render={(props) => <Dashboard {...props} />} />
-
             <Route path="/businessline" render={(props) => <BusinessLine {...props} />} />
+            <Route path="/customergroup" render={(props) => <CustomerGroup {...props} />} />
             {/* <Route path="/customer" render={(props) => <Customer {...props} />} /> */}
             <Route path="/userentry" render={(props) => <UserEntry {...props} />} />
             <Route path="/team" render={(props) => <Team {...props} />} />

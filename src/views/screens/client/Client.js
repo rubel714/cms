@@ -67,6 +67,15 @@ const Client = (props) => {
       sort: true,
       filter: true,
     },
+        {
+      field: "CustomerGroupName",
+      label: "Customer Group",
+      width: "9%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "CompanyAddress",
       label: "Address",
@@ -76,15 +85,15 @@ const Client = (props) => {
       sort: true,
       filter: true,
     },
-    {
-      field: "NatureOfBusiness",
-      label: "Type",
-      width: "6%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+    // {
+    //   field: "NatureOfBusiness",
+    //   label: "Type",
+    //   width: "6%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
 
 
 
@@ -205,6 +214,7 @@ const Client = (props) => {
       id: "",
       CustomerCode: "",
       CustomerName: "",
+      CustomerGroupId:"",
       Designation: "",
       ContactPhone: "",
       CompanyName: "",
