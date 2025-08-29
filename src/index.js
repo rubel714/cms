@@ -92,16 +92,10 @@ ReactDOM.render(
            
             <Route path="/invoicelist" render={(props) => <InvoiceList {...props} />} />
             <Route path="/invoiceupload" render={(props) => <InvoiceUpload {...props} />} />
-{/*            
-            <Route path="/machine" render={(props) => <Machine {...props} />} />
-            <Route path="/machineparts" render={(props) => <Machineparts {...props} />} />
-            <Route path="/machinemodel" render={(props) => <Machinemodel {...props} />} />
-            <Route path="/machineserial" render={(props) => <Machineserial {...props} />} /> */}
+
             <Route path="/userrole" render={(props) => <UserRole {...props} />} />
             <Route path="/roletomenupermission" render={(props) => <RoleToMenuPermission {...props} />} />
-            {/* <Route path="/feedback" render={(props) => <Feedback {...props} />} /> */}
             <Route path="/client" render={(props) => <Client {...props} />} />
-             {/*<Route path="/branch" render={(props) => <Branch {...props} />} /> */}
             <Route path="/auditlog" render={(props) => <AuditLog {...props} />} />
             <Route path="/errorlog" render={(props) => <ErrorLog {...props} />} />
             {/* <Route path="/transactionreport" render={(props) => <TransactionReport {...props} />} /> */}
