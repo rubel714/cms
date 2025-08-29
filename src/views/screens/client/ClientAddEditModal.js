@@ -45,7 +45,7 @@ const ClientAddEditModal = (props) => {
     getUserList(null);
     getBusinessLineList(null);
     setCurrentRow(props.currentRow);
-    console.log("useEffect props.currentRow",props.currentRow);
+    console.log("useEffect props.currentRow", props.currentRow);
 
     setDataList(props.currentRow.UserMap);
   }, []);
@@ -324,14 +324,13 @@ const ClientAddEditModal = (props) => {
 
       let CustomerMapId = clientUserStaffMap.CustomerMapId;
       let rowIdx = 0;
-      if(CustomerMapId != ""){
+      if (CustomerMapId != "") {
         data.forEach((element, i) => {
-          if(element.CustomerMapId == CustomerMapId){
+          if (element.CustomerMapId == CustomerMapId) {
             rowIdx = i;
           }
         });
-        
-      }else{
+      } else {
         rowIdx = data.length;
       }
       let row = {
@@ -344,10 +343,8 @@ const ClientAddEditModal = (props) => {
       };
 
       data[rowIdx] = row;
-      console.log('data: ', data);
+      console.log("data: ", data);
       setDataList(data);
-
-
 
       setClientUserStaffMap({
         CustomerMapId: "",
@@ -360,30 +357,27 @@ const ClientAddEditModal = (props) => {
     }
   }
 
-
-
-  
   function deleteData(delRow) {
     // console.log('delRow: ', delRow);
-      let data = [...dataList];
-      let delData = [...delDataList];
+    let data = [...dataList];
+    let delData = [...delDataList];
 
-      let rows = [];
-      let idx = 0;
-      data.forEach((element, i) => {
-        if(element.CustomerMapId != delRow.CustomerMapId){
-          rows[idx] = element;
-          idx++;
-        }else{
-          if(element.CustomerMapId != ""){
-            delData.push(element.CustomerMapId);
-          }
+    let rows = [];
+    let idx = 0;
+    data.forEach((element, i) => {
+      if (element.CustomerMapId != delRow.CustomerMapId) {
+        rows[idx] = element;
+        idx++;
+      } else {
+        if (element.CustomerMapId != "") {
+          delData.push(element.CustomerMapId);
         }
-      });
+      }
+    });
 
-      setDataList(rows);
-      setDelDataList(delData);
-      // console.log('delData: ', delData);
+    setDataList(rows);
+    setDelDataList(delData);
+    // console.log('delData: ', delData);
   }
 
   return (
@@ -529,107 +523,104 @@ const ClientAddEditModal = (props) => {
             />
           </div>
 
+          {currentRow.id > 0 && (
+            <>
+              <div class=" pt-10">
+                <hr></hr>
+              </div>
 
+              <div class="contactmodalBody pt-10">
+                <Button
+                  label={"Add Staff"}
+                  class={"btnSave"}
+                  onClick={AddEditStaff}
+                />
+              </div>
 
+              <div class="contactmodalBody pt-10">
+                <label>Staff Name *</label>
+                <Autocomplete
+                  autoHighlight
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="UserId"
+                  name="UserId"
+                  autoComplete
+                  // class={errorObject.UserId}
+                  options={UserList ? UserList : []}
+                  getOptionLabel={(option) => option.name}
+                  defaultValue={{ id: "", name: "Select Staff" }}
+                  value={
+                    UserList
+                      ? UserList[
+                          UserList.findIndex((list) => list.id === currUserId)
+                        ]
+                      : null
+                  }
+                  onChange={(event, valueobj) =>
+                    handleChangeManyDropDown(
+                      "UserId",
+                      valueobj ? valueobj.id : ""
+                    )
+                  }
+                  renderOption={(option) => (
+                    <Typography className="chosen_dropdown_font">
+                      {option.name}
+                    </Typography>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
 
-{currentRow.id>0 && (<>
-          <div class=" pt-10">
-            <hr></hr>
-          </div>
+                <label>Business Line *</label>
+                <Autocomplete
+                  autoHighlight
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="BusinessLineId"
+                  name="BusinessLineId"
+                  autoComplete
+                  // class={errorObject.BusinessLineId}
+                  options={BusinessLineList ? BusinessLineList : []}
+                  getOptionLabel={(option) => option.name}
+                  defaultValue={{ id: "", name: "Select Business Line" }}
+                  value={
+                    BusinessLineList
+                      ? BusinessLineList[
+                          BusinessLineList.findIndex(
+                            (list) => list.id === currBusinessLineId
+                          )
+                        ]
+                      : null
+                  }
+                  onChange={(event, valueobj) =>
+                    handleChangeManyDropDown(
+                      "BusinessLineId",
+                      valueobj ? valueobj.id : ""
+                    )
+                  }
+                  renderOption={(option) => (
+                    <Typography className="chosen_dropdown_font">
+                      {option.name}
+                    </Typography>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+              </div>
 
-          <div class="contactmodalBody pt-10">
-            <Button
-              label={"Add Staff"}
-              class={"btnSave"}
-              onClick={AddEditStaff}
-            />
-          </div>
-
-          <div class="contactmodalBody pt-10">
-            <label>Staff Name *</label>
-            <Autocomplete
-              autoHighlight
-              disableClearable
-              className="chosen_dropdown"
-              id="UserId"
-              name="UserId"
-              autoComplete
-              // class={errorObject.UserId}
-              options={UserList ? UserList : []}
-              getOptionLabel={(option) => option.name}
-              defaultValue={{ id: "", name: "Select Staff" }}
-              value={
-                UserList
-                  ? UserList[
-                      UserList.findIndex((list) => list.id === currUserId)
-                    ]
-                  : null
-              }
-              onChange={(event, valueobj) =>
-                handleChangeManyDropDown("UserId", valueobj ? valueobj.id : "")
-              }
-              renderOption={(option) => (
-                <Typography className="chosen_dropdown_font">
-                  {option.name}
-                </Typography>
-              )}
-              renderInput={(params) => (
-                <TextField {...params} variant="standard" fullWidth />
-              )}
-            />
-
-            <label>Business Line *</label>
-            <Autocomplete
-              autoHighlight
-              disableClearable
-              className="chosen_dropdown"
-              id="BusinessLineId"
-              name="BusinessLineId"
-              autoComplete
-              // class={errorObject.BusinessLineId}
-              options={BusinessLineList ? BusinessLineList : []}
-              getOptionLabel={(option) => option.name}
-              defaultValue={{ id: "", name: "Select Business Line" }}
-              value={
-                BusinessLineList
-                  ? BusinessLineList[
-                      BusinessLineList.findIndex(
-                        (list) => list.id === currBusinessLineId
-                      )
-                    ]
-                  : null
-              }
-              onChange={(event, valueobj) =>
-                handleChangeManyDropDown(
-                  "BusinessLineId",
-                  valueobj ? valueobj.id : ""
-                )
-              }
-              renderOption={(option) => (
-                <Typography className="chosen_dropdown_font">
-                  {option.name}
-                </Typography>
-              )}
-              renderInput={(params) => (
-                <TextField {...params} variant="standard" fullWidth />
-              )}
-            />
-          </div>
-
-          <div class=" pt-10">
-            <CustomTable
-              columns={columnList}
-              rows={dataList ? dataList : {}}
-              actioncontrol={actioncontrol}
-              ispagination={false}
-            />
-          </div>
-
-
-
-</>
-)}
-
+              <div class=" pt-10">
+                <CustomTable
+                  columns={columnList}
+                  rows={dataList ? dataList : {}}
+                  actioncontrol={actioncontrol}
+                  ispagination={false}
+                />
+              </div>
+            </>
+          )}
 
           <div class="modalItem">
             <Button label={"Close"} class={"btnClose"} onClick={modalClose} />
