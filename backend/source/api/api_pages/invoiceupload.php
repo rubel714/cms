@@ -33,10 +33,11 @@ function getDataList($data)
 
 	try {
 		$dbh = new Db();
-		$query = "SELECT *
-		FROM t_invoiceitems 
-		where InvoiceId = $InvoiceId
-		ORDER BY `InvoiceItemId` ASC;";
+		$query = "SELECT a.*, b.UserName as CustomerUserName
+		FROM t_invoiceitems a 
+		left join t_users b on a.CustomerUserId=b.UserId
+		where a.InvoiceId = $InvoiceId
+		ORDER BY a.InvoiceItemId ASC;";
 
 		$resultdata = $dbh->query($query);
 
@@ -74,8 +75,26 @@ function dataAddEdit($data)
 
 			$prefix = 123;
 			$FileName = $FileNameString ? ConvertFile($FileNameString, $prefix) : null;
-			// $InvoiceId = date("ymdH");
 			$TransactionDate = date("Y-m-d H:i:s");
+
+
+			$query = "SELECT a.CustomerId, b.CustomerCode, c.BusinessLineCode, a.UserId 
+			FROM t_customer_map a 
+			inner join t_customer b on a.CustomerId=b.CustomerId
+			inner join t_businessline c on a.BusinessLineId=c.BusinessLineId;";
+
+			$resultdata = $dbh->query($query);
+			$CustomerUserList = array();
+			foreach ($resultdata as $row) {
+				// if ($row['UserId'] == $UserId) {
+					// $CustomerCode = $row['CustomerCode'];
+					$CustomerUserList[$row['CustomerCode']][$row['BusinessLineCode']] = $row["UserId"];
+				// }
+			}
+// echo "<pre>";
+// 		print_r($CustomerUserList);
+		
+// 		exit;
 
 
 			//Insert Master
@@ -216,10 +235,22 @@ function dataAddEdit($data)
 				$GeneralDescription19 = $data[$GeneralDescription19Idx];
 				$GeneralDescription20 = $data[$GeneralDescription20Idx];
 
+				$CustomerUserId = null;
+				if(array_key_exists($AccountCode, $CustomerUserList)){
+					if(array_key_exists($AnalysisCode3, $CustomerUserList[$AccountCode])){
+						$CustomerUserId = $CustomerUserList[$AccountCode][$AnalysisCode3];
+					}
+				}
+
+				//Mrinal bhai confirmed only DebitCredit = D will be save
+				if($DebitCredit != "D"){
+					continue;
+				}
+
 				$q = new insertq();
 				$q->table = 't_invoiceitems';
-				$q->columns = ['InvoiceId', 'Name', 'BusinessUnit', 'BudgetCode', 'AccountCode', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode2', 'AnalysisCode3', 'AnalysisCode4', 'AnalysisCode5', 'AnalysisCode6', 'AnalysisCode7', 'AnalysisCode8', 'AnalysisCode9', 'TransactionAmount', 'CurrencyCode', 'GeneralDate1', 'GeneralDate2', 'GeneralDate3', 'GeneralDescription9', 'GeneralDescription4', 'GeneralDescription11', 'GeneralDescription2', 'GeneralDescription12', 'GeneralDescription13', 'GeneralDescription14', 'GeneralDescription15', 'GeneralDescription16', 'GeneralDescription17', 'GeneralDescription18', 'GeneralDescription19', 'GeneralDescription20'];
-				$q->values = ['[LastInsertedId]', $Name, $BusinessUnit, $BudgetCode, $AccountCode, $AccountingPeriod, $DebitCredit, $Description, $JournalType, $BaseAmount, $TransactionDate, $TransactionReference, $AnalysisCode1, $AnalysisCode2, $AnalysisCode3, $AnalysisCode4, $AnalysisCode5, $AnalysisCode6, $AnalysisCode7, $AnalysisCode8, $AnalysisCode9, $TransactionAmount, $CurrencyCode, $GeneralDate1, $GeneralDate2, $GeneralDate3, $GeneralDescription9, $GeneralDescription4, $GeneralDescription11, $GeneralDescription2, $GeneralDescription12, $GeneralDescription13, $GeneralDescription14, $GeneralDescription15, $GeneralDescription16, $GeneralDescription17, $GeneralDescription18, $GeneralDescription19, $GeneralDescription20];
+				$q->columns = ['InvoiceId', 'Name', 'BusinessUnit', 'BudgetCode', 'AccountCode', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode2', 'AnalysisCode3', 'AnalysisCode4', 'AnalysisCode5', 'AnalysisCode6', 'AnalysisCode7', 'AnalysisCode8', 'AnalysisCode9', 'TransactionAmount', 'CurrencyCode', 'GeneralDate1', 'GeneralDate2', 'GeneralDate3', 'GeneralDescription9', 'GeneralDescription4', 'GeneralDescription11', 'GeneralDescription2', 'GeneralDescription12', 'GeneralDescription13', 'GeneralDescription14', 'GeneralDescription15', 'GeneralDescription16', 'GeneralDescription17', 'GeneralDescription18', 'GeneralDescription19', 'GeneralDescription20','CustomerUserId'];
+				$q->values = ['[LastInsertedId]', $Name, $BusinessUnit, $BudgetCode, $AccountCode, $AccountingPeriod, $DebitCredit, $Description, $JournalType, $BaseAmount, $TransactionDate, $TransactionReference, $AnalysisCode1, $AnalysisCode2, $AnalysisCode3, $AnalysisCode4, $AnalysisCode5, $AnalysisCode6, $AnalysisCode7, $AnalysisCode8, $AnalysisCode9, $TransactionAmount, $CurrencyCode, $GeneralDate1, $GeneralDate2, $GeneralDate3, $GeneralDescription9, $GeneralDescription4, $GeneralDescription11, $GeneralDescription2, $GeneralDescription12, $GeneralDescription13, $GeneralDescription14, $GeneralDescription15, $GeneralDescription16, $GeneralDescription17, $GeneralDescription18, $GeneralDescription19, $GeneralDescription20, $CustomerUserId];
 				$q->pks = ['InvoiceItemId'];
 				$q->bUseInsetId = false;
 				$q->build_query();

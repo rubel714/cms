@@ -31,9 +31,10 @@ function getDataList($data)
 
 	try {
 		$dbh = new Db();
-		$query = "SELECT *
-		FROM t_invoiceitems 
-		ORDER BY `InvoiceItemId` DESC
+	 	$query = "SELECT a.*, b.UserName as CustomerUserName
+		FROM t_invoiceitems a
+		left join t_users b on a.CustomerUserId=b.UserId
+		ORDER BY a.InvoiceItemId DESC
 		limit 0, $LastInvoiceLimit;";
 
 		$resultdata = $dbh->query($query);

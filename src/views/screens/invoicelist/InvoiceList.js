@@ -59,7 +59,7 @@ const InvoiceList = (props) => {
   // const [toggleShowTable, setToggleShowTable] = useState(false);
   // const [loading, setLoading] = useState(false);
   const [lastInvoiceLimit, setLastInvoiceLimit] = useState(200);
-  
+
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
@@ -91,7 +91,7 @@ const InvoiceList = (props) => {
       field: "Name",
       label: "Name",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -99,7 +99,7 @@ const InvoiceList = (props) => {
       field: "BusinessUnit",
       label: "Business Unit",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -107,13 +107,13 @@ const InvoiceList = (props) => {
       field: "BudgetCode",
       label: "Budget Code",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "AccountCode",
-      label: "Account Code",
+      label: "Customer Code",
       align: "left",
       visible: true,
       sort: false,
@@ -121,7 +121,7 @@ const InvoiceList = (props) => {
     },
     {
       field: "AccountingPeriod",
-      label: "Accounting Period",
+      label: "Invoice Month",
       align: "left",
       visible: true,
       sort: false,
@@ -131,7 +131,7 @@ const InvoiceList = (props) => {
       field: "DebitCredit",
       label: "Debit Credit",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -147,21 +147,21 @@ const InvoiceList = (props) => {
       field: "JournalType",
       label: "Journal Type",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "BaseAmount",
-      label: "Base Amount",
-      align: "left",
+      label: "Amount (BDT)",
+      align: "right",
       visible: true,
       sort: false,
       filter: true,
     },
     {
       field: "TransactionDate",
-      label: "Transaction Date",
+      label: "Invoice Date",
       align: "left",
       visible: true,
       sort: false,
@@ -169,7 +169,7 @@ const InvoiceList = (props) => {
     },
     {
       field: "TransactionReference",
-      label: "Transaction Reference",
+      label: "Invoice No",
       align: "left",
       visible: true,
       sort: false,
@@ -179,7 +179,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode1",
       label: "Analysis Code 1",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -187,13 +187,13 @@ const InvoiceList = (props) => {
       field: "AnalysisCode2",
       label: "Analysis Code 2",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "AnalysisCode3",
-      label: "Analysis Code 3",
+      label: "Business Line",
       align: "left",
       visible: true,
       sort: false,
@@ -203,7 +203,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode4",
       label: "Analysis Code 4",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -211,7 +211,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode5",
       label: "Analysis Code 5",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -219,7 +219,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode6",
       label: "Analysis Code 6",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -227,7 +227,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode7",
       label: "Analysis Code 7",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -235,7 +235,7 @@ const InvoiceList = (props) => {
       field: "AnalysisCode8",
       label: "Analysis Code 8",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -243,13 +243,13 @@ const InvoiceList = (props) => {
       field: "AnalysisCode9",
       label: "Analysis Code 9",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "TransactionAmount",
-      label: "Transaction Amount",
+      label: "Amount (USD)",
       align: "left",
       visible: true,
       sort: false,
@@ -259,7 +259,7 @@ const InvoiceList = (props) => {
       field: "CurrencyCode",
       label: "Currency Code",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -267,7 +267,7 @@ const InvoiceList = (props) => {
       field: "GeneralDate1",
       label: "General Date 1",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -275,7 +275,7 @@ const InvoiceList = (props) => {
       field: "GeneralDate2",
       label: "General Date 2",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -283,13 +283,13 @@ const InvoiceList = (props) => {
       field: "GeneralDate3",
       label: "General Date 3",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "GeneralDescription9",
-      label: "General Description 9",
+      label: "Report No",
       align: "left",
       visible: true,
       sort: false,
@@ -299,13 +299,13 @@ const InvoiceList = (props) => {
       field: "GeneralDescription4",
       label: "General Description 4",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "GeneralDescription11",
-      label: "General Description 11",
+      label: "Buyer Name",
       align: "left",
       visible: true,
       sort: false,
@@ -315,7 +315,7 @@ const InvoiceList = (props) => {
       field: "GeneralDescription2",
       label: "General Description 2",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -323,7 +323,7 @@ const InvoiceList = (props) => {
       field: "GeneralDescription12",
       label: "General Description 12",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -331,13 +331,13 @@ const InvoiceList = (props) => {
       field: "GeneralDescription13",
       label: "General Description 13",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "GeneralDescription14",
-      label: "General Description 14",
+      label: "Merchant Name",
       align: "left",
       visible: true,
       sort: false,
@@ -347,7 +347,7 @@ const InvoiceList = (props) => {
       field: "GeneralDescription15",
       label: "General Description 15",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
@@ -355,13 +355,13 @@ const InvoiceList = (props) => {
       field: "GeneralDescription16",
       label: "General Description 16",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "GeneralDescription17",
-      label: "General Description 17",
+      label: "Style Name",
       align: "left",
       visible: true,
       sort: false,
@@ -369,7 +369,7 @@ const InvoiceList = (props) => {
     },
     {
       field: "GeneralDescription18",
-      label: "General Description 18",
+      label: "PI No",
       align: "left",
       visible: true,
       sort: false,
@@ -379,13 +379,21 @@ const InvoiceList = (props) => {
       field: "GeneralDescription19",
       label: "General Description 19",
       align: "left",
-      visible: true,
+      visible: false,
       sort: false,
       filter: true,
     },
     {
       field: "GeneralDescription20",
-      label: "General Description 20",
+      label: "Service",
+      align: "left",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "CustomerUserName",
+      label: "Assigned Staff",
       align: "left",
       visible: true,
       sort: false,
@@ -439,14 +447,13 @@ const InvoiceList = (props) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if(value){
+    if (value) {
       setLastInvoiceLimit(value);
-    }else{
+    } else {
       setLastInvoiceLimit(0);
     }
-
   };
- 
+
   // React.useEffect(()=>{
   //   getDataList();
   // },[lastInvoiceLimit]);
@@ -537,8 +544,6 @@ const InvoiceList = (props) => {
   //   setUploadStatus("");
   // };
 
-
-  
   return (
     <>
       <div class="bodyContainer">
@@ -550,7 +555,7 @@ const InvoiceList = (props) => {
         </div>
 
         {/* <!-- TABLE SEARCH AND GROUP ADD --> */}
-       <div class="searchAdd">
+        <div class="searchAdd">
           <div class="">
             <label>Show Last Number of Invoice: </label>
             <input
@@ -564,20 +569,18 @@ const InvoiceList = (props) => {
             />
 
             <Button label={"Show"} class={"btnUpdate"} onClick={getDataList} />
-            
           </div>
         </div>
 
-
         {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
-            {/* <div class="subContainer tableHeight">
+        {/* <div class="subContainer tableHeight">
               <div className="App"> */}
-                <CustomTable
-                  columns={columnList}
-                  rows={dataList ? dataList : {}}
-                  // actioncontrol={actioncontrol}
-                />
-              {/* </div>
+        <CustomTable
+          columns={columnList}
+          rows={dataList ? dataList : {}}
+          // actioncontrol={actioncontrol}
+        />
+        {/* </div>
             </div> */}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
