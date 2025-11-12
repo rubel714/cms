@@ -529,15 +529,7 @@ const ClientAddEditModal = (props) => {
                 <hr></hr>
               </div>
 
-              <div class="contactmodalBody pt-10">
-                <Button
-                  label={"Add Staff"}
-                  class={"btnSave"}
-                  onClick={AddEditStaff}
-                />
-              </div>
-
-              <div class="contactmodalBody pt-10">
+              <div class="contactmodalBody pt-20">
                 <label>Staff Name *</label>
                 <Autocomplete
                   autoHighlight
@@ -611,13 +603,30 @@ const ClientAddEditModal = (props) => {
                 />
               </div>
 
-              <div class=" pt-10">
-                <CustomTable
-                  columns={columnList}
-                  rows={dataList ? dataList : {}}
-                  actioncontrol={actioncontrol}
-                  ispagination={false}
+              <div
+                class="contactmodalBody pt-10"
+                style={{
+                  display: "flex",
+                  justifyContent: "end",
+                  paddingRight: "16px",
+                }}
+              >
+                <Button
+                  label={"Add Staff"}
+                  class={"btnSave"}
+                  onClick={AddEditStaff}
                 />
+              </div>
+
+              <div class="" style={{ padding: "16px" }}>
+                <div class="" style={{maxHeight:"180px", overflow:"scroll"}}>
+                  <CustomTable
+                    columns={columnList}
+                    rows={dataList ? dataList : {}}
+                    actioncontrol={actioncontrol}
+                    ispagination={false}
+                  />
+                </div>
               </div>
             </>
           )}

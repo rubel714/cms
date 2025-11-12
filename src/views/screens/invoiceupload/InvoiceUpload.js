@@ -621,7 +621,7 @@ const InvoiceUpload = (props) => {
           <div className={classes.root}>
             <Paper className={classes.paper} elevation={3}>
               <Typography variant="h5" align="center" gutterBottom>
-                Upload a File
+                Upload a File (.csv)
               </Typography>
 
               <Input
