@@ -11,6 +11,7 @@ import {
   language,
 } from "../../../actions/api";
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
+import InvoiceEditModal from "./InvoiceEditModal";
 
 import {
   Typography,
@@ -47,8 +48,8 @@ const InvoiceList = (props) => {
   const permissionType = props.permissionType;
   const { useState } = React;
   const [bFirst, setBFirst] = useState(true);
-  // const [currentRow, setCurrentRow] = useState([]);
-  // const [showModal, setShowModal] = useState(false); //true=show modal, false=hide modal
+  const [currentRow, setCurrentRow] = useState([]);
+  const [showModal, setShowModal] = useState(false); //true=show modal, false=hide modal
 
   const { isLoading, data: dataList, error, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
   const UserInfo = LoginUserInfo();
@@ -399,6 +400,15 @@ const InvoiceList = (props) => {
       sort: false,
       filter: true,
     },
+    {
+      field: "custom",
+      label: "Action",
+      width: "4%",
+      align: "center",
+      visible: true,
+      sort: false,
+      filter: false,
+    },
   ];
   if (bFirst) {
     /**First time call for datalist */
@@ -421,38 +431,40 @@ const InvoiceList = (props) => {
   }
 
   /** Action from table row buttons*/
-  // function actioncontrol(rowData) {
-  //   return (
-  //     <>
-  //       {permissionType === 0 && (
-  //         <Edit
-  //           className={"table-edit-icon"}
-  //           onClick={() => {
-  //             editData(rowData);
-  //           }}
-  //         />
-  //       )}
+  function actioncontrol(rowData) {
+    return (
+      <>
+        {permissionType === 0 && (
+          <Edit
+            className={"table-edit-icon"}
+            onClick={() => {
+              editData(rowData);
+            }}
+          />
+        )}
 
-  //       {permissionType === 0 && (
-  //         <DeleteOutline
-  //           className={"table-delete-icon"}
-  //           onClick={() => {
-  //             deleteData(rowData);
-  //           }}
-  //         />
-  //       )}
-  //     </>
-  //   );
-  // }
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+        {/* {permissionType === 0 && (
+          <DeleteOutline
+            className={"table-delete-icon"}
+            onClick={() => {
+              deleteData(rowData);
+            }}
+          />
+        )} */}
+      </>
+    );
+  }
 
-    if (value) {
-      setLastInvoiceLimit(value);
-    } else {
-      setLastInvoiceLimit(0);
-    }
+  
+  const editData = (rowData) => {
+    // console.log("rowData: ", rowData);
+    // console.log("dataList: ", dataList);
+
+    setCurrentRow(rowData);
+    openModal();
   };
+
+
 
   // React.useEffect(()=>{
   //   getDataList();
@@ -469,25 +481,28 @@ const InvoiceList = (props) => {
   //   openModal();
   // };
 
-  // const editData = (rowData) => {
-  //   // console.log("rowData: ", rowData);
-  //   // console.log("dataList: ", dataList);
 
-  //   setCurrentRow(rowData);
-  //   openModal();
-  // };
+  function openModal() {
+    setShowModal(true); //true=modal show, false=modal hide
+  }
 
-  // function openModal() {
-  //   setShowModal(true); //true=modal show, false=modal hide
-  // }
+  function modalCallback(response) {
+    //response = close, addedit
+    // console.log('response: ', response);
+    getDataList();
+    setShowModal(false); //true=modal show, false=modal hide
+  }
 
-  // function modalCallback(response) {
-  //   //response = close, addedit
-  //   // console.log('response: ', response);
-  //   getDataList();
-  //   setShowModal(false); //true=modal show, false=modal hide
-  // }
 
+    const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (value) {
+      setLastInvoiceLimit(value);
+    } else {
+      setLastInvoiceLimit(0);
+    }
+  };
   // const deleteData = (rowData) => {
   //   swal({
   //     title: "Are you sure?",
@@ -578,11 +593,20 @@ const InvoiceList = (props) => {
         <CustomTable
           columns={columnList}
           rows={dataList ? dataList : {}}
-          // actioncontrol={actioncontrol}
+          actioncontrol={actioncontrol}
         />
         {/* </div>
             </div> */}
       </div>
+
+    {showModal && (
+        <InvoiceEditModal
+          masterProps={props}
+          currentRow={currentRow}
+          modalCallback={modalCallback}
+        />
+      )}
+
       {/* <!-- BODY CONTAINER END --> */}
     </>
   );
