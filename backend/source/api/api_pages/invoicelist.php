@@ -27,15 +27,18 @@ switch ($task) {
 function getDataList($data)
 {
 	// $InvoiceId = trim($data->InvoiceId); 
-	$LastInvoiceLimit = trim($data->LastInvoiceLimit); 
+	// $LastInvoiceLimit = trim($data->LastInvoiceLimit); 
+	$StartDate = trim($data->StartDate);
+	$EndDate = trim($data->EndDate) . " 23-59-59";
 
 	try {
 		$dbh = new Db();
 	 	$query = "SELECT a.*, b.UserName as CustomerUserName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
-		ORDER BY a.InvoiceItemId DESC
-		limit 0, $LastInvoiceLimit;";
+		
+	   where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')
+		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
 		$resultdata = $dbh->query($query);
 

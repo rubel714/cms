@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef } from "react";
+import React, { forwardRef, useRef, useEffect } from "react";
 import swal from "sweetalert";
 import { DeleteOutline, Edit } from "@material-ui/icons";
 import { Button } from "../../../components/CustomControl/Button";
@@ -21,7 +21,7 @@ import {
   makeStyles,
   CircularProgress,
 } from "@material-ui/core";
-
+import moment from "moment";
 const useStyles = makeStyles((theme) => ({
   root: {
     // minHeight: "100vh",
@@ -60,6 +60,13 @@ const InvoiceList = (props) => {
   // const [toggleShowTable, setToggleShowTable] = useState(false);
   // const [loading, setLoading] = useState(false);
   const [lastInvoiceLimit, setLastInvoiceLimit] = useState(200);
+
+  const [StartDate, setStartDate] =  useState(
+    moment().add(-30, "days").format("YYYY-MM-DD")
+  );
+  const [EndDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
+
+
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -424,6 +431,8 @@ const InvoiceList = (props) => {
       UserId: UserInfo.UserId,
       // InvoiceId: pInvoiceId,
       LastInvoiceLimit: lastInvoiceLimit,
+      StartDate: StartDate,
+      EndDate: EndDate,
     };
     // console.log('LoginUserInfo params: ', params);
 
@@ -559,6 +568,22 @@ const InvoiceList = (props) => {
   //   setUploadStatus("");
   // };
 
+  
+  const handleChangeFilterDate = (e) => {
+    const { name, value } = e.target;
+    if (name === "StartDate") {
+      setStartDate(value);
+    }
+
+    if (name === "EndDate") {
+      setEndDate(value);
+    }
+  };
+
+  useEffect(() => {
+    getDataList();
+  }, [StartDate, EndDate]);
+
   return (
     <>
       <div class="bodyContainer">
@@ -571,20 +596,56 @@ const InvoiceList = (props) => {
 
         {/* <!-- TABLE SEARCH AND GROUP ADD --> */}
         <div class="searchAdd">
-          <div class="">
+
+
+            <div>
+              <label>Invoice Start Date</label>
+              <div class="">
+                <input
+                  type="date"
+                  id="StartDate"
+                  name="StartDate"
+                  value={StartDate}
+                  onChange={(e) => handleChangeFilterDate(e)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label>Invoice End Date</label>
+              <div class="">
+                <input
+                  type="date"
+                  id="EndDate"
+                  name="EndDate"
+                  value={EndDate}
+                  onChange={(e) => handleChangeFilterDate(e)}
+                />
+              </div>
+            </div>
+
+    
+
+
+
+
+
+          {/* <div class="">
             <label>Show Last Number of Invoice: </label>
             <input
               type="text"
               id="lastInvoiceLimit"
               name="lastInvoiceLimit"
-              // class={errorObject.DesignationName}
-              // placeholder="Enter Designation"
               value={lastInvoiceLimit}
               onChange={(e) => handleChange(e)}
             />
 
             <Button label={"Show"} class={"btnUpdate"} onClick={getDataList} />
-          </div>
+          </div> */}
+
+
+
+
         </div>
 
         {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
