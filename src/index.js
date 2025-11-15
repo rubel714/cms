@@ -24,8 +24,9 @@ import UserEntry from "views/screens/userentry/index.js";
 import Team from "views/screens/team/index.js";
 import Designation from "views/screens/designation/index.js";
 import Department from "views/screens/department/index.js";
-import InvoiceList from "views/screens/invoicelist/index.js";
 import InvoiceUpload from "views/screens/invoiceupload/index.js";
+import InvoiceList from "views/screens/invoicelist/index.js";
+import PaymentReceive from "views/screens/paymentreceive/index.js";
 // import Machine from "views/screens/machine/index.js";
 // import Machineparts from "views/screens/machineparts/index.js";
 // import Machinemodel from "views/screens/machinemodel/index.js";
@@ -80,8 +81,9 @@ ReactDOM.render(
             <Route path="/designation" render={(props) => <Designation {...props} />} />
             <Route path="/department" render={(props) => <Department {...props} />} />
            
-            <Route path="/invoicelist" render={(props) => <InvoiceList {...props} />} />
             <Route path="/invoiceupload" render={(props) => <InvoiceUpload {...props} />} />
+            <Route path="/invoicelist" render={(props) => <InvoiceList {...props} />} />
+            <Route path="/paymentreceive" render={(props) => <PaymentReceive {...props} />} />
 
             <Route path="/userrole" render={(props) => <UserRole {...props} />} />
             <Route path="/roletomenupermission" render={(props) => <RoleToMenuPermission {...props} />} />

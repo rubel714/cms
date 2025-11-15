@@ -34,7 +34,7 @@ function AfterLoginNavbar(props) {
         {/* <!-- LOGO --> */}
         <div class="logo">
           <img alt="..." src={require("assets/img/logo.png")}></img>
-          <label >CMS</label>
+          <label>CMS</label>
         </div>
 
         {/* <!-- MENUE LIST  BAR --> */}
@@ -126,8 +126,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-
-          {menuShowPermision("businessline") === 1 && (
+                    {menuShowPermision("businessline") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -138,8 +137,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    
-          {menuShowPermision("customergroup") === 1 && (
+                    {menuShowPermision("customergroup") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -150,7 +148,6 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    
                     {menuShowPermision("client") === 1 && (
                       <li>
                         <a
@@ -161,8 +158,6 @@ function AfterLoginNavbar(props) {
                         </a>
                       </li>
                     )}
-
-          
 
                     {menuShowPermision("userrole") === 1 && (
                       <li>
@@ -252,6 +247,17 @@ function AfterLoginNavbar(props) {
                   Invoice
                   <ul class="dropdownList">
 
+                     {menuShowPermision("invoiceupload") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("invoiceupload")}
+                        >
+                          Invoice Upload
+                        </a>
+                      </li>
+                    )}
+
                     {menuShowPermision("invoicelist") === 1 && (
                       <li>
                         <a
@@ -263,20 +269,20 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    {menuShowPermision("invoiceupload") === 1 && (
+                   
+                    {menuShowPermision("paymentreceive") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
-                          onClick={() => props.history.push("invoiceupload")}
+                          onClick={() => props.history.push("paymentreceive")}
                         >
-                          Invoice Upload
+                          Payment Receive
                         </a>
                       </li>
                     )}
 
-                    
 
-                     {/* {menuShowPermision("machine") === 1 && (
+                    {/* {menuShowPermision("machine") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -349,7 +355,7 @@ function AfterLoginNavbar(props) {
                   {" "}
                   Reports
                   <ul class="dropdownList">
-{/* 
+                    {/* 
                     {menuShowPermision("customervisitpunchledger") === 1 && (
                       <li>
                         <a
@@ -362,7 +368,7 @@ function AfterLoginNavbar(props) {
                         </a>
                       </li>
                     )} */}
-{/* 
+                    {/* 
                     {menuShowPermision("customervisitpunchsummary") === 1 && (
                       <li>
                         <a
@@ -398,7 +404,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )} */}
 
-{/*           
+                    {/*           
                     {menuShowPermision("visitsummaryreport") === 1 && (
                       <li>
                         <a
@@ -444,7 +450,6 @@ function AfterLoginNavbar(props) {
           </div>
 
           {/* <!-- ICON BAR --> */}
-        
         </div>
 
         {/* <!-- USER PANEL --> */}
