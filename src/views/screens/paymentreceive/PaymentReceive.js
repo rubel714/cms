@@ -11,7 +11,8 @@ import {
   language,
 } from "../../../actions/api";
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
-
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Typography, TextField } from "@material-ui/core";
 import PaymentReceiveAddEditModal from "./PaymentReceiveAddEditModal";
 
 const PaymentReceive = (props) => {
@@ -21,10 +22,20 @@ const PaymentReceive = (props) => {
   const { useState } = React;
   const [bFirst, setBFirst] = useState(true);
   const [currentRow, setCurrentRow] = useState([]);
-  const [showModal, setShowModal] = useState(false); //true=show modal, false=hide modal
-
+  // const [showModal, setShowModal] = useState(false); //true=show modal, false=hide modal
+  const [listedittoggle, setListedittoggle] = useState(true); //true=show list panel, false=show edit panel
+  const [errorObject, setErrorObject] = useState({});
   const { isLoading, data: dataList, error, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
   let UserInfo = LoginUserInfo();
+
+  const [CustomerGroupList, setCustomerGroupList] = useState(null);
+  const [currCustomerGroupId, setCurrCustomerGroupId] = useState(null);
+
+  const [CustomerList, setCustomerList] = useState(null);
+  const [currCustomerId, setCurrCustomerId] = useState(null);
+
+  const [BankList, setBankList] = useState(null);
+  const [currBankId, setCurrBankId] = useState(null);
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -67,7 +78,7 @@ const PaymentReceive = (props) => {
       sort: true,
       filter: true,
     },
-        {
+    {
       field: "CustomerGroupName",
       label: "Customer Group",
       width: "12%",
@@ -113,16 +124,72 @@ const PaymentReceive = (props) => {
     setBFirst(false);
   }
 
+  React.useEffect(() => {
+    getCustomerGroupList();
+    getCustomerList();
+    getBankList();
+    // getUserList(null);
+    // getBusinessLineList(null);
+    // setCurrentRow(props.currentRow);
+    // console.log("useEffect props.currentRow", props.currentRow);
+
+    // setDataList(props.currentRow.UserMap);
+  }, []);
+
+  function getCustomerGroupList() {
+    let params = {
+      action: "CustomerGroupList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setCustomerGroupList(
+        [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist)
+      );
+
+      // setCurrCustomerGroupId(selectCustomerGroupId);
+    });
+  }
+
+  function getCustomerList() {
+    let params = {
+      action: "CustomerList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+      CustomerGroupId: currCustomerGroupId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setCustomerList(
+        [{ id: "", name: "Select Customer" }].concat(res.data.datalist)
+      );
+
+      // setCurrCustomerId(selectCustomerGroupId);
+    });
+  }
+
+  function getBankList() {
+    let params = {
+      action: "BankList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setBankList([{ id: "", name: "Select Bank" }].concat(res.data.datalist));
+
+      // setCurrCustomerId(selectCustomerGroupId);
+    });
+  }
+
   /**Get data for table list */
   function getDataList() {
     let params = {
       action: "getDataList",
       lan: language(),
       UserId: UserInfo.UserId,
-      ClientId: UserInfo.ClientId,
-      BranchId: UserInfo.BranchId,
     };
-    // console.log('LoginUserInfo params: ', params);
 
     ExecuteQuery(serverpage, params);
   }
@@ -135,7 +202,6 @@ const PaymentReceive = (props) => {
           <Edit
             className={"table-edit-icon"}
             onClick={() => {
-              // console.log(rowData);
               editData(rowData);
             }}
           />
@@ -156,17 +222,19 @@ const PaymentReceive = (props) => {
   const addData = () => {
     setCurrentRow({
       id: "",
-      CustomerCode: "",
-      CustomerName: "",
-      CustomerGroupId:"",
-      Designation: "",
-      ContactPhone: "",
-      CompanyName: "",
-      NatureOfBusiness: "",
-      CompanyEmail: "",
-      CompanyAddress: "",
-      IsActive: true,
+      PaymentDate: "",
+      CustomerId: "",
+      CustomerGroupId: "",
+      BankId: "",
+      TotalPaymentAmount: "",
+      Remarks: "",
+      Items: [],
     });
+
+    setCurrCustomerGroupId("");
+    setCurrCustomerId("");
+    setCurrBankId("");
+
     openModal();
   };
 
@@ -176,13 +244,19 @@ const PaymentReceive = (props) => {
   };
 
   function openModal() {
-    setShowModal(true); //true=modal show, false=modal hide
+    setListedittoggle(false);
+    // setShowModal(true); //true=modal show, false=modal hide
   }
 
-  function modalCallback(response) {
-    getDataList();
-    setShowModal(false); //true=modal show, false=modal hide
+  function hideModal() {
+    setListedittoggle(true);
+    // setShowModal(true); //true=modal show, false=modal hide
   }
+
+  // function modalCallback(response) {
+  //   getDataList();
+  //   // setShowModal(false); //true=modal show, false=modal hide
+  // }
 
   const deleteData = (rowData) => {
     swal({
@@ -234,6 +308,142 @@ const PaymentReceive = (props) => {
     });
   }
 
+  
+    function addEditAPICall() {
+      if (validateForm()) {
+        let UserInfo = LoginUserInfo();
+        let params = {
+          action: "dataAddEdit",
+          lan: language(),
+          UserId: UserInfo.UserId,
+          rowData: currentRow,
+        };
+        apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+          // console.log('res: ', res);
+  
+          props.openNoticeModal({
+            isOpen: true,
+            msg: res.data.message,
+            msgtype: res.data.success,
+          });
+  
+          // console.log('props modal: ', props);
+          if (res.data.success === 1) {
+           hideModal();
+           getDataList();
+          }
+        });
+      }
+    }
+  
+
+  const validateForm = () => {
+    let validateFields = ["PaymentDate", "TotalPaymentAmount"];
+    let errorData = {};
+    let isValid = true;
+    validateFields.map((field) => {
+      if (!currentRow[field]) {
+        errorData[field] = "validation-style";
+        isValid = false;
+      }
+    });
+    setErrorObject(errorData);
+    return isValid;
+  };
+
+  const handleChangeFilterDropDown = (name, value) => {
+    let data = { ...currentRow };
+    if (name === "CustomerGroupId") {
+      data["CustomerGroupId"] = value;
+      setCurrCustomerGroupId(value);
+    }
+
+    if (name === "CustomerId") {
+      data["CustomerId"] = value;
+      setCurrCustomerId(value);
+    }
+
+    if (name === "BankId") {
+      data["BankId"] = value;
+      setCurrBankId(value);
+    }
+    setErrorObject({ ...errorObject, [name]: null });
+    setCurrentRow(data);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let data = { ...currentRow };
+    data[name] = value;
+    setCurrentRow(data);
+
+    setErrorObject({ ...errorObject, [name]: null });
+  };
+
+
+
+  
+  const manyColumnList = [
+    { field: "rownumber", label: "SL", align: "center", width: "3%" },
+    {
+      field: "PaymentDate",
+      label: "Payment Date",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "CustomerName",
+      label: "Client Name",
+      // width: "9%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "CustomerGroupName",
+      label: "Customer Group",
+      width: "12%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "BankName",
+      label: "Bank Name",
+      width: "20%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+    {
+      field: "TotalPaymentAmount",
+      label: "Total Amount",
+      width: "12%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+    {
+      field: "custom",
+      label: "Action",
+      width: "6%",
+      align: "center",
+      visible: true,
+      sort: false,
+      filter: false,
+    },
+  ];
+
+
   return (
     <>
       <div class="bodyContainer">
@@ -244,44 +454,224 @@ const PaymentReceive = (props) => {
           </h4>
         </div>
 
-        {/* <!-- TABLE SEARCH AND GROUP ADD --> */}
-        <div class="searchAdd">
-          {/* <input type="text" placeholder="Search Product Group"/> */}
-          {/* <label></label> */}
+        {listedittoggle && (
+          <div>
+            <div class="searchAdd">
+              {/* <Button
+                label={"Export"}
+                class={"btnPrint"}
+                onClick={PrintPDFExcelExportFunction}
+              /> */}
+              <Button
+                disabled={permissionType}
+                label={"ADD"}
+                class={"btnAdd"}
+                onClick={addData}
+              />
+            </div>
 
-          <Button
-            label={"Export"}
-            class={"btnPrint"}
-            onClick={PrintPDFExcelExportFunction}
-          />
-          <Button
-            disabled={permissionType}
-            label={"ADD"}
-            class={"btnAdd"}
-            onClick={addData}
-          />
-        </div>
-
-        {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
-        {/* <div class="subContainer">
-          <div className="App tableHeight"> */}
             <CustomTable
               columns={columnList}
               rows={dataList ? dataList : {}}
               actioncontrol={actioncontrol}
             />
-          {/* </div>
-        </div> */}
+          </div>
+        )}
+
+        {!listedittoggle && (
+          <>
+            <div class="searchAdd">
+              <Button
+                label={"Back to List"}
+                class={"btnClose"}
+                onClick={hideModal}
+              />
+            </div>
+
+            <div>
+              <div class="contactmodalBody pt-10">
+                <label>Payement Date</label>
+                <input
+                  type="date"
+                  id="PaymentDate"
+                  name="PaymentDate"
+                  class={errorObject.PaymentDate}
+                  placeholder="Enter Payment Date"
+                  value={currentRow.PaymentDate}
+                  onChange={(e) => handleChange(e)}
+                />
+              </div>
+
+              <div class="contactmodalBody pt-10">
+                <label>Customer Group *</label>
+                <Autocomplete
+                  autoHighlight
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="CustomerGroupId"
+                  name="CustomerGroupId"
+                  autoComplete
+                  class={errorObject.CustomerGroupId}
+                  options={CustomerGroupList ? CustomerGroupList : []}
+                  getOptionLabel={(option) => option.name}
+                  defaultValue={{ id: 0, name: "Select Customer Group" }}
+                  value={
+                    CustomerGroupList
+                      ? CustomerGroupList[
+                          CustomerGroupList.findIndex(
+                            (list) => list.id === currCustomerGroupId
+                          )
+                        ]
+                      : null
+                  }
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "CustomerGroupId",
+                      valueobj ? valueobj.id : ""
+                    )
+                  }
+                  renderOption={(option) => (
+                    <Typography className="chosen_dropdown_font">
+                      {option.name}
+                    </Typography>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+
+                <label>Customer *</label>
+                <Autocomplete
+                  autoHighlight
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="CustomerId"
+                  name="CustomerId"
+                  autoComplete
+                  class={errorObject.CustomerId}
+                  options={CustomerList ? CustomerList : []}
+                  getOptionLabel={(option) => option.name}
+                  defaultValue={{ id: 0, name: "Select Customer" }}
+                  value={
+                    CustomerList
+                      ? CustomerList[
+                          CustomerList.findIndex(
+                            (list) => list.id === currCustomerId
+                          )
+                        ]
+                      : null
+                  }
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "CustomerId",
+                      valueobj ? valueobj.id : ""
+                    )
+                  }
+                  renderOption={(option) => (
+                    <Typography className="chosen_dropdown_font">
+                      {option.name}
+                    </Typography>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+              </div>
+
+              <div class="contactmodalBody pt-10">
+                <label>Bank </label>
+                <Autocomplete
+                  autoHighlight
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="BankId"
+                  name="BankId"
+                  autoComplete
+                  class={errorObject.BankId}
+                  options={BankList ? BankList : []}
+                  getOptionLabel={(option) => option.name}
+                  defaultValue={{ id: 0, name: "Select Bank" }}
+                  value={
+                    BankList
+                      ? BankList[
+                          BankList.findIndex((list) => list.id === currBankId)
+                        ]
+                      : null
+                  }
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "BankId",
+                      valueobj ? valueobj.id : ""
+                    )
+                  }
+                  renderOption={(option) => (
+                    <Typography className="chosen_dropdown_font">
+                      {option.name}
+                    </Typography>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+
+                <label>Total Payment Amount</label>
+                <input
+                  type="number"
+                  id="TotalPaymentAmount"
+                  name="TotalPaymentAmount"
+                  class={errorObject.TotalPaymentAmount}
+                  placeholder="Enter Total Payment Amount"
+                  value={currentRow.TotalPaymentAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+              </div>
+
+              <div class="contactmodalBody pt-10">
+                <label>Remarks</label>
+                <input
+                  type="text"
+                  id="Remarks"
+                  name="Remarks"
+                  // class={errorObject.PaymentDate}
+                  placeholder="Enter Remarks"
+                  value={currentRow.Remarks}
+                  onChange={(e) => handleChange(e)}
+                />
+              </div>
+              <div class="modalItem">
+                {/* <Button
+                  label={"Close"}
+                  class={"btnClose"}
+                  onClick={modalClose}
+                /> */}
+                {currentRow.id && (
+                  <Button
+                    label={"Update"}
+                    class={"btnUpdate"}
+                    onClick={addEditAPICall}
+                  />
+                )}
+                {!currentRow.id && (
+                  <Button
+                    label={"Save"}
+                    class={"btnSave"}
+                    onClick={addEditAPICall}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
 
-      {showModal && (
+      {/* {showModal && (
         <PaymentReceiveAddEditModal
           masterProps={props}
           currentRow={currentRow}
           modalCallback={modalCallback}
         />
-      )}
+      )}*/}
     </>
   );
 };

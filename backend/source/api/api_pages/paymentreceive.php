@@ -90,32 +90,21 @@ function dataAddEdit($data)
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return $returnData = msg(0, 404, 'Page Not Found!');
 	} else {
-
-
+// echo "<pre>";
+// print_r($data);
+// exit;
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
-		$ClientId = trim($data->ClientId);
-		//$BranchId = trim($data->BranchId); 
 
-		$CustomerId = $data->rowData->id;
-		$CustomerCode = isset($data->rowData->CustomerCode) && ($data->rowData->CustomerCode !== "") ? $data->rowData->CustomerCode : NULL;
-		if (!$CustomerCode) {
-			$CustomerCode = date('YmdHis');
-		}
+		$PaymentId = $data->rowData->id;
+		$PaymentDate = $data->rowData->PaymentDate;
+		$CustomerId = $data->rowData->CustomerId?$data->rowData->CustomerId:null;
+		$CustomerGroupId = $data->rowData->CustomerGroupId?$data->rowData->CustomerGroupId:null;
+		$BankId = $data->rowData->BankId?$data->rowData->BankId:null;
+		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount?$data->rowData->TotalPaymentAmount:null;
+		$Remarks = $data->rowData->Remarks?$data->rowData->Remarks:null;
 
-		$CustomerName = $data->rowData->CustomerName;
-		$CustomerGroupId = $data->rowData->CustomerGroupId;
-		$Designation = isset($data->rowData->Designation) && ($data->rowData->Designation !== "") ? $data->rowData->Designation : NULL;
-		$ContactPhone = isset($data->rowData->ContactPhone) && ($data->rowData->ContactPhone !== "") ? $data->rowData->ContactPhone : NULL;
-		$CompanyName = isset($data->rowData->CompanyName) && ($data->rowData->CompanyName !== "") ? $data->rowData->CompanyName : NULL;
-		// $NatureOfBusiness = isset($data->rowData->NatureOfBusiness) && ($data->rowData->NatureOfBusiness !== "")? $data->rowData->NatureOfBusiness : NULL;
-		$CompanyEmail = isset($data->rowData->CompanyEmail) && ($data->rowData->CompanyEmail !== "") ? $data->rowData->CompanyEmail : NULL;
-		$CompanyAddress = isset($data->rowData->CompanyAddress) && ($data->rowData->CompanyAddress !== "") ? $data->rowData->CompanyAddress : NULL;
-		$IsActive = 1; //isset($data->rowData->IsActive) ? $data->rowData->IsActive : 0;
-
-
-		$manyDataList = isset($data->manyDataList) ? $data->manyDataList : [];
-		$manyDeleteDataList = isset($data->manyDeleteDataList) ? $data->manyDeleteDataList : [];
+		$Items = isset($data->Items) ? $data->Items : [];
 
 
 		try {
@@ -123,62 +112,62 @@ function dataAddEdit($data)
 			$dbh = new Db();
 			$aQuerys = array();
 
-			if ($CustomerId == "") {
+			if ($PaymentId == "") {
 				$q = new insertq();
-				$q->table = 't_customer';
-				$q->columns = ['ClientId', 'CustomerCode', 'CustomerName', 'CustomerGroupId', 'Designation', 'ContactPhone', 'CompanyName', 'CompanyEmail', 'CompanyAddress', 'IsActive', 'UserId'];
-				$q->values = [$ClientId, $CustomerCode, $CustomerName, $CustomerGroupId, $Designation, $ContactPhone, $CompanyName, $CompanyEmail, $CompanyAddress, $IsActive, $UserId];
-				$q->pks = ['CustomerId'];
+				$q->table = 't_payment';
+				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId'];
+				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId];
+				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = false;
 				$q->build_query();
 				$aQuerys[] = $q;
 			} else {
 				$u = new updateq();
-				$u->table = 't_customer';
-				$u->columns = ['CustomerCode', 'CustomerName', 'CustomerGroupId', 'Designation', 'ContactPhone', 'CompanyName', 'CompanyEmail', 'CompanyAddress'];
-				$u->values = [$CustomerCode, $CustomerName, $CustomerGroupId, $Designation, $ContactPhone, $CompanyName, $CompanyEmail, $CompanyAddress];
-				$u->pks = ['CustomerId'];
-				$u->pk_values = [$CustomerId];
+				$u->table = 't_payment';
+				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks'];
+				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks];
+				$u->pks = ['PaymentId'];
+				$u->pk_values = [$PaymentId];
 				$u->build_query();
 				$aQuerys[] = $u;
 
 
-				$manyDataList = isset($data->manyDataList) ? $data->manyDataList : [];
-				$manyDeleteDataList = isset($data->manyDeleteDataList) ? $data->manyDeleteDataList : [];
-				// echo "<pre>";
+				// $manyDataList = isset($data->manyDataList) ? $data->manyDataList : [];
+				// $manyDeleteDataList = isset($data->manyDeleteDataList) ? $data->manyDeleteDataList : [];
+				// // echo "<pre>";
 
-				foreach ($manyDeleteDataList as $key => $CustomerMapId) {
-						$d = new deleteq();
-						$d->table = 't_customer_map';
-						$d->pks = ['CustomerMapId'];
-						$d->pk_values = [$CustomerMapId];
-						$d->build_query();
-						$aQuerys[] = $d;
-				}
+				// foreach ($manyDeleteDataList as $key => $CustomerMapId) {
+				// 		$d = new deleteq();
+				// 		$d->table = 't_customer_map';
+				// 		$d->pks = ['CustomerMapId'];
+				// 		$d->pk_values = [$CustomerMapId];
+				// 		$d->build_query();
+				// 		$aQuerys[] = $d;
+				// }
 
 
-				foreach ($manyDataList as $key => $obj) {
-					// print_r($obj);
-					if ($obj->CustomerMapId > 0) {
-						$u = new updateq();
-						$u->table = 't_customer_map';
-						$u->columns = ['BusinessLineId', 'UserId'];
-						$u->values = [$obj->BusinessLineId, $obj->UserId];
-						$u->pks = ['CustomerMapId'];
-						$u->pk_values = [$obj->CustomerMapId];
-						$u->build_query();
-						$aQuerys[] = $u;
-					} else {
-						$q = new insertq();
-						$q->table = 't_customer_map';
-						$q->columns = ['CustomerId', 'BusinessLineId', 'UserId'];
-						$q->values = [$obj->CustomerId, $obj->BusinessLineId, $obj->UserId];
-						$q->pks = ['CustomerMapId'];
-						$q->bUseInsetId = false;
-						$q->build_query();
-						$aQuerys[] = $q;
-					}
-				}
+				// foreach ($manyDataList as $key => $obj) {
+				// 	// print_r($obj);
+				// 	if ($obj->CustomerMapId > 0) {
+				// 		$u = new updateq();
+				// 		$u->table = 't_customer_map';
+				// 		$u->columns = ['BusinessLineId', 'UserId'];
+				// 		$u->values = [$obj->BusinessLineId, $obj->UserId];
+				// 		$u->pks = ['CustomerMapId'];
+				// 		$u->pk_values = [$obj->CustomerMapId];
+				// 		$u->build_query();
+				// 		$aQuerys[] = $u;
+				// 	} else {
+				// 		$q = new insertq();
+				// 		$q->table = 't_customer_map';
+				// 		$q->columns = ['CustomerId', 'BusinessLineId', 'UserId'];
+				// 		$q->values = [$obj->CustomerId, $obj->BusinessLineId, $obj->UserId];
+				// 		$q->pks = ['CustomerMapId'];
+				// 		$q->bUseInsetId = false;
+				// 		$q->build_query();
+				// 		$aQuerys[] = $q;
+				// 	}
+				// }
 
 				
 			}
@@ -222,23 +211,23 @@ function deleteData($data)
 		return $returnData = msg(0, 422, 'Please Fill in all Required Fields!', $fields);
 	} else {
 
-		$CustomerId = $data->rowData->id;
+		$PaymentId = $data->rowData->id;
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
 
 		try {
 
 			$d = new deleteq();
-			$d->table = 't_customer_map';
-			$d->pks = ['CustomerId'];
-			$d->pk_values = [$CustomerId];
+			$d->table = 't_paymentitems';
+			$d->pks = ['PaymentId'];
+			$d->pk_values = [$PaymentId];
 			$d->build_query();
 			$aQuerys[] = $d;
 
 			$d = new deleteq();
-			$d->table = 't_customer';
-			$d->pks = ['CustomerId'];
-			$d->pk_values = [$CustomerId];
+			$d->table = 't_payment';
+			$d->pks = ['PaymentId'];
+			$d->pk_values = [$PaymentId];
 			$d->build_query();
 			$aQuerys[] = $d;
 

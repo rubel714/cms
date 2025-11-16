@@ -33,6 +33,9 @@ switch ($task) {
 	case "DepartmentList":
 		$returnData = DepartmentList($data);
 		break;
+	case "BankList":
+		$returnData = BankList($data);
+		break;
  
 	case "MonthList":
 		$returnData = MonthList($data);
@@ -226,17 +229,12 @@ function CustomerList($data)
 {
 	try {
 
-		$ClientId = trim($data->ClientId);
-		$BranchId = trim($data->BranchId);
-
+		$CustomerGroupId = $data->CustomerGroupId?$data->CustomerGroupId:0;
 		$dbh = new Db();
-
-		$query = "SELECT `CustomerId` id,concat(`CustomerName`,' - ',ContactPhone) `name`
+		$query = "SELECT `CustomerId` id, CustomerName `name`
 	 			 	FROM `t_customer` 
-					where ClientId=$ClientId
+					where (CustomerGroupId = $CustomerGroupId OR $CustomerGroupId = 0)
 					ORDER BY CustomerName;";
-
-
 
 		$resultdata = $dbh->query($query);
 
@@ -294,6 +292,32 @@ function DepartmentList($data)
 		$query = "SELECT `DepartmentId` id,`DepartmentName` `name`
 	 			 	FROM `t_department` 
 					ORDER BY DepartmentName;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+
+function BankList($data)
+{
+	try {
+
+		$dbh = new Db();
+
+		$query = "SELECT `BankId` id,`BankName` `name`
+	 			 	FROM `t_bank` 
+					ORDER BY BankName;";
 
 		$resultdata = $dbh->query($query);
 
