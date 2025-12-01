@@ -12,6 +12,7 @@
   --modalbg-color: bisque;
   --gray-color: rgb(214, 212, 212);
   --red-color: #f02d37;
+  --white-color: #ffffff;
 
   /* BORDER */
   --container-border: 1px solid black;
@@ -592,7 +593,7 @@ input {
 .chosen_dropdown input {
   padding: 6px 2px !important;
   /* height: 6px; */
-  background-color: var(--bg-color);
+  background-color: var(--white-color);
   /*font-size: 12px !important;*/
   width: 100% !important;
 }

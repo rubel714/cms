@@ -11,6 +11,10 @@ switch ($task) {
 		$returnData = getDataList($data);
 		break;
 
+	case "getDataSingle":
+		$returnData = getDataSingle($data);
+		break;
+
 	case "dataAddEdit":
 		$returnData = dataAddEdit($data);
 		break;
@@ -27,13 +31,10 @@ switch ($task) {
 function getDataList($data)
 {
 
-	// $ClientId = trim($data->ClientId); 
-	//$BranchId = trim($data->BranchId); 
-
 	try {
 		$dbh = new Db();
 
-		$query = "SELECT a.PaymentId AS id, a.PaymentDate,
+		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,a.TotalPaymentAmount,a.Remarks
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
@@ -42,31 +43,6 @@ function getDataList($data)
 		ORDER BY a.PaymentDate DESC, a.PaymentId DESC;";
 
 		$resultdatalist = $dbh->query($query);
-
-
-		// $resultdatamap = array();
-		// $query = "SELECT a.CustomerMapId,a.`CustomerId`, a.`BusinessLineId`,concat(b.`BusinessLineCode`,' - ',b.BusinessLineName) as BusinessLineName, a.`UserId`,c.UserName
-		// 	FROM t_customer_map a
-		// 	inner join t_businessline b on a.BusinessLineId=b.BusinessLineId
-		// 	inner join t_users c on a.UserId=c.UserId;";
-		// $resultdataItems = $dbh->query($query);
-		// foreach ($resultdataItems as $r) {
-		// 	$CustomerId = $r['CustomerId'];
-		// 	$resultdatamap[$CustomerId][] = $r;
-		// }
-
-		// $resultdata = array();
-		// foreach ($resultdatalist as $row) {
-		// 	$CustomerId = $row['id'];
-
-		// 	if (array_key_exists($CustomerId, $resultdatamap)) {
-		// 		$row['UserMap'] = $resultdatamap[$CustomerId];
-		// 	} else {
-		// 		$row['UserMap'] = [];
-		// 	}
-
-		// 	$resultdata[] = $row;
-		// }
 
 
 		$returnData = [
@@ -83,6 +59,43 @@ function getDataList($data)
 }
 
 
+function getDataSingle($data)
+{
+	$PaymentId = trim($data->id);
+
+	try {
+		$dbh = new Db();
+		
+		/**Master Data */
+		// $query = "SELECT PaymentId AS id, `PaymentDate`, `CustomerId`, `CustomerGroupId`, `BankId`, 
+		// `TotalPaymentAmount`, `Remarks`, `UserId`
+		// FROM t_payment
+		// where PaymentId=$PaymentId;";
+
+		$resultdataMaster =[]; // $dbh->query($query);
+
+		/**Items Data */
+		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
+		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference,b.BaseAmount, ifnull(b.TotalPaymentAmount,0) as TotalPaymentAmount, (ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0)) DueAmount, b.IsPaid
+		FROM t_paymentitems a 
+		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
+		where a.PaymentId=$PaymentId
+		order by a.PaymentItemId ASC;";
+		$resultdataItems = $dbh->query($query);
+
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => array("master" => $resultdataMaster, "items" => $resultdataItems)
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
 
 function dataAddEdit($data)
 {
@@ -104,7 +117,7 @@ function dataAddEdit($data)
 		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount?$data->rowData->TotalPaymentAmount:null;
 		$Remarks = $data->rowData->Remarks?$data->rowData->Remarks:null;
 
-		$Items = isset($data->Items) ? $data->Items : [];
+		$items = isset($data->items) ? $data->items : [];
 
 
 		try {
@@ -118,7 +131,7 @@ function dataAddEdit($data)
 				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId'];
 				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId];
 				$q->pks = ['PaymentId'];
-				$q->bUseInsetId = false;
+				$q->bUseInsetId = true;
 				$q->build_query();
 				$aQuerys[] = $q;
 			} else {
@@ -132,42 +145,27 @@ function dataAddEdit($data)
 				$aQuerys[] = $u;
 
 
-				// $manyDataList = isset($data->manyDataList) ? $data->manyDataList : [];
-				// $manyDeleteDataList = isset($data->manyDeleteDataList) ? $data->manyDeleteDataList : [];
-				// // echo "<pre>";
+				foreach ($items as $key => $obj) {
+					// print_r($obj);
+					$u = new updateq();
+					$u->table = 't_paymentitems';
+					$u->columns = ['PaymentAmount'];
+					$u->values = [$obj->PaymentAmount?$obj->PaymentAmount:null];
+					$u->pks = ['PaymentItemId'];
+					$u->pk_values = [$obj->PaymentItemId];
+					$u->build_query();
+					$aQuerys[] = $u;
 
-				// foreach ($manyDeleteDataList as $key => $CustomerMapId) {
-				// 		$d = new deleteq();
-				// 		$d->table = 't_customer_map';
-				// 		$d->pks = ['CustomerMapId'];
-				// 		$d->pk_values = [$CustomerMapId];
-				// 		$d->build_query();
-				// 		$aQuerys[] = $d;
-				// }
-
-
-				// foreach ($manyDataList as $key => $obj) {
-				// 	// print_r($obj);
-				// 	if ($obj->CustomerMapId > 0) {
-				// 		$u = new updateq();
-				// 		$u->table = 't_customer_map';
-				// 		$u->columns = ['BusinessLineId', 'UserId'];
-				// 		$u->values = [$obj->BusinessLineId, $obj->UserId];
-				// 		$u->pks = ['CustomerMapId'];
-				// 		$u->pk_values = [$obj->CustomerMapId];
-				// 		$u->build_query();
-				// 		$aQuerys[] = $u;
-				// 	} else {
-				// 		$q = new insertq();
-				// 		$q->table = 't_customer_map';
-				// 		$q->columns = ['CustomerId', 'BusinessLineId', 'UserId'];
-				// 		$q->values = [$obj->CustomerId, $obj->BusinessLineId, $obj->UserId];
-				// 		$q->pks = ['CustomerMapId'];
-				// 		$q->bUseInsetId = false;
-				// 		$q->build_query();
-				// 		$aQuerys[] = $q;
-				// 	}
-				// }
+					$u = new updateq();
+					$u->table = 't_invoiceitems';
+					$u->columns = ['TotalPaymentAmount'];
+					$u->values = [$obj->TotalPaymentAmount + ($obj->PaymentAmount?$obj->PaymentAmount:0)];
+					$u->pks = ['InvoiceItemId'];
+					$u->pk_values = [$obj->InvoiceItemId];
+					$u->build_query();
+					$aQuerys[] = $u;
+					 
+				}
 
 				
 			}
@@ -187,8 +185,9 @@ function dataAddEdit($data)
 			$returnData = [
 				"success" => $success,
 				"status" => $status,
+				"PaymentId" => $res['PaymentId'],
 				"UserId" => $UserId,
-				"message" => $res['msg']
+				"message" => $res['msg'],
 			];
 		} catch (PDOException $e) {
 			$returnData = msg(0, 500, $e->getMessage());

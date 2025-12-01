@@ -13,7 +13,6 @@ import {
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
-import PaymentReceiveAddEditModal from "./PaymentReceiveAddEditModal";
 
 const PaymentReceive = (props) => {
   const serverpage = "paymentreceive"; // this is .php server page
@@ -26,6 +25,12 @@ const PaymentReceive = (props) => {
   const [listedittoggle, setListedittoggle] = useState(true); //true=show list panel, false=show edit panel
   const [errorObject, setErrorObject] = useState({});
   const { isLoading, data: dataList, error, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
+  const {
+    isLoading: isLoadingMany,
+    data: manyDataList,
+    error: errorMany,
+    ExecuteQuery: ExecuteQueryMany,
+  } = ExecuteQueryHook(); //Fetch data
   let UserInfo = LoginUserInfo();
 
   const [CustomerGroupList, setCustomerGroupList] = useState(null);
@@ -36,6 +41,8 @@ const PaymentReceive = (props) => {
 
   const [BankList, setBankList] = useState(null);
   const [currBankId, setCurrBankId] = useState(null);
+
+  const [editableItems, setEditableItems] = useState([]);
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -78,15 +85,15 @@ const PaymentReceive = (props) => {
       sort: true,
       filter: true,
     },
-    {
-      field: "CustomerGroupName",
-      label: "Customer Group",
-      width: "12%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+    // {
+    //   field: "CustomerGroupName",
+    //   label: "Customer Group",
+    //   width: "12%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
     {
       field: "BankName",
       label: "Bank Name",
@@ -135,6 +142,12 @@ const PaymentReceive = (props) => {
 
     // setDataList(props.currentRow.UserMap);
   }, []);
+
+  React.useEffect(() => {
+    if (manyDataList?.items) {
+      setEditableItems(manyDataList.items);
+    }
+  }, [manyDataList]);
 
   function getCustomerGroupList() {
     let params = {
@@ -238,11 +251,6 @@ const PaymentReceive = (props) => {
     openModal();
   };
 
-  const editData = (rowData) => {
-    setCurrentRow(rowData);
-    openModal();
-  };
-
   function openModal() {
     setListedittoggle(false);
     // setShowModal(true); //true=modal show, false=modal hide
@@ -253,10 +261,29 @@ const PaymentReceive = (props) => {
     // setShowModal(true); //true=modal show, false=modal hide
   }
 
-  // function modalCallback(response) {
-  //   getDataList();
-  //   // setShowModal(false); //true=modal show, false=modal hide
-  // }
+  const editData = (rowData) => {
+    setCurrentRow(rowData);
+    setCurrCustomerGroupId(rowData.CustomerGroupId);
+    setCurrCustomerId(rowData.CustomerId);
+    setCurrBankId(rowData.BankId);
+
+    getDataSingleFromServer(rowData.id);
+    openModal();
+  };
+
+  const getDataSingleFromServer = (id) => {
+    let params = {
+      action: "getDataSingle",
+      lan: language(),
+      UserId: UserInfo.UserId,
+      id: id,
+    };
+
+    // setDeletedItems([]);
+
+    // ExecuteQuerySingle(serverpage, params);
+    ExecuteQueryMany(serverpage, params);
+  };
 
   const deleteData = (rowData) => {
     swal({
@@ -308,37 +335,41 @@ const PaymentReceive = (props) => {
     });
   }
 
-  
-    function addEditAPICall() {
-      if (validateForm()) {
-        let UserInfo = LoginUserInfo();
-        let params = {
-          action: "dataAddEdit",
-          lan: language(),
-          UserId: UserInfo.UserId,
-          rowData: currentRow,
-        };
-        apiCall.post(serverpage, { params }, apiOption()).then((res) => {
-          // console.log('res: ', res);
-  
-          props.openNoticeModal({
-            isOpen: true,
-            msg: res.data.message,
-            msgtype: res.data.success,
-          });
-  
-          // console.log('props modal: ', props);
-          if (res.data.success === 1) {
-           hideModal();
-           getDataList();
-          }
+  function addEditAPICall() {
+    if (validateForm()) {
+      let UserInfo = LoginUserInfo();
+      let params = {
+        action: "dataAddEdit",
+        lan: language(),
+        UserId: UserInfo.UserId,
+        rowData: currentRow,
+        items: editableItems,
+      };
+      apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+        // console.log('res: ', res);
+
+        props.openNoticeModal({
+          isOpen: true,
+          msg: res.data.message,
+          msgtype: res.data.success,
         });
-      }
+
+        if (res.data.success === 1) {
+          // hideModal();
+          // getDataList();
+          let data = { ...currentRow };
+          data["id"] = res.data.PaymentId;
+          setCurrentRow(data);
+          console.log('data: ', data);
+
+          getDataSingleFromServer(res.data.PaymentId);
+        }
+      });
     }
-  
+  }
 
   const validateForm = () => {
-    let validateFields = ["PaymentDate", "TotalPaymentAmount"];
+    let validateFields = ["PaymentDate", "CustomerId", "TotalPaymentAmount"];
     let errorData = {};
     let isValid = true;
     validateFields.map((field) => {
@@ -380,23 +411,35 @@ const PaymentReceive = (props) => {
     setErrorObject({ ...errorObject, [name]: null });
   };
 
+  const handleChangeMany = (e, row) => {
+    const { name, value } = e.target;
+    const updatedItems = editableItems.map((item) => {
+      if (item.PaymentItemId === row.PaymentItemId) {
+        return { ...item, [name]: value };
+      }
+      return item;
+    });
 
+    setEditableItems(updatedItems);
+    // console.log('updatedItems: ', updatedItems);
 
-  
+    // setErrorObject({ ...errorObject, [name]: null });
+  };
+
   const manyColumnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
-      field: "PaymentDate",
-      label: "Payment Date",
-      width: "10%",
+      field: "AccountCode",
+      label: "Customer Code",
+      width: "8%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
     {
-      field: "CustomerName",
-      label: "Client Name",
+      field: "Description",
+      label: "Description",
       // width: "9%",
       align: "left",
       visible: true,
@@ -404,28 +447,45 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
-      field: "CustomerGroupName",
-      label: "Customer Group",
-      width: "12%",
+      field: "TransactionDate",
+      label: "Invoice Date",
+      width: "8%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
     {
-      field: "BankName",
-      label: "Bank Name",
-      width: "20%",
+      field: "TransactionReference",
+      label: "Report No",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
-
+    {
+      field: "BaseAmount",
+      label: "Invoice Amount",
+      width: "8%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "TotalPaymentAmount",
-      label: "Total Amount",
-      width: "12%",
+      label: "Paid Amount",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "DueAmount",
+      label: "Due Amount",
+      width: "7%",
       align: "right",
       visible: true,
       sort: true,
@@ -434,8 +494,8 @@ const PaymentReceive = (props) => {
 
     {
       field: "custom",
-      label: "Action",
-      width: "6%",
+      label: "Payment Amount",
+      width: "8%",
       align: "center",
       visible: true,
       sort: false,
@@ -443,6 +503,50 @@ const PaymentReceive = (props) => {
     },
   ];
 
+  /** Action from table row buttons*/
+  function actioncontrolmany(rowData) {
+    return (
+      <>
+        <input
+          type="number"
+          id="PaymentAmount"
+          name="PaymentAmount"
+          // class={errorObject.PaymentDate}
+          placeholder="Enter Payment Amount"
+          value={
+            editableItems.length > 0
+              ? editableItems[
+                  editableItems.findIndex(
+                    (list) => list.PaymentItemId == rowData.PaymentItemId
+                  )
+                ]?.PaymentAmount || ""
+              : ""
+          }
+          // value={rowData.PaymentItemId}
+          onChange={(e) => handleChangeMany(e, rowData)}
+          // onBlur={(e) => handleChangeMany(e, rowData)}
+        />
+
+        {/* {permissionType === 0 && (
+          // <Edit
+          //   className={"table-edit-icon"}
+          //   onClick={() => {
+          //     editData(rowData);
+          //   }}
+          // />
+        )} */}
+        {/* 
+        {permissionType === 0 && (
+          // <DeleteOutline
+          //   className={"table-delete-icon"}
+          //   onClick={() => {
+          //     deleteData(rowData);
+          //   }}
+          // />
+        )} */}
+      </>
+    );
+  }
 
   return (
     <>
@@ -500,10 +604,8 @@ const PaymentReceive = (props) => {
                   value={currentRow.PaymentDate}
                   onChange={(e) => handleChange(e)}
                 />
-              </div>
 
-              <div class="contactmodalBody pt-10">
-                <label>Customer Group *</label>
+                {/* <label>Customer Group *</label>
                 <Autocomplete
                   autoHighlight
                   disableClearable
@@ -538,7 +640,7 @@ const PaymentReceive = (props) => {
                   renderInput={(params) => (
                     <TextField {...params} variant="standard" fullWidth />
                   )}
-                />
+                /> */}
 
                 <label>Customer *</label>
                 <Autocomplete
@@ -579,7 +681,7 @@ const PaymentReceive = (props) => {
               </div>
 
               <div class="contactmodalBody pt-10">
-                <label>Bank </label>
+                <label>Bank</label>
                 <Autocomplete
                   autoHighlight
                   disableClearable
@@ -587,7 +689,7 @@ const PaymentReceive = (props) => {
                   id="BankId"
                   name="BankId"
                   autoComplete
-                  class={errorObject.BankId}
+                  // class={errorObject.BankId}
                   options={BankList ? BankList : []}
                   getOptionLabel={(option) => option.name}
                   defaultValue={{ id: 0, name: "Select Bank" }}
@@ -614,7 +716,7 @@ const PaymentReceive = (props) => {
                   )}
                 />
 
-                <label>Total Payment Amount</label>
+                <label>Total Payment Amount *</label>
                 <input
                   type="number"
                   id="TotalPaymentAmount"
@@ -638,15 +740,19 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
               </div>
+
+              {currentRow.id && ( <div class="contactmodalBodys pt-10">
+                <CustomTable
+                  columns={manyColumnList}
+                  rows={editableItems.length > 0 ? editableItems : {}}
+                  actioncontrol={actioncontrolmany}
+                />
+              </div>)}
+
               <div class="modalItem">
-                {/* <Button
-                  label={"Close"}
-                  class={"btnClose"}
-                  onClick={modalClose}
-                /> */}
                 {currentRow.id && (
                   <Button
-                    label={"Update"}
+                    label={"Save"} //update
                     class={"btnUpdate"}
                     onClick={addEditAPICall}
                   />
@@ -664,14 +770,6 @@ const PaymentReceive = (props) => {
         )}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
-
-      {/* {showModal && (
-        <PaymentReceiveAddEditModal
-          masterProps={props}
-          currentRow={currentRow}
-          modalCallback={modalCallback}
-        />
-      )}*/}
     </>
   );
 };
