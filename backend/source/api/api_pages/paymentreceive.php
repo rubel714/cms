@@ -65,14 +65,14 @@ function getDataSingle($data)
 
 	try {
 		$dbh = new Db();
-		
+
 		/**Master Data */
 		// $query = "SELECT PaymentId AS id, `PaymentDate`, `CustomerId`, `CustomerGroupId`, `BankId`, 
 		// `TotalPaymentAmount`, `Remarks`, `UserId`
 		// FROM t_payment
 		// where PaymentId=$PaymentId;";
 
-		$resultdataMaster =[]; // $dbh->query($query);
+		$resultdataMaster = []; // $dbh->query($query);
 
 		/**Items Data */
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
@@ -103,22 +103,35 @@ function dataAddEdit($data)
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return $returnData = msg(0, 404, 'Page Not Found!');
 	} else {
-// echo "<pre>";
-// print_r($data);
-// exit;
+		// echo "<pre>";
+		// print_r($data);
+		// exit;
+		$dbh = new Db();
+
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
 
 		$PaymentId = $data->rowData->id;
 		$PaymentDate = $data->rowData->PaymentDate;
-		$CustomerId = $data->rowData->CustomerId?$data->rowData->CustomerId:null;
-		$CustomerGroupId = $data->rowData->CustomerGroupId?$data->rowData->CustomerGroupId:null;
-		$BankId = $data->rowData->BankId?$data->rowData->BankId:null;
-		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount?$data->rowData->TotalPaymentAmount:null;
-		$Remarks = $data->rowData->Remarks?$data->rowData->Remarks:null;
+		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
+		$CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
+		$BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
+		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
+		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
+		$StatusId = 1;
 
 		$items = isset($data->items) ? $data->items : [];
 
+		$query = "SELECT count(a.PaymentId) DraftCount
+		FROM t_payment a
+		where a.CustomerId=$CustomerId
+		and a.StatusId=1;";
+		$resultdatalist = $dbh->query($query);
+		if ($resultdatalist[0]['DraftCount'] >= 1 && $PaymentId == "") {
+			return $returnData = msg(0, 500, 'There is already a draft payment for this customer. Please complete or delete the existing draft payment before creating a new one.');
+		}
+
+		
 
 		try {
 
@@ -128,8 +141,8 @@ function dataAddEdit($data)
 			if ($PaymentId == "") {
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId'];
-				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId];
+				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId','StatusId'];
+				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -150,7 +163,7 @@ function dataAddEdit($data)
 					$u = new updateq();
 					$u->table = 't_paymentitems';
 					$u->columns = ['PaymentAmount'];
-					$u->values = [$obj->PaymentAmount?$obj->PaymentAmount:null];
+					$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null];
 					$u->pks = ['PaymentItemId'];
 					$u->pk_values = [$obj->PaymentItemId];
 					$u->build_query();
@@ -159,15 +172,12 @@ function dataAddEdit($data)
 					$u = new updateq();
 					$u->table = 't_invoiceitems';
 					$u->columns = ['TotalPaymentAmount'];
-					$u->values = [$obj->TotalPaymentAmount + ($obj->PaymentAmount?$obj->PaymentAmount:0)];
+					$u->values = [$obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0)];
 					$u->pks = ['InvoiceItemId'];
 					$u->pk_values = [$obj->InvoiceItemId];
 					$u->build_query();
 					$aQuerys[] = $u;
-					 
 				}
-
-				
 			}
 
 
@@ -182,10 +192,46 @@ function dataAddEdit($data)
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
+			if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount >0) {
+				$TmpAmp = $TotalPaymentAmount;
+
+				$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
+				(ifnull(a.BaseAmount,0) - ifnull(a.TotalPaymentAmount,0)) DueAmount
+				FROM `t_invoiceitems` a 
+				inner join t_customer b on a.AccountCode=b.CustomerCode 
+				WHERE b.CustomerId=$CustomerId 
+				and a.IsPaid=0
+				order by a.CreateTs desc;";
+				$result  = $dbh->query($query);
+				foreach ($result as $row) {
+
+					$DueAmount = (int)$row['DueAmount'];
+
+					if($DueAmount<=$TmpAmp){
+						$TmpAmp -= $DueAmount;
+					}else{
+						$DueAmount = $TmpAmp;
+						$TmpAmp = 0;
+					}
+
+					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId, PaymentAmount)
+					values(".$res['PaymentId'].",".$row['InvoiceItemId'].",$DueAmount);";
+					$dbh->query($query1);
+
+					if($TmpAmp <=0) {
+						break;
+					}
+				}	
+
+				
+			}
+
+
+
 			$returnData = [
 				"success" => $success,
 				"status" => $status,
-				"PaymentId" => $res['PaymentId'],
+				"PaymentId" => $PaymentId == "" ? $res['PaymentId'] : $PaymentId,
 				"UserId" => $UserId,
 				"message" => $res['msg'],
 			];

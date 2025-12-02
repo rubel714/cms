@@ -40,7 +40,7 @@ const PaymentReceive = (props) => {
   const [currCustomerId, setCurrCustomerId] = useState(null);
 
   const [BankList, setBankList] = useState(null);
-  const [currBankId, setCurrBankId] = useState(null);
+  const [currBankId, setCurrBankId] = useState("");
 
   const [editableItems, setEditableItems] = useState([]);
 
@@ -148,6 +148,18 @@ const PaymentReceive = (props) => {
       setEditableItems(manyDataList.items);
     }
   }, [manyDataList]);
+
+  // Memoize selected customer to avoid expensive findIndex on every render
+  const selectedCustomer = React.useMemo(() => {
+    if (!CustomerList || !currCustomerId) return null;
+    return CustomerList.find(list => list.id === currCustomerId) || null;
+  }, [CustomerList, currCustomerId]);
+
+  // Memoize selected bank to avoid expensive findIndex on every render
+  const selectedBank = React.useMemo(() => {
+    if (!BankList || !currBankId) return null;
+    return BankList.find(list => list.id === currBankId) || null;
+  }, [BankList, currBankId]);
 
   function getCustomerGroupList() {
     let params = {
@@ -257,6 +269,8 @@ const PaymentReceive = (props) => {
   }
 
   function hideModal() {
+    getDataList();
+
     setListedittoggle(true);
     // setShowModal(true); //true=modal show, false=modal hide
   }
@@ -653,29 +667,29 @@ const PaymentReceive = (props) => {
                   class={errorObject.CustomerId}
                   options={CustomerList ? CustomerList : []}
                   getOptionLabel={(option) => option.name}
-                  defaultValue={{ id: 0, name: "Select Customer" }}
-                  value={
-                    CustomerList
-                      ? CustomerList[
-                          CustomerList.findIndex(
-                            (list) => list.id === currCustomerId
-                          )
-                        ]
-                      : null
-                  }
+                  value={selectedCustomer}
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
                       "CustomerId",
                       valueobj ? valueobj.id : ""
                     )
                   }
-                  renderOption={(option) => (
-                    <Typography className="chosen_dropdown_font">
-                      {option.name}
-                    </Typography>
-                  )}
+                  filterOptions={(options, state) => {
+                    // Optimize filtering for large lists
+                    const inputValue = state.inputValue.toLowerCase();
+                    if (!inputValue) return options.slice(0, 500); // Show only first 500 initially
+                    return options.filter(option => 
+                      option.name.toLowerCase().includes(inputValue)
+                    ).slice(0, 500); // Limit results to 500
+                  }}
+                  renderOption={(option) => option.name}
                   renderInput={(params) => (
-                    <TextField {...params} variant="standard" fullWidth />
+                    <TextField 
+                      {...params} 
+                      variant="standard" 
+                      fullWidth
+                      placeholder="Type to search..."
+                    />
                   )}
                 />
               </div>
@@ -692,25 +706,14 @@ const PaymentReceive = (props) => {
                   // class={errorObject.BankId}
                   options={BankList ? BankList : []}
                   getOptionLabel={(option) => option.name}
-                  defaultValue={{ id: 0, name: "Select Bank" }}
-                  value={
-                    BankList
-                      ? BankList[
-                          BankList.findIndex((list) => list.id === currBankId)
-                        ]
-                      : null
-                  }
+                  value={selectedBank}
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
                       "BankId",
                       valueobj ? valueobj.id : ""
                     )
                   }
-                  renderOption={(option) => (
-                    <Typography className="chosen_dropdown_font">
-                      {option.name}
-                    </Typography>
-                  )}
+                  renderOption={(option) => option.name}
                   renderInput={(params) => (
                     <TextField {...params} variant="standard" fullWidth />
                   )}
