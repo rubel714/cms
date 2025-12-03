@@ -13,6 +13,7 @@ import {
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
+import moment from "moment";
 
 const PaymentReceive = (props) => {
   const serverpage = "paymentreceive"; // this is .php server page
@@ -152,13 +153,13 @@ const PaymentReceive = (props) => {
   // Memoize selected customer to avoid expensive findIndex on every render
   const selectedCustomer = React.useMemo(() => {
     if (!CustomerList || !currCustomerId) return null;
-    return CustomerList.find(list => list.id === currCustomerId) || null;
+    return CustomerList.find((list) => list.id === currCustomerId) || null;
   }, [CustomerList, currCustomerId]);
 
   // Memoize selected bank to avoid expensive findIndex on every render
   const selectedBank = React.useMemo(() => {
     if (!BankList || !currBankId) return null;
-    return BankList.find(list => list.id === currBankId) || null;
+    return BankList.find((list) => list.id === currBankId) || null;
   }, [BankList, currBankId]);
 
   function getCustomerGroupList() {
@@ -232,7 +233,7 @@ const PaymentReceive = (props) => {
           />
         )}
 
-        {permissionType === 0 && (
+        {(permissionType === 0 && rowData.StatusId == 1) && (
           <DeleteOutline
             className={"table-delete-icon"}
             onClick={() => {
@@ -247,15 +248,17 @@ const PaymentReceive = (props) => {
   const addData = () => {
     setCurrentRow({
       id: "",
-      PaymentDate: "",
+      PaymentDate: moment().format("YYYY-MM-DD"),
       CustomerId: "",
       CustomerGroupId: "",
       BankId: "",
       TotalPaymentAmount: "",
+      InvoiceTotalAmount: 0,
       Remarks: "",
+      StatusId: 1,
       Items: [],
     });
-
+    setEditableItems([]);
     setCurrCustomerGroupId("");
     setCurrCustomerId("");
     setCurrBankId("");
@@ -351,6 +354,18 @@ const PaymentReceive = (props) => {
 
   function addEditAPICall() {
     if (validateForm()) {
+      if (currentRow.id) {
+        let invTotalAmount = calculateTotalPaymentAmount();
+        if (invTotalAmount != currentRow.TotalPaymentAmount) {
+          props.openNoticeModal({
+            isOpen: true,
+            msg: "Total Payment Amount must be equal to sum of Payment Amount in invoice list.",
+            msgtype: 0,
+          });
+          return;
+        }
+      }
+
       let UserInfo = LoginUserInfo();
       let params = {
         action: "dataAddEdit",
@@ -372,9 +387,15 @@ const PaymentReceive = (props) => {
           // hideModal();
           // getDataList();
           let data = { ...currentRow };
+
+          if(data["id"]){
+            //when update and complete then set status to completed
+            data["StatusId"] = 5;
+          }
+
           data["id"] = res.data.PaymentId;
           setCurrentRow(data);
-          console.log('data: ', data);
+          console.log("data: ", data);
 
           getDataSingleFromServer(res.data.PaymentId);
         }
@@ -504,6 +525,7 @@ const PaymentReceive = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      // type: "number",
     },
 
     {
@@ -525,8 +547,9 @@ const PaymentReceive = (props) => {
           type="number"
           id="PaymentAmount"
           name="PaymentAmount"
+          disabled={currentRow.StatusId == 5 ? true : false}
           // class={errorObject.PaymentDate}
-          placeholder="Enter Payment Amount"
+          // placeholder="Enter Payment Amount"
           value={
             editableItems.length > 0
               ? editableItems[
@@ -560,6 +583,20 @@ const PaymentReceive = (props) => {
         )} */}
       </>
     );
+  }
+
+  function calculateTotalPaymentAmount() {
+    let total = 0;
+
+    editableItems.forEach((item) => {
+      const paymentAmount = parseFloat(item.PaymentAmount) || 0;
+      total += paymentAmount;
+    });
+    // return total;
+    // let data = { ...currentRow };
+    // data["InvoiceTotalAmount"] = total.toFixed(0);
+    // setCurrentRow(data);
+    return total.toFixed(0);
   }
 
   return (
@@ -604,6 +641,24 @@ const PaymentReceive = (props) => {
                 class={"btnClose"}
                 onClick={hideModal}
               />
+
+
+                {currentRow.id && currentRow.StatusId == 1 && (
+                  <Button
+                    label={"Complete"} //update
+                    class={"btnUpdate"}
+                    onClick={addEditAPICall}
+                  />
+                )}
+                {!currentRow.id && (
+                  <Button
+                    label={"Save"}
+                    class={"btnSave"}
+                    onClick={addEditAPICall}
+                  />
+                )}
+
+
             </div>
 
             <div>
@@ -613,6 +668,7 @@ const PaymentReceive = (props) => {
                   type="date"
                   id="PaymentDate"
                   name="PaymentDate"
+                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
                   class={errorObject.PaymentDate}
                   placeholder="Enter Payment Date"
                   value={currentRow.PaymentDate}
@@ -664,6 +720,7 @@ const PaymentReceive = (props) => {
                   id="CustomerId"
                   name="CustomerId"
                   autoComplete
+                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
                   class={errorObject.CustomerId}
                   options={CustomerList ? CustomerList : []}
                   getOptionLabel={(option) => option.name}
@@ -678,15 +735,17 @@ const PaymentReceive = (props) => {
                     // Optimize filtering for large lists
                     const inputValue = state.inputValue.toLowerCase();
                     if (!inputValue) return options.slice(0, 500); // Show only first 500 initially
-                    return options.filter(option => 
-                      option.name.toLowerCase().includes(inputValue)
-                    ).slice(0, 500); // Limit results to 500
+                    return options
+                      .filter((option) =>
+                        option.name.toLowerCase().includes(inputValue)
+                      )
+                      .slice(0, 500); // Limit results to 500
                   }}
                   renderOption={(option) => option.name}
                   renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      variant="standard" 
+                    <TextField
+                      {...params}
+                      variant="standard"
                       fullWidth
                       placeholder="Type to search..."
                     />
@@ -703,6 +762,7 @@ const PaymentReceive = (props) => {
                   id="BankId"
                   name="BankId"
                   autoComplete
+                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
                   // class={errorObject.BankId}
                   options={BankList ? BankList : []}
                   getOptionLabel={(option) => option.name}
@@ -724,6 +784,7 @@ const PaymentReceive = (props) => {
                   type="number"
                   id="TotalPaymentAmount"
                   name="TotalPaymentAmount"
+                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
                   class={errorObject.TotalPaymentAmount}
                   placeholder="Enter Total Payment Amount"
                   value={currentRow.TotalPaymentAmount}
@@ -737,25 +798,42 @@ const PaymentReceive = (props) => {
                   type="text"
                   id="Remarks"
                   name="Remarks"
+                  
+                  disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentDate}
                   placeholder="Enter Remarks"
                   value={currentRow.Remarks}
                   onChange={(e) => handleChange(e)}
                 />
+
+                <label>Invoice Total Amount</label>
+                <input
+                  type="number"
+                  id="InvoiceTotalAmount"
+                  name="InvoiceTotalAmount"
+                  disabled={true}
+                  // class={errorObject.InvoiceTotalAmount}
+                  placeholder=""
+                  // value={currentRow.InvoiceTotalAmount}
+                  value={calculateTotalPaymentAmount()}
+                  onChange={(e) => handleChange(e)}
+                />
               </div>
 
-              {currentRow.id && ( <div class="contactmodalBodys pt-10">
-                <CustomTable
-                  columns={manyColumnList}
-                  rows={editableItems.length > 0 ? editableItems : {}}
-                  actioncontrol={actioncontrolmany}
-                />
-              </div>)}
+              {currentRow.id && (
+                <div class="contactmodalBodys pt-10">
+                  <CustomTable
+                    columns={manyColumnList}
+                    rows={editableItems.length > 0 ? editableItems : {}}
+                    actioncontrol={actioncontrolmany}
+                  />
+                </div>
+              )}
 
-              <div class="modalItem">
+              {/* <div class="modalItem">
                 {currentRow.id && (
                   <Button
-                    label={"Save"} //update
+                    label={"Complete"} //update
                     class={"btnUpdate"}
                     onClick={addEditAPICall}
                   />
@@ -767,7 +845,7 @@ const PaymentReceive = (props) => {
                     onClick={addEditAPICall}
                   />
                 )}
-              </div>
+              </div> */}
             </div>
           </>
         )}

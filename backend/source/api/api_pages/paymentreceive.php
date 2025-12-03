@@ -35,7 +35,8 @@ function getDataList($data)
 		$dbh = new Db();
 
 		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
-		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,a.TotalPaymentAmount,a.Remarks
+		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
+		a.TotalPaymentAmount,a.Remarks,0 as InvoiceTotalAmount,a.StatusId
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
 		LEFT JOIN t_customergroup c ON a.CustomerGroupId = c.CustomerGroupId
@@ -76,7 +77,9 @@ function getDataSingle($data)
 
 		/**Items Data */
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
-		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference,b.BaseAmount, ifnull(b.TotalPaymentAmount,0) as TotalPaymentAmount, (ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0)) DueAmount, b.IsPaid
+		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference,FLOOR(b.BaseAmount) as BaseAmount,
+		ifnull(b.TotalPaymentAmount,0) as TotalPaymentAmount,
+		 FLOOR((ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0))) DueAmount, b.IsPaid
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
@@ -103,9 +106,7 @@ function dataAddEdit($data)
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return $returnData = msg(0, 404, 'Page Not Found!');
 	} else {
-		// echo "<pre>";
-		// print_r($data);
-		// exit;
+
 		$dbh = new Db();
 
 		$lan = trim($data->lan);
@@ -118,7 +119,7 @@ function dataAddEdit($data)
 		$BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
 		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
-		$StatusId = 1;
+		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
 
 		$items = isset($data->items) ? $data->items : [];
 
@@ -148,10 +149,11 @@ function dataAddEdit($data)
 				$q->build_query();
 				$aQuerys[] = $q;
 			} else {
+				$StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks'];
-				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks];
+				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks','StatusId'];
+				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks,$StatusId];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -204,23 +206,27 @@ function dataAddEdit($data)
 				order by a.CreateTs desc;";
 				$result  = $dbh->query($query);
 				foreach ($result as $row) {
+					$PaymentAmount = 0;
 
-					$DueAmount = (int)$row['DueAmount'];
+					if($TmpAmp > 0) {
+						$DueAmount = (int)$row['DueAmount'];
 
-					if($DueAmount<=$TmpAmp){
-						$TmpAmp -= $DueAmount;
-					}else{
-						$DueAmount = $TmpAmp;
-						$TmpAmp = 0;
+						if($DueAmount<=$TmpAmp){
+							$TmpAmp -= $DueAmount;
+							$PaymentAmount = $DueAmount;
+						}else{
+							$PaymentAmount = $TmpAmp;
+							$TmpAmp = 0;
+						}
 					}
 
 					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId, PaymentAmount)
-					values(".$res['PaymentId'].",".$row['InvoiceItemId'].",$DueAmount);";
+					values(".$res['PaymentId'].",".$row['InvoiceItemId'].",$PaymentAmount);";
 					$dbh->query($query1);
 
-					if($TmpAmp <=0) {
-						break;
-					}
+					// if($TmpAmp <=0) {
+					// 	break;
+					// }
 				}	
 
 				
