@@ -79,7 +79,7 @@ function getDataSingle($data)
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
 		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference,FLOOR(b.BaseAmount) as BaseAmount,
 		ifnull(b.TotalPaymentAmount,0) as TotalPaymentAmount,
-		 FLOOR((ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0))) DueAmount, b.IsPaid
+		 FLOOR((ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0))) DueAmount, ifnull(b.IsPaid,0) as IsPaid
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
@@ -132,7 +132,7 @@ function dataAddEdit($data)
 			return $returnData = msg(0, 500, 'There is already a draft payment for this customer. Please complete or delete the existing draft payment before creating a new one.');
 		}
 
-		
+
 
 		try {
 
@@ -142,7 +142,7 @@ function dataAddEdit($data)
 			if ($PaymentId == "") {
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId','StatusId'];
+				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId', 'StatusId'];
 				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
@@ -152,8 +152,8 @@ function dataAddEdit($data)
 				$StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks','StatusId'];
-				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks,$StatusId];
+				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
+				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $StatusId];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -171,10 +171,12 @@ function dataAddEdit($data)
 					$u->build_query();
 					$aQuerys[] = $u;
 
+					$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
+					$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
 					$u = new updateq();
 					$u->table = 't_invoiceitems';
-					$u->columns = ['TotalPaymentAmount'];
-					$u->values = [$obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0)];
+					$u->columns = ['TotalPaymentAmount', 'IsPaid'];
+					$u->values = [$TotalPaymentAmount, $IsPaid];
 					$u->pks = ['InvoiceItemId'];
 					$u->pk_values = [$obj->InvoiceItemId];
 					$u->build_query();
@@ -194,7 +196,8 @@ function dataAddEdit($data)
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
-			if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount >0) {
+			//when insert new payment, auto allocate payment amount to unpaid invoices
+			if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount > 0) {
 				$TmpAmp = $TotalPaymentAmount;
 
 				$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
@@ -208,28 +211,26 @@ function dataAddEdit($data)
 				foreach ($result as $row) {
 					$PaymentAmount = 0;
 
-					if($TmpAmp > 0) {
+					if ($TmpAmp > 0) {
 						$DueAmount = (int)$row['DueAmount'];
 
-						if($DueAmount<=$TmpAmp){
+						if ($DueAmount <= $TmpAmp) {
 							$TmpAmp -= $DueAmount;
 							$PaymentAmount = $DueAmount;
-						}else{
+						} else {
 							$PaymentAmount = $TmpAmp;
 							$TmpAmp = 0;
 						}
 					}
 
 					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId, PaymentAmount)
-					values(".$res['PaymentId'].",".$row['InvoiceItemId'].",$PaymentAmount);";
+					values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",$PaymentAmount);";
 					$dbh->query($query1);
 
 					// if($TmpAmp <=0) {
 					// 	break;
 					// }
-				}	
-
-				
+				}
 			}
 
 

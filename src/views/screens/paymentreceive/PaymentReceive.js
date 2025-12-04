@@ -233,7 +233,7 @@ const PaymentReceive = (props) => {
           />
         )}
 
-        {(permissionType === 0 && rowData.StatusId == 1) && (
+        {permissionType === 0 && rowData.StatusId == 1 && (
           <DeleteOutline
             className={"table-delete-icon"}
             onClick={() => {
@@ -388,7 +388,7 @@ const PaymentReceive = (props) => {
           // getDataList();
           let data = { ...currentRow };
 
-          if(data["id"]){
+          if (data["id"]) {
             //when update and complete then set status to completed
             data["StatusId"] = 5;
           }
@@ -459,6 +459,23 @@ const PaymentReceive = (props) => {
     // console.log('updatedItems: ', updatedItems);
 
     // setErrorObject({ ...errorObject, [name]: null });
+  };
+
+  const handleChangeCheck = (e, row) => {
+    // console.log('e.target.checked: ', e.target.checked);
+    const { name, value } = e.target;
+    console.log('name, value: ', name, value);
+    const checked = e.target.checked;
+
+    const updatedItems = editableItems.map((item) => {
+      if (item.PaymentItemId === row.PaymentItemId) {
+        return { ...item, [name]: checked };
+      }
+      return item;
+    });
+
+    setEditableItems(updatedItems);
+    console.log('updatedItems: ', updatedItems);
   };
 
   const manyColumnList = [
@@ -542,11 +559,12 @@ const PaymentReceive = (props) => {
   /** Action from table row buttons*/
   function actioncontrolmany(rowData) {
     return (
-      <>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
         <input
           type="number"
           id="PaymentAmount"
           name="PaymentAmount"
+          // style={{width: "calc(100% - 10px)", marginRight: "5px"}}
           disabled={currentRow.StatusId == 5 ? true : false}
           // class={errorObject.PaymentDate}
           // placeholder="Enter Payment Amount"
@@ -562,6 +580,16 @@ const PaymentReceive = (props) => {
           // value={rowData.PaymentItemId}
           onChange={(e) => handleChangeMany(e, rowData)}
           // onBlur={(e) => handleChangeMany(e, rowData)}
+        />
+
+        <input
+          id="IsPaid"
+          name="IsPaid"
+          type="checkbox"
+          
+          style={{width: "30px", height: "18px", marginRight: "5px"}}
+          checked={rowData.IsPaid}
+          onChange={(e) => handleChangeCheck(e, rowData)}
         />
 
         {/* {permissionType === 0 && (
@@ -581,7 +609,7 @@ const PaymentReceive = (props) => {
           //   }}
           // />
         )} */}
-      </>
+      </div>
     );
   }
 
@@ -642,33 +670,34 @@ const PaymentReceive = (props) => {
                 onClick={hideModal}
               />
 
-
-                {currentRow.id && currentRow.StatusId == 1 && (
-                  <Button
-                    label={"Complete"} //update
-                    class={"btnUpdate"}
-                    onClick={addEditAPICall}
-                  />
-                )}
-                {!currentRow.id && (
-                  <Button
-                    label={"Save"}
-                    class={"btnSave"}
-                    onClick={addEditAPICall}
-                  />
-                )}
-
-
+              {currentRow.id && currentRow.StatusId == 1 && (
+                <Button
+                  label={"Complete"} //update
+                  class={"btnUpdate"}
+                  onClick={addEditAPICall}
+                />
+              )}
+              {!currentRow.id && (
+                <Button
+                  label={"Save"}
+                  class={"btnSave"}
+                  onClick={addEditAPICall}
+                />
+              )}
             </div>
 
             <div>
-              <div class="contactmodalBody pt-10">
+              <div class="fourColumnContainer pt-10">
                 <label>Payement Date</label>
                 <input
                   type="date"
                   id="PaymentDate"
                   name="PaymentDate"
-                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
                   class={errorObject.PaymentDate}
                   placeholder="Enter Payment Date"
                   value={currentRow.PaymentDate}
@@ -720,7 +749,11 @@ const PaymentReceive = (props) => {
                   id="CustomerId"
                   name="CustomerId"
                   autoComplete
-                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
                   class={errorObject.CustomerId}
                   options={CustomerList ? CustomerList : []}
                   getOptionLabel={(option) => option.name}
@@ -751,9 +784,9 @@ const PaymentReceive = (props) => {
                     />
                   )}
                 />
-              </div>
+              {/* </div>
 
-              <div class="contactmodalBody pt-10">
+              <div class="contactmodalBody pt-10"> */}
                 <label>Bank</label>
                 <Autocomplete
                   autoHighlight
@@ -762,7 +795,11 @@ const PaymentReceive = (props) => {
                   id="BankId"
                   name="BankId"
                   autoComplete
-                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
                   // class={errorObject.BankId}
                   options={BankList ? BankList : []}
                   getOptionLabel={(option) => option.name}
@@ -784,21 +821,24 @@ const PaymentReceive = (props) => {
                   type="number"
                   id="TotalPaymentAmount"
                   name="TotalPaymentAmount"
-                  disabled={(editableItems.length > 0 || currentRow.StatusId == 5) ? true : false}
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
                   class={errorObject.TotalPaymentAmount}
                   placeholder="Enter Total Payment Amount"
                   value={currentRow.TotalPaymentAmount}
                   onChange={(e) => handleChange(e)}
                 />
-              </div>
+              {/* </div>
 
-              <div class="contactmodalBody pt-10">
+              <div class="contactmodalBody pt-10"> */}
                 <label>Remarks</label>
                 <input
                   type="text"
                   id="Remarks"
                   name="Remarks"
-                  
                   disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentDate}
                   placeholder="Enter Remarks"
@@ -821,7 +861,7 @@ const PaymentReceive = (props) => {
               </div>
 
               {currentRow.id && (
-                <div class="contactmodalBodys pt-10">
+                <div class="subContainer  mt-10">
                   <CustomTable
                     columns={manyColumnList}
                     rows={editableItems.length > 0 ? editableItems : {}}
