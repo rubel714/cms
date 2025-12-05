@@ -450,7 +450,7 @@ const PaymentReceive = (props) => {
     const { name, value } = e.target;
     const updatedItems = editableItems.map((item) => {
       if (item.PaymentItemId === row.PaymentItemId) {
-        return { ...item, [name]: value };
+        return { ...item, [name]: value, IsPaid: value >= item.DueAmount ? true : false };
       }
       return item;
     });
@@ -586,7 +586,7 @@ const PaymentReceive = (props) => {
           id="IsPaid"
           name="IsPaid"
           type="checkbox"
-          
+          disabled={currentRow.StatusId == 5 ? true : false}
           style={{width: "30px", height: "18px", marginRight: "5px"}}
           checked={rowData.IsPaid}
           onChange={(e) => handleChangeCheck(e, rowData)}

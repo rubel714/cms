@@ -77,9 +77,8 @@ function getDataSingle($data)
 
 		/**Items Data */
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
-		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference,FLOOR(b.BaseAmount) as BaseAmount,
-		ifnull(b.TotalPaymentAmount,0) as TotalPaymentAmount,
-		 FLOOR((ifnull(b.BaseAmount,0) - ifnull(b.TotalPaymentAmount,0))) DueAmount, ifnull(b.IsPaid,0) as IsPaid
+		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference, FLOOR(b.BaseAmount) as BaseAmount,
+		ifnull(a.PaidAmount,0) as TotalPaymentAmount, FLOOR(ifnull(a.DueAmount,0)) DueAmount, ifnull(a.IsPaidPayment,0) as IsPaid
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
@@ -162,17 +161,18 @@ function dataAddEdit($data)
 
 				foreach ($items as $key => $obj) {
 					// print_r($obj);
+					$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
+
 					$u = new updateq();
 					$u->table = 't_paymentitems';
-					$u->columns = ['PaymentAmount'];
-					$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null];
+					$u->columns = ['PaymentAmount','IsPaidPayment'];
+					$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null, $IsPaid];
 					$u->pks = ['PaymentItemId'];
 					$u->pk_values = [$obj->PaymentItemId];
 					$u->build_query();
 					$aQuerys[] = $u;
 
 					$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
-					$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
 					$u = new updateq();
 					$u->table = 't_invoiceitems';
 					$u->columns = ['TotalPaymentAmount', 'IsPaid'];
@@ -210,21 +210,24 @@ function dataAddEdit($data)
 				$result  = $dbh->query($query);
 				foreach ($result as $row) {
 					$PaymentAmount = 0;
+					$IsPaidPayment = 0;
+					$DueAmount = (int)$row['DueAmount'];
 
 					if ($TmpAmp > 0) {
-						$DueAmount = (int)$row['DueAmount'];
 
 						if ($DueAmount <= $TmpAmp) {
 							$TmpAmp -= $DueAmount;
 							$PaymentAmount = $DueAmount;
+							$IsPaidPayment = 1;
 						} else {
 							$PaymentAmount = $TmpAmp;
 							$TmpAmp = 0;
+							$IsPaidPayment = 0;
 						}
 					}
 
-					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId, PaymentAmount)
-					values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",$PaymentAmount);";
+					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId,PaidAmount,DueAmount, PaymentAmount,IsPaidPayment)
+					values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",".$row['TotalPaymentAmount'].",$DueAmount,$PaymentAmount,$IsPaidPayment);";
 					$dbh->query($query1);
 
 					// if($TmpAmp <=0) {
