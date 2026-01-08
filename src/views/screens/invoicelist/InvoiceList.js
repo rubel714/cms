@@ -61,12 +61,10 @@ const InvoiceList = (props) => {
   // const [loading, setLoading] = useState(false);
   const [lastInvoiceLimit, setLastInvoiceLimit] = useState(200);
 
-  const [StartDate, setStartDate] =  useState(
+  const [StartDate, setStartDate] = useState(
     moment().add(-30, "days").format("YYYY-MM-DD")
   );
   const [EndDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
-
-
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -161,7 +159,23 @@ const InvoiceList = (props) => {
     },
     {
       field: "BaseAmount",
+      label: "Invoice Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "BaseAmountWithoutVat",
       label: "Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "VatAmount",
+      label: "VAT (BDT)",
       align: "right",
       visible: true,
       sort: false,
@@ -464,7 +478,6 @@ const InvoiceList = (props) => {
     );
   }
 
-  
   const editData = (rowData) => {
     // console.log("rowData: ", rowData);
     // console.log("dataList: ", dataList);
@@ -472,8 +485,6 @@ const InvoiceList = (props) => {
     setCurrentRow(rowData);
     openModal();
   };
-
-
 
   // React.useEffect(()=>{
   //   getDataList();
@@ -490,7 +501,6 @@ const InvoiceList = (props) => {
   //   openModal();
   // };
 
-
   function openModal() {
     setShowModal(true); //true=modal show, false=modal hide
   }
@@ -502,8 +512,7 @@ const InvoiceList = (props) => {
     setShowModal(false); //true=modal show, false=modal hide
   }
 
-
-    const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (value) {
@@ -568,7 +577,6 @@ const InvoiceList = (props) => {
   //   setUploadStatus("");
   // };
 
-  
   const handleChangeFilterDate = (e) => {
     const { name, value } = e.target;
     if (name === "StartDate") {
@@ -596,39 +604,31 @@ const InvoiceList = (props) => {
 
         {/* <!-- TABLE SEARCH AND GROUP ADD --> */}
         <div class="searchAdd">
-
-
-            <div>
-              <label>Invoice Start Date</label>
-              <div class="">
-                <input
-                  type="date"
-                  id="StartDate"
-                  name="StartDate"
-                  value={StartDate}
-                  onChange={(e) => handleChangeFilterDate(e)}
-                />
-              </div>
+          <div>
+            <label>Invoice Start Date</label>
+            <div class="">
+              <input
+                type="date"
+                id="StartDate"
+                name="StartDate"
+                value={StartDate}
+                onChange={(e) => handleChangeFilterDate(e)}
+              />
             </div>
+          </div>
 
-            <div>
-              <label>Invoice End Date</label>
-              <div class="">
-                <input
-                  type="date"
-                  id="EndDate"
-                  name="EndDate"
-                  value={EndDate}
-                  onChange={(e) => handleChangeFilterDate(e)}
-                />
-              </div>
+          <div>
+            <label>Invoice End Date</label>
+            <div class="">
+              <input
+                type="date"
+                id="EndDate"
+                name="EndDate"
+                value={EndDate}
+                onChange={(e) => handleChangeFilterDate(e)}
+              />
             </div>
-
-    
-
-
-
-
+          </div>
 
           {/* <div class="">
             <label>Show Last Number of Invoice: </label>
@@ -642,10 +642,6 @@ const InvoiceList = (props) => {
 
             <Button label={"Show"} class={"btnUpdate"} onClick={getDataList} />
           </div> */}
-
-
-
-
         </div>
 
         {/* <!-- ####---THIS CLASS IS USE FOR TABLE GRID PRODUCT INFORMATION---####s --> */}
@@ -660,7 +656,7 @@ const InvoiceList = (props) => {
             </div> */}
       </div>
 
-    {showModal && (
+      {showModal && (
         <InvoiceEditModal
           masterProps={props}
           currentRow={currentRow}

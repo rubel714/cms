@@ -68,6 +68,8 @@ function dataAddEdit($data)
 		$UserId = trim($data->UserId);
 		$InvoiceItemId = $data->rowData->InvoiceItemId;
 		$CustomerUserId = $data->rowData->CustomerUserId?$data->rowData->CustomerUserId:null;
+		$BaseAmountWithoutVat = $data->rowData->BaseAmountWithoutVat?$data->rowData->BaseAmountWithoutVat:null;
+		$VatAmount = $data->rowData->VatAmount?$data->rowData->VatAmount:null;
 
 		try {
 
@@ -76,8 +78,8 @@ function dataAddEdit($data)
  
 			$u = new updateq();
 			$u->table = 't_invoiceitems';
-			$u->columns = ['CustomerUserId'];
-			$u->values = [$CustomerUserId];
+			$u->columns = ['CustomerUserId','BaseAmountWithoutVat','VatAmount'];
+			$u->values = [$CustomerUserId, $BaseAmountWithoutVat, $VatAmount];
 			$u->pks = ['InvoiceItemId'];
 			$u->pk_values = [$InvoiceItemId];
 			$u->build_query();

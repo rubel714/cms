@@ -12,40 +12,16 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
 
 const InvoiceEditModal = (props) => {
-  // console.log("props modal: ", props.currentRow);
   const serverpage = "invoicelist"; // this is .php server page
 
-  // const [membershipTypeList, setMembershipTypeList] = useState(null);
   const [currentRow, setCurrentRow] = useState([]);
-  // const [dataList, setDataList] = useState([]);
-  // const [delDataList, setDelDataList] = useState([]);
   const [errorObject, setErrorObject] = useState({});
   const UserInfo = LoginUserInfo();
-  // const { isLoading, data: dataList, error, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
-
-  // const [CustomerGroupList, setCustomerGroupList] = useState(null);
-  // const [currCustomerGroupId, setCurrCustomerGroupId] = useState(null);
-
   const [UserList, setUserList] = useState(null);
   const [currUserId, setCurrUserId] = useState(null);
-
-  // const [BusinessLineList, setBusinessLineList] = useState(null);
-  // const [currBusinessLineId, setCurrBusinessLineId] = useState(null);
-
-  // const [clientUserStaffMap, setClientUserStaffMap] = useState({
-  //   CustomerMapId: "",
-  //   BusinessLineId: "",
-  //   UserId: "",
-  // });
-
   React.useEffect(() => {
-    // getCustomerGroupList(props.currentRow.CustomerGroupId);
     getUserList(props.currentRow.CustomerUserId);
-    // getBusinessLineList(null);
     setCurrentRow(props.currentRow);
-    console.log("useEffect props.currentRow", props.currentRow);
-
-    // setDataList(props.currentRow.UserMap);
   }, []);
  
   function getUserList(selectUserId) {
@@ -74,14 +50,14 @@ const InvoiceEditModal = (props) => {
     setCurrentRow(data);
   };
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   let data = { ...currentRow };
-  //   data[name] = value;
-  //   setCurrentRow(data);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let data = { ...currentRow };
+    data[name] = value;
+    setCurrentRow(data);
 
-  //   setErrorObject({ ...errorObject, [name]: null });
-  // };
+    setErrorObject({ ...errorObject, [name]: null });
+  };
  
   // const validateForm = () => {
   //   // let validateFields = ["GroupName", "DiscountAmount", "DiscountPercentage"]
@@ -164,8 +140,41 @@ const InvoiceEditModal = (props) => {
           </div> */}
 
           <div class="contactmodalBody pt-10">
-            <label>Staff</label>
+            <label>Invoice Amount (BDT)</label>
+            <input
+              type="number"
+              id="BaseAmount"
+              disabled={true}
+              name="BaseAmount"
+              //class={errorObject.BaseAmount}
+              placeholder="Enter invoice amount"
+              value={currentRow.BaseAmount}
+              onChange={(e) => handleChange(e)}
+            />
 
+            <label>Invoice Amount (BDT)</label>
+            <input
+              type="number"
+              id="BaseAmountWithoutVat"
+              name="BaseAmountWithoutVat"
+              //class={errorObject.BaseAmountWithoutVat}
+              placeholder="Enter amount"
+              value={currentRow.BaseAmountWithoutVat}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>VAT Amount (BDT)</label>
+            <input
+              type="number"
+              id="VatAmount"
+              name="VatAmount"
+             // class={errorObject.VatAmount}
+              placeholder="Enter vat amount"
+              value={currentRow.VatAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Staff</label>
             <Autocomplete
               autoHighlight
               disableClearable

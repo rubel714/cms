@@ -151,7 +151,23 @@ const InvoiceUpload = (props) => {
     },
     {
       field: "BaseAmount",
+      label: "Invoice Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+        {
+      field: "BaseAmountWithoutVat",
       label: "Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "VatAmount",
+      label: "VAT (BDT)",
       align: "right",
       visible: true,
       sort: false,
