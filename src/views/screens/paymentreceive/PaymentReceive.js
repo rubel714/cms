@@ -48,7 +48,6 @@ const PaymentReceive = (props) => {
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
-
   const PDFGenerate = () => {
     // console.log("currentRow: ", currentRow.id);
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
@@ -57,22 +56,20 @@ const PaymentReceive = (props) => {
     );
   };
 
-
-
   // const PrintPDFExcelExportFunction = (reportType) => {
   //   let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
 
-    // window.open(
-    //   finalUrl +
-    //     "?action=ClientExport" +
-    //     "&reportType=excel" +
-    //     "&ClientId=" +
-    //     UserInfo.ClientId +
-    //     "&BranchId=" +
-    //     UserInfo.BranchId +
-    //     "&TimeStamp=" +
-    //     Date.now()
-    // );
+  // window.open(
+  //   finalUrl +
+  //     "?action=ClientExport" +
+  //     "&reportType=excel" +
+  //     "&ClientId=" +
+  //     UserInfo.ClientId +
+  //     "&BranchId=" +
+  //     UserInfo.BranchId +
+  //     "&TimeStamp=" +
+  //     Date.now()
+  // );
   // };
   /* =====End of Excel Export Code==== */
 
@@ -783,24 +780,25 @@ const PaymentReceive = (props) => {
               />
 
               {currentRow.id && currentRow.StatusId == 1 && (
-                <>
                 <Button
                   label={"Complete"} //update
                   class={"btnUpdate"}
                   onClick={addEditAPICall}
                 />
-                <Button
-                  label={"Money Receipt"}
-                  class={"btnPrint"}
-                  onClick={PDFGenerate}
-                />
-                </>
               )}
               {!currentRow.id && (
                 <Button
                   label={"Save"}
                   class={"btnSave"}
                   onClick={addEditAPICall}
+                />
+              )}
+
+              {currentRow.id && (
+                <Button
+                  label={"Money Receipt"}
+                  class={"btnPrint"}
+                  onClick={PDFGenerate}
                 />
               )}
             </div>
