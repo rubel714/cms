@@ -272,7 +272,7 @@ const InvoiceList = (props) => {
     {
       field: "TransactionAmount",
       label: "Amount (USD)",
-      align: "left",
+      align: "right",
       visible: true,
       sort: false,
       filter: true,

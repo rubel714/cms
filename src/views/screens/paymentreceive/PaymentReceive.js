@@ -48,30 +48,58 @@ const PaymentReceive = (props) => {
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
-  const PrintPDFExcelExportFunction = (reportType) => {
-    let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
 
+  const PDFGenerate = () => {
+    // console.log("currentRow: ", currentRow.id);
+    let finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
     window.open(
-      finalUrl +
-        "?action=ClientExport" +
-        "&reportType=excel" +
-        "&ClientId=" +
-        UserInfo.ClientId +
-        "&BranchId=" +
-        UserInfo.BranchId +
-        "&TimeStamp=" +
-        Date.now()
+      finalUrl + "?PaymentId=" + currentRow.id + "&TimeStamp=" + Date.now()
     );
   };
+
+
+
+  // const PrintPDFExcelExportFunction = (reportType) => {
+  //   let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
+
+    // window.open(
+    //   finalUrl +
+    //     "?action=ClientExport" +
+    //     "&reportType=excel" +
+    //     "&ClientId=" +
+    //     UserInfo.ClientId +
+    //     "&BranchId=" +
+    //     UserInfo.BranchId +
+    //     "&TimeStamp=" +
+    //     Date.now()
+    // );
+  // };
   /* =====End of Excel Export Code==== */
 
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
-    // { field: 'SL', label: 'SL',width:'10%',align:'center',visible:true,sort:false,filter:false },
+    {
+      field: "MRNo",
+      label: "MR",
+      width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "RefNo",
+      label: "Ref",
+      width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "PaymentDate",
       label: "Payment Date",
-      width: "10%",
+      width: "7%",
       align: "left",
       visible: true,
       sort: true,
@@ -79,7 +107,7 @@ const PaymentReceive = (props) => {
     },
     {
       field: "CustomerName",
-      label: "Client Name",
+      label: "Customer Name",
       // width: "9%",
       align: "left",
       visible: true,
@@ -95,10 +123,38 @@ const PaymentReceive = (props) => {
     //   sort: true,
     //   filter: true,
     // },
+
+    {
+      field: "ChequeNumber",
+      label: "Cheque Number",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "ChequeDate",
+      label: "Cheque Date",
+      width: "7%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "BankName",
       label: "Bank Name",
-      width: "20%",
+      // width: "20%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "BankBranchName",
+      label: "Bank Branch",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
@@ -108,7 +164,7 @@ const PaymentReceive = (props) => {
     {
       field: "TotalPaymentAmount",
       label: "Total Amount",
-      width: "12%",
+      width: "8%",
       align: "right",
       visible: true,
       sort: true,
@@ -136,12 +192,6 @@ const PaymentReceive = (props) => {
     getCustomerGroupList();
     getCustomerList();
     getBankList();
-    // getUserList(null);
-    // getBusinessLineList(null);
-    // setCurrentRow(props.currentRow);
-    // console.log("useEffect props.currentRow", props.currentRow);
-
-    // setDataList(props.currentRow.UserMap);
   }, []);
 
   React.useEffect(() => {
@@ -246,24 +296,39 @@ const PaymentReceive = (props) => {
   }
 
   const addData = () => {
-    setCurrentRow({
-      id: "",
-      PaymentDate: moment().format("YYYY-MM-DD"),
-      CustomerId: "",
-      CustomerGroupId: "",
-      BankId: "",
-      TotalPaymentAmount: "",
-      InvoiceTotalAmount: 0,
-      Remarks: "",
-      StatusId: 1,
-      Items: [],
-    });
-    setEditableItems([]);
-    setCurrCustomerGroupId("");
-    setCurrCustomerId("");
-    setCurrBankId("");
+    let params = {
+      action: "getNextMRNumber",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
 
-    openModal();
+    apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+      console.log("res: ", res.data.MRNo);
+
+      setCurrentRow({
+        id: "",
+        PaymentDate: moment().format("YYYY-MM-DD"),
+        CustomerId: "",
+        CustomerGroupId: "",
+        MRNo: res.data.MRNo,
+        RefNo: "",
+        BankId: "",
+        ChequeNumber: "",
+        ChequeDate: "",
+        BankBranchName: "",
+        TotalPaymentAmount: "",
+        InvoiceTotalAmount: 0,
+        Remarks: "",
+        StatusId: 1,
+        Items: [],
+      });
+      setEditableItems([]);
+      setCurrCustomerGroupId("");
+      setCurrCustomerId("");
+      setCurrBankId("");
+
+      openModal();
+    });
   };
 
   function openModal() {
@@ -352,6 +417,19 @@ const PaymentReceive = (props) => {
     });
   }
 
+  // function getNextMRNumber() {
+  //   let params = {
+  //     action: "getNextMRNumber",
+  //     lan: language(),
+  //     UserId: UserInfo.UserId
+  //   };
+
+  //   apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+  //     console.log('res: ', res.data.MRNo);
+
+  //   });
+  // }
+
   function addEditAPICall() {
     if (validateForm()) {
       if (currentRow.id) {
@@ -404,7 +482,12 @@ const PaymentReceive = (props) => {
   }
 
   const validateForm = () => {
-    let validateFields = ["PaymentDate", "CustomerId", "TotalPaymentAmount"];
+    let validateFields = [
+      "MRNo",
+      "PaymentDate",
+      "CustomerId",
+      "TotalPaymentAmount",
+    ];
     let errorData = {};
     let isValid = true;
     validateFields.map((field) => {
@@ -450,7 +533,11 @@ const PaymentReceive = (props) => {
     const { name, value } = e.target;
     const updatedItems = editableItems.map((item) => {
       if (item.PaymentItemId === row.PaymentItemId) {
-        return { ...item, [name]: value, IsPaid: value >= item.DueAmount ? true : false };
+        return {
+          ...item,
+          [name]: value,
+          IsPaid: value >= item.DueAmount ? true : false,
+        };
       }
       return item;
     });
@@ -464,7 +551,7 @@ const PaymentReceive = (props) => {
   const handleChangeCheck = (e, row) => {
     // console.log('e.target.checked: ', e.target.checked);
     const { name, value } = e.target;
-    console.log('name, value: ', name, value);
+    console.log("name, value: ", name, value);
     const checked = e.target.checked;
 
     const updatedItems = editableItems.map((item) => {
@@ -475,7 +562,7 @@ const PaymentReceive = (props) => {
     });
 
     setEditableItems(updatedItems);
-    console.log('updatedItems: ', updatedItems);
+    console.log("updatedItems: ", updatedItems);
   };
 
   const manyColumnList = [
@@ -526,6 +613,24 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
+      field: "BaseAmountWithoutVat",
+      label: "Amount (BDT)",
+      align: "right",
+      width: "8%",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "VatAmount",
+      label: "VAT (BDT)",
+      align: "right",
+      width: "5%",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
       field: "TotalPaymentAmount",
       label: "Paid Amount",
       width: "7%",
@@ -559,7 +664,14 @@ const PaymentReceive = (props) => {
   /** Action from table row buttons*/
   function actioncontrolmany(rowData) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "row",
+        }}
+      >
         <input
           type="number"
           id="PaymentAmount"
@@ -587,7 +699,7 @@ const PaymentReceive = (props) => {
           name="IsPaid"
           type="checkbox"
           disabled={currentRow.StatusId == 5 ? true : false}
-          style={{width: "30px", height: "18px", marginRight: "5px"}}
+          style={{ width: "30px", height: "18px", marginRight: "5px" }}
           checked={rowData.IsPaid}
           onChange={(e) => handleChangeCheck(e, rowData)}
         />
@@ -671,11 +783,18 @@ const PaymentReceive = (props) => {
               />
 
               {currentRow.id && currentRow.StatusId == 1 && (
+                <>
                 <Button
                   label={"Complete"} //update
                   class={"btnUpdate"}
                   onClick={addEditAPICall}
                 />
+                <Button
+                  label={"Money Receipt"}
+                  class={"btnPrint"}
+                  onClick={PDFGenerate}
+                />
+                </>
               )}
               {!currentRow.id && (
                 <Button
@@ -688,7 +807,35 @@ const PaymentReceive = (props) => {
 
             <div>
               <div class="fourColumnContainer pt-10">
-                <label>Payement Date</label>
+                <label>MR *</label>
+                <input
+                  type="text"
+                  id="MRNo"
+                  name="MRNo"
+                  disabled={true}
+                  class={errorObject.MRNo}
+                  placeholder="Enter MR Number"
+                  value={currentRow.MRNo}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Ref</label>
+                <input
+                  type="text"
+                  id="RefNo"
+                  name="RefNo"
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
+                  // class={errorObject.RefNo}
+                  placeholder="Enter Ref Number"
+                  value={currentRow.RefNo}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Payment Date</label>
                 <input
                   type="date"
                   id="PaymentDate"
@@ -784,7 +931,7 @@ const PaymentReceive = (props) => {
                     />
                   )}
                 />
-              {/* </div>
+                {/* </div>
 
               <div class="contactmodalBody pt-10"> */}
                 <label>Bank</label>
@@ -816,6 +963,54 @@ const PaymentReceive = (props) => {
                   )}
                 />
 
+                <label>Branch Name</label>
+                <input
+                  type="text"
+                  id="BankBranchName"
+                  name="BankBranchName"
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
+                  // class={errorObject.BankBranchName}
+                  placeholder="Enter Branch Name"
+                  value={currentRow.BankBranchName}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Cheque Number</label>
+                <input
+                  type="text"
+                  id="ChequeNumber"
+                  name="ChequeNumber"
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
+                  // class={errorObject.BankBranchName}
+                  placeholder="Enter Cheque Number"
+                  value={currentRow.ChequeNumber}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Cheque Date</label>
+                <input
+                  type="date"
+                  id="ChequeDate"
+                  name="ChequeDate"
+                  disabled={
+                    editableItems.length > 0 || currentRow.StatusId == 5
+                      ? true
+                      : false
+                  }
+                  // class={errorObject.BankBranchName}
+                  placeholder="Enter Cheque Date"
+                  value={currentRow.ChequeDate}
+                  onChange={(e) => handleChange(e)}
+                />
+
                 <label>Total Payment Amount *</label>
                 <input
                   type="number"
@@ -831,7 +1026,7 @@ const PaymentReceive = (props) => {
                   value={currentRow.TotalPaymentAmount}
                   onChange={(e) => handleChange(e)}
                 />
-              {/* </div>
+                {/* </div>
 
               <div class="contactmodalBody pt-10"> */}
                 <label>Remarks</label>

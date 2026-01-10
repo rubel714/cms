@@ -23,6 +23,10 @@ switch ($task) {
 		$returnData = deleteData($data);
 		break;
 
+	case "getNextMRNumber":
+		$returnData = getNextMRNumber();
+		break;
+
 	default:
 		echo "{failure:true}";
 		break;
@@ -36,7 +40,7 @@ function getDataList($data)
 
 		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
-		a.TotalPaymentAmount,a.Remarks,0 as InvoiceTotalAmount,a.StatusId
+		a.TotalPaymentAmount,a.Remarks,0 as InvoiceTotalAmount,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
 		LEFT JOIN t_customergroup c ON a.CustomerGroupId = c.CustomerGroupId
@@ -79,6 +83,7 @@ function getDataSingle($data)
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
 		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference, FLOOR(b.BaseAmount) as BaseAmount,
 		ifnull(a.PaidAmount,0) as TotalPaymentAmount, FLOOR(ifnull(a.DueAmount,0)) DueAmount, ifnull(a.IsPaidPayment,0) as IsPaid
+		, FLOOR(b.BaseAmountWithoutVat) as BaseAmountWithoutVat, FLOOR(b.VatAmount) as VatAmount
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
@@ -112,10 +117,16 @@ function dataAddEdit($data)
 		$UserId = trim($data->UserId);
 
 		$PaymentId = $data->rowData->id;
+		$MRNo = $data->rowData->MRNo;
+		$RefNo = $data->rowData->RefNo ? $data->rowData->RefNo : null;
+
 		$PaymentDate = $data->rowData->PaymentDate;
 		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
 		$CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
 		$BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
+		$BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
+		$ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
+		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
 		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
@@ -139,10 +150,15 @@ function dataAddEdit($data)
 			$aQuerys = array();
 
 			if ($PaymentId == "") {
+
+				$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
+				$result3 = $dbh->query($query3);
+				$MRNo = $result3[0]['NextMRNo'];
+
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'UserId', 'StatusId'];
-				$q->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
+				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'UserId', 'StatusId'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -151,8 +167,8 @@ function dataAddEdit($data)
 				$StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
-				$u->values = [$PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $TotalPaymentAmount, $Remarks, $StatusId];
+				$u->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
+				$u->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $StatusId];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -302,4 +318,29 @@ function deleteData($data)
 
 		return $returnData;
 	}
+}
+
+
+
+function getNextMRNumber()
+{
+
+	try {
+		$dbh = new Db();
+
+		$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
+		$result3 = $dbh->query($query3);
+		$MRNo = $result3[0]['NextMRNo'];
+		
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"MRNo" => $MRNo
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
 }

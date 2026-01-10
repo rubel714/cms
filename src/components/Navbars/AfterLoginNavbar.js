@@ -154,7 +154,7 @@ function AfterLoginNavbar(props) {
                           href="javascript:void(0)"
                           onClick={() => props.history.push("client")}
                         >
-                          Client
+                          Client/Customer
                         </a>
                       </li>
                     )}
