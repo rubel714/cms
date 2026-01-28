@@ -33,7 +33,7 @@ function getDataList($data)
 
 	try {
 		$dbh = new Db();
-	 	$query = "SELECT a.*, b.UserName as CustomerUserName
+	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.UserName as CustomerUserName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
 		

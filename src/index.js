@@ -27,6 +27,7 @@ import Department from "views/screens/department/index.js";
 import InvoiceUpload from "views/screens/invoiceupload/index.js";
 import InvoiceList from "views/screens/invoicelist/index.js";
 import PaymentReceive from "views/screens/paymentreceive/index.js";
+import BillGenerate from "views/screens/billgenerate/index.js";
 // import Machine from "views/screens/machine/index.js";
 // import Machineparts from "views/screens/machineparts/index.js";
 // import Machinemodel from "views/screens/machinemodel/index.js";
@@ -84,6 +85,7 @@ ReactDOM.render(
             <Route path="/invoiceupload" render={(props) => <InvoiceUpload {...props} />} />
             <Route path="/invoicelist" render={(props) => <InvoiceList {...props} />} />
             <Route path="/paymentreceive" render={(props) => <PaymentReceive {...props} />} />
+            <Route path="/billgenerate" render={(props) => <BillGenerate {...props} />} />
 
             <Route path="/userrole" render={(props) => <UserRole {...props} />} />
             <Route path="/roletomenupermission" render={(props) => <RoleToMenuPermission {...props} />} />

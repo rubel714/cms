@@ -15,8 +15,8 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
 import moment from "moment";
 
-const PaymentReceive = (props) => {
-  const serverpage = "paymentreceive"; // this is .php server page
+const BillGenerate = (props) => {
+  const serverpage = "billgenerate"; // this is .php server page
   const permissionType = props.permissionType;
 
   const { useState } = React;
@@ -76,8 +76,8 @@ const PaymentReceive = (props) => {
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
-      field: "MRNo",
-      label: "MR",
+      field: "BillDate",
+      label: "Bill Date",
       width: "8%",
       align: "left",
       visible: true,
@@ -85,18 +85,9 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
-      field: "RefNo",
-      label: "Ref",
+      field: "CustomerCode",
+      label: "Customer Code",
       width: "8%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "PaymentDate",
-      label: "Payment Date",
-      width: "7%",
       align: "left",
       visible: true,
       sort: true,
@@ -105,25 +96,24 @@ const PaymentReceive = (props) => {
     {
       field: "CustomerName",
       label: "Customer Name",
-      // width: "9%",
+      // width: "7%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
-    // {
-    //   field: "CustomerGroupName",
-    //   label: "Customer Group",
-    //   width: "12%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
-
     {
-      field: "ChequeNumber",
-      label: "Cheque Number",
+      field: "InvoiceStartDate",
+      label: "Invoice Start Date",
+      width: "9%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "InvoiceEndDate",
+      label: "Invoice End Date",
       width: "10%",
       align: "left",
       visible: true,
@@ -131,43 +121,32 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
-      field: "ChequeDate",
-      label: "Cheque Date",
-      width: "7%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "BankName",
-      label: "Bank Name",
-      // width: "20%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "BankBranchName",
-      label: "Bank Branch",
+      field: "BuyerName",
+      label: "Buyer Name",
       width: "10%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
-
     {
-      field: "TotalPaymentAmount",
-      label: "Total Amount",
+      field: "MerchantName",
+      label: "Merchant Name",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "BusinessLine",
+      label: "Business Line",
       width: "8%",
-      align: "right",
+      align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
-
     {
       field: "custom",
       label: "Action",
@@ -565,26 +544,17 @@ const PaymentReceive = (props) => {
   const manyColumnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
-      field: "AccountCode",
-      label: "Customer Code",
-      width: "8%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "Description",
-      label: "Description",
-      // width: "9%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
       field: "TransactionDate",
-      label: "Invoice Date",
+      label: "Report Due Date",
+      width: "5%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "GeneralDescription9",
+      label: "Report Number",
       width: "8%",
       align: "left",
       visible: true,
@@ -593,7 +563,7 @@ const PaymentReceive = (props) => {
     },
     {
       field: "TransactionReference",
-      label: "Report No",
+      label: "Invoice Number",
       width: "10%",
       align: "left",
       visible: true,
@@ -601,26 +571,45 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
-      field: "BaseAmount",
-      label: "Invoice Amount",
-      width: "8%",
+      field: "GeneralDescription11",
+      label: "Buyer Name",
+      // width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "GeneralDescription17",
+      label: "Style number",
+      // width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "OrderNumber",
+      label: "Order Number",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+ 
+    {
+      field: "TransactionAmount",
+      label: "Amount USD",
+      width: "5%",
       align: "right",
       visible: true,
       sort: true,
       filter: true,
     },
     {
-      field: "BaseAmountWithoutVat",
-      label: "Amount (BDT)",
-      align: "right",
-      width: "8%",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "VatAmount",
-      label: "VAT (BDT)",
+      field: "ExchangeRate",
+      label: "Exchange Rate",
       align: "right",
       width: "5%",
       visible: true,
@@ -628,19 +617,20 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
-      field: "TotalPaymentAmount",
-      label: "Paid Amount",
-      width: "7%",
+      field: "BaseAmount",
+      label: "Amount BDT",
       align: "right",
+      width: "5%",
       visible: true,
-      sort: true,
+      sort: false,
       filter: true,
     },
+    
     {
-      field: "DueAmount",
-      label: "Due Amount",
-      width: "7%",
-      align: "right",
+      field: "GeneralDescription14",
+      label: "Responsible Person",
+      width: "10%",
+      align: "left",
       visible: true,
       sort: true,
       filter: true,
@@ -649,8 +639,8 @@ const PaymentReceive = (props) => {
 
     {
       field: "custom",
-      label: "Received Amount",
-      width: "8%",
+      label: "Billed",
+      width: "5%",
       align: "center",
       visible: true,
       sort: false,
@@ -669,7 +659,7 @@ const PaymentReceive = (props) => {
           flexDirection: "row",
         }}
       >
-        <input
+        {/* <input
           type="number"
           id="PaymentAmount"
           name="PaymentAmount"
@@ -689,7 +679,7 @@ const PaymentReceive = (props) => {
           // value={rowData.PaymentItemId}
           onChange={(e) => handleChangeMany(e, rowData)}
           // onBlur={(e) => handleChangeMany(e, rowData)}
-        />
+        /> */}
 
         <input
           id="IsPaid"
@@ -742,7 +732,7 @@ const PaymentReceive = (props) => {
         {/* <!-- ######-----TOP HEADER-----####### --> */}
         <div class="topHeader">
           <h4>
-            <a href="#">Home</a> ❯ Invoice ❯ Payment Receive
+            <a href="#">Home</a> ❯ Invoice ❯ Bill Generate
           </h4>
         </div>
 
@@ -1088,4 +1078,4 @@ const PaymentReceive = (props) => {
   );
 };
 
-export default PaymentReceive;
+export default BillGenerate;
