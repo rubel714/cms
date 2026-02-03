@@ -264,10 +264,15 @@ function dataAddEdit($data)
 					}
 				}
 
+				$ExchangeRate = 1; //hard code for now
+				if($BaseAmount>0 && $TransactionAmount>0){
+					$ExchangeRate = $BaseAmount / $TransactionAmount;
+				}
+
 				$q = new insertq();
 				$q->table = 't_invoiceitems';
-				$q->columns = ['InvoiceId', 'Name', 'BusinessUnit', 'BudgetCode', 'AccountCode', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode2', 'AnalysisCode3', 'AnalysisCode4', 'AnalysisCode5', 'AnalysisCode6', 'AnalysisCode7', 'AnalysisCode8', 'AnalysisCode9', 'TransactionAmount', 'CurrencyCode', 'GeneralDate1', 'GeneralDate2', 'GeneralDate3', 'GeneralDescription9', 'GeneralDescription4', 'GeneralDescription11', 'GeneralDescription2', 'GeneralDescription12', 'GeneralDescription13', 'GeneralDescription14', 'GeneralDescription15', 'GeneralDescription16', 'GeneralDescription17', 'GeneralDescription18', 'GeneralDescription19', 'GeneralDescription20','CustomerUserId'];
-				$q->values = ['[LastInsertedId]', $Name, $BusinessUnit, $BudgetCode, $AccountCode, $AccountingPeriod, $DebitCredit, $Description, $JournalType, $BaseAmountWithoutVat, $VatAmount, $BaseAmount, $TransactionDate, $TransactionReference, $AnalysisCode1, $AnalysisCode2, $AnalysisCode3, $AnalysisCode4, $AnalysisCode5, $AnalysisCode6, $AnalysisCode7, $AnalysisCode8, $AnalysisCode9, $TransactionAmount, $CurrencyCode, $GeneralDate1, $GeneralDate2, $GeneralDate3, $GeneralDescription9, $GeneralDescription4, $GeneralDescription11, $GeneralDescription2, $GeneralDescription12, $GeneralDescription13, $GeneralDescription14, $GeneralDescription15, $GeneralDescription16, $GeneralDescription17, $GeneralDescription18, $GeneralDescription19, $GeneralDescription20, $CustomerUserId];
+				$q->columns = ['InvoiceId', 'Name', 'BusinessUnit', 'BudgetCode', 'AccountCode', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode2', 'AnalysisCode3', 'AnalysisCode4', 'AnalysisCode5', 'AnalysisCode6', 'AnalysisCode7', 'AnalysisCode8', 'AnalysisCode9', 'TransactionAmount','ExchangeRate', 'CurrencyCode', 'GeneralDate1', 'GeneralDate2', 'GeneralDate3', 'GeneralDescription9', 'GeneralDescription4', 'GeneralDescription11', 'GeneralDescription2', 'GeneralDescription12', 'GeneralDescription13', 'GeneralDescription14', 'GeneralDescription15', 'GeneralDescription16', 'GeneralDescription17', 'GeneralDescription18', 'GeneralDescription19', 'GeneralDescription20','CustomerUserId'];
+				$q->values = ['[LastInsertedId]', $Name, $BusinessUnit, $BudgetCode, $AccountCode, $AccountingPeriod, $DebitCredit, $Description, $JournalType, $BaseAmountWithoutVat, $VatAmount, $BaseAmount, $TransactionDate, $TransactionReference, $AnalysisCode1, $AnalysisCode2, $AnalysisCode3, $AnalysisCode4, $AnalysisCode5, $AnalysisCode6, $AnalysisCode7, $AnalysisCode8, $AnalysisCode9, $TransactionAmount, $ExchangeRate, $CurrencyCode, $GeneralDate1, $GeneralDate2, $GeneralDate3, $GeneralDescription9, $GeneralDescription4, $GeneralDescription11, $GeneralDescription2, $GeneralDescription12, $GeneralDescription13, $GeneralDescription14, $GeneralDescription15, $GeneralDescription16, $GeneralDescription17, $GeneralDescription18, $GeneralDescription19, $GeneralDescription20, $CustomerUserId];
 				$q->pks = ['InvoiceItemId'];
 				$q->bUseInsetId = false;
 				$q->build_query();
