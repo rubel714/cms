@@ -113,6 +113,21 @@ function CustomTable({
     setFilters({});
   };
 
+
+
+  function calculateTotal(fieldName) {
+    let total = 0;
+
+    calculatedRows.forEach((item) => {
+      const amt = parseFloat(item[fieldName]) || 0;
+      total += amt;
+    });
+    console.log("total: ", total);
+    return total.toFixed(total % 1 === 0 ? 0 : 2);
+    // return total.toFixed(0);
+  }
+
+
   return (
     <>
       {/* <div className="bodyContainer"> */}
@@ -246,6 +261,67 @@ function CustomTable({
                     </tr>
                   );
                 })}
+
+
+
+
+
+
+
+
+
+
+                {calculatedRows.length > 0 && columns.some(col => col.bottomcalc) && (
+                  <tr key={-1}>
+                    {columns.map((column, i) => {
+                      if (columns[i].visible) {
+                        if (column.field === "custom") {
+                          return (
+                            <td key={column.field} style={{ textAlign: columns[i].align }}>
+                              {""}
+                            </td>
+                          );
+                        }
+                        return (
+                          <td
+                            key={column.field}
+                            style={{ textAlign: columns[i].align, fontWeight: "bold" }}
+                          >
+                            {column.bottomcalc === "sum" ? 
+                            
+                            
+                                 new Intl.NumberFormat("hi-IN").format(
+                                      calculateTotal(column.field) 
+                                    )
+
+
+
+
+                            
+                            
+                            : ""}
+                          </td>
+                        );
+                      }
+                    })}
+                  </tr>
+                )}
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </tbody>
           </table>
           {/* isPagination */}

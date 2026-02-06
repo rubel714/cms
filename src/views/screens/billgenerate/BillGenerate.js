@@ -78,9 +78,18 @@ const BillGenerate = (props) => {
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
+      field: "BillNumber",
+      label: "Bill Number",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
       field: "BillDate",
       label: "Bill Date",
-      width: "8%",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
@@ -89,7 +98,7 @@ const BillGenerate = (props) => {
     {
       field: "CustomerCode",
       label: "Customer Code",
-      width: "8%",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
@@ -104,56 +113,56 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
     },
-    {
-      field: "InvoiceStartDate",
-      label: "Invoice Start Date",
-      width: "9%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "InvoiceEndDate",
-      label: "Invoice End Date",
-      width: "10%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "BuyerName",
-      label: "Buyer Name",
-      width: "10%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "MerchantName",
-      label: "Merchant Name",
-      width: "10%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "BusinessLine",
-      label: "Business Line",
-      width: "8%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+    // {
+    //   field: "InvoiceStartDate",
+    //   label: "Invoice Start Date",
+    //   width: "9%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
+    // {
+    //   field: "InvoiceEndDate",
+    //   label: "Invoice End Date",
+    //   width: "10%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
+    // {
+    //   field: "BuyerName",
+    //   label: "Buyer Name",
+    //   width: "10%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
+    // {
+    //   field: "MerchantName",
+    //   label: "Merchant Name",
+    //   width: "10%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
+    // {
+    //   field: "BusinessLine",
+    //   label: "Business Line",
+    //   width: "8%",
+    //   align: "left",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
     {
       field: "custom",
       label: "Action",
-      width: "6%",
-      align: "center",
+      width: "8%",
+      align: "left",
       visible: true,
       sort: false,
       filter: false,
@@ -177,6 +186,14 @@ const BillGenerate = (props) => {
       setEditableItems(manyDataList.items);
     }
   }, [manyDataList]);
+
+
+  //   React.useEffect(() => {
+  
+  //     calculateTotalAmount();
+      
+  // }, [editableItems]);
+
 
   // Memoize selected customer to avoid expensive findIndex on every render
   const selectedCustomer = React.useMemo(() => {
@@ -664,7 +681,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
-      // bottomCalc: "sum",
+      bottomcalc: "sum",
     },
     {
       field: "ExchangeRate",
@@ -683,7 +700,9 @@ const BillGenerate = (props) => {
       visible: true,
       sort: false,
       filter: true,
-      // bottomCalc: "sum",
+      type: "number",
+      bottomcalc: "sum",
+
 
     },
 
@@ -703,7 +722,7 @@ const BillGenerate = (props) => {
       label: "Billed",
       width: "5%",
       align: "center",
-      visible: true,
+      visible: currentRow.StatusId ==5 ? false : true,
       sort: false,
       filter: false,
     },
@@ -795,6 +814,21 @@ const BillGenerate = (props) => {
   //   return total.toFixed(0);
   // }
 
+// function calculateTotalAmount() {
+//     let totalTransactionAmount = 0;
+
+//     editableItems.forEach((item) => {
+//       const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
+//       totalTransactionAmount += TransactionAmount;
+//     });
+//     // return total;
+//     // let data = { ...currentRow };
+//     // data["InvoiceTotalAmount"] = total.toFixed(0);
+//     // setCurrentRow(data);
+//     console.log("totalTransactionAmount: ", totalTransactionAmount);
+//     return totalTransactionAmount.toFixed(0);
+//   }
+
   const openInvoiceModal = () => {
     setShowInvoiceModal(true);
   };
@@ -878,7 +912,7 @@ const BillGenerate = (props) => {
             </div>
 
             <div>
-              <div class="fourColumnContainer pt-10">
+              <div class="fourColumnContainer pt-10 ">
                 {/* <label>MR *</label>
                 <input
                   type="text"
@@ -917,7 +951,7 @@ const BillGenerate = (props) => {
                       ? true
                       : false
                   }
-                  class={errorObject.BillDate}
+                  class={errorObject.BillDate + " customer-dropdown-wide-1"}
                   placeholder="Enter Bill Date"
                   value={currentRow.BillDate}
                   onChange={(e) => handleChange(e)}
@@ -927,7 +961,7 @@ const BillGenerate = (props) => {
                 <Autocomplete
                   autoHighlight
                   disableClearable
-                  className="chosen_dropdown"
+                  className="chosen_dropdown customer-dropdown-wide"
                   id="CustomerGroupId"
                   name="CustomerGroupId"
                   autoComplete
@@ -964,7 +998,7 @@ const BillGenerate = (props) => {
                 <Autocomplete
                   autoHighlight
                   disableClearable
-                  className="chosen_dropdown"
+                  className="chosen_dropdown customer-dropdown-wide-2"
                   id="CustomerId"
                   name="CustomerId"
                   autoComplete
@@ -1074,6 +1108,7 @@ const BillGenerate = (props) => {
                   type="text"
                   id="Remarks"
                   name="Remarks"
+                  class={"customer-dropdown-wide-2"}
                   disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentDate}
                   placeholder="Enter Remarks"
@@ -1115,6 +1150,7 @@ const BillGenerate = (props) => {
                   columns={manyColumnList}
                   rows={editableItems.length > 0 ? editableItems : {}}
                   actioncontrol={actioncontrolmany}
+                  ispagination={false}
                 />
               </div>
               {/* </> */}

@@ -173,7 +173,7 @@ function getDataList($data)
 	try {
 		$dbh = new Db();
 
-		$query = "SELECT a.BillId AS id, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
+		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
 		a.CustomerId,b.CustomerCode,b.CustomerName, 
 		case when a.InvoiceStartDate is not null then DATE_FORMAT(a.InvoiceStartDate, '%Y-%m-%d') else null end as InvoiceStartDate,
 		case when a.InvoiceEndDate is not null then DATE_FORMAT(a.InvoiceEndDate, '%Y-%m-%d') else null end as InvoiceEndDate,
@@ -334,10 +334,15 @@ function dataAddEdit($data)
 			$aQuerys = array();
 
 			if ($BillId == "") {
+
+				$query = "SELECT ifnull(max(BillNumber), 0)+1 NextBillNumber FROM t_bill;";
+				$resultdatalist = $dbh->query($query);
+				$BillNumber = $resultdatalist[0]['NextBillNumber'];
+
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId'];
-				$q->values = [$BillDate, $CustomerId, $Remarks, $UserId, $StatusId];
+				$q->columns = ['BillNumber','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId'];
+				$q->values = [$BillNumber, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -353,83 +358,19 @@ function dataAddEdit($data)
 				$u->build_query();
 				$aQuerys[] = $u;
 
-
-				// foreach ($items as $key => $obj) {
-				// 	// print_r($obj);
-				// 	$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
-
-				// 	$u = new updateq();
-				// 	$u->table = 't_paymentitems';
-				// 	$u->columns = ['PaymentAmount','IsPaidPayment'];
-				// 	$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null, $IsPaid];
-				// 	$u->pks = ['PaymentItemId'];
-				// 	$u->pk_values = [$obj->PaymentItemId];
-				// 	$u->build_query();
-				// 	$aQuerys[] = $u;
-
-				// 	$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
-				// 	$u = new updateq();
-				// 	$u->table = 't_invoiceitems';
-				// 	$u->columns = ['TotalPaymentAmount', 'IsPaid'];
-				// 	$u->values = [$TotalPaymentAmount, $IsPaid];
-				// 	$u->pks = ['InvoiceItemId'];
-				// 	$u->pk_values = [$obj->InvoiceItemId];
-				// 	$u->build_query();
-				// 	$aQuerys[] = $u;
-				// }
 			}
-
-
-
-
-
-
-
 
 
 			$res = exec_query($aQuerys, $UserId, $lan);
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
-			//when insert new payment, auto allocate payment amount to unpaid invoices
-			// if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount > 0) {
-			// 	$TmpAmp = $TotalPaymentAmount;
-
-			// 	$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
-			// 	(ifnull(a.BaseAmount,0) - ifnull(a.TotalPaymentAmount,0)) DueAmount
-			// 	FROM `t_invoiceitems` a 
-			// 	inner join t_customer b on a.AccountCode=b.CustomerCode 
-			// 	WHERE b.CustomerId=$CustomerId 
-			// 	and a.IsPaid=0
-			// 	order by a.CreateTs desc;";
-			// 	$result  = $dbh->query($query);
-			// 	foreach ($result as $row) {
-			// 		$PaymentAmount = 0;
-			// 		$IsPaidPayment = 0;
-			// 		$DueAmount = (int)$row['DueAmount'];
-
-			// 		if ($TmpAmp > 0) {
-
-			// 			if ($DueAmount <= $TmpAmp) {
-			// 				$TmpAmp -= $DueAmount;
-			// 				$PaymentAmount = $DueAmount;
-			// 				$IsPaidPayment = 1;
-			// 			} else {
-			// 				$PaymentAmount = $TmpAmp;
-			// 				$TmpAmp = 0;
-			// 				$IsPaidPayment = 0;
-			// 			}
-			// 		}
-
-			// 		$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId,PaidAmount,DueAmount, PaymentAmount,IsPaidPayment)
-			// 		values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",".$row['TotalPaymentAmount'].",$DueAmount,$PaymentAmount,$IsPaidPayment);";
-			// 		$dbh->query($query1);
-
-			// 		// if($TmpAmp <=0) {
-			// 		// 	break;
-			// 		// }
-			// 	}
-			// }
+			//when post then set billed flag in invoice
+			if ($success == 1 && $BillId != "" && $StatusId == 5) {
+				$query1 = "update t_invoiceitems set IsBilled = 1 
+					where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
+					$dbh->query($query1);
+			}
 
 
 
@@ -461,23 +402,23 @@ function deleteData($data)
 		return $returnData = msg(0, 422, 'Please Fill in all Required Fields!', $fields);
 	} else {
 
-		$PaymentId = $data->rowData->id;
+		$BillId = $data->rowData->id;
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
 
 		try {
 
 			$d = new deleteq();
-			$d->table = 't_paymentitems';
-			$d->pks = ['PaymentId'];
-			$d->pk_values = [$PaymentId];
+			$d->table = 't_billitems';
+			$d->pks = ['BillId'];
+			$d->pk_values = [$BillId];
 			$d->build_query();
 			$aQuerys[] = $d;
 
 			$d = new deleteq();
-			$d->table = 't_payment';
-			$d->pks = ['PaymentId'];
-			$d->pk_values = [$PaymentId];
+			$d->table = 't_bill';
+			$d->pks = ['BillId'];
+			$d->pk_values = [$BillId];
 			$d->build_query();
 			$aQuerys[] = $d;
 

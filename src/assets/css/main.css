@@ -173,6 +173,7 @@ input[type="number"] {
 
 
 
+
 .usersProfile {
   /* background-color: var(--primary-color); */
   border: var(--box-border);
@@ -612,6 +613,18 @@ input {
   /*font-size: 12px !important;*/
   width: 100% !important;
 }
+
+.customer-dropdown-wide-1 {
+  grid-column: span 1;
+}
+.customer-dropdown-wide-2 {
+  grid-column: span 2;
+}
+
+.customer-dropdown-wide-3 {
+  grid-column: span 3;
+}
+
 
 .swal-button {
   padding: 8px 24px;
