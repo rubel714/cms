@@ -10,6 +10,17 @@ switch ($task) {
 	case "getDataList":
 		$returnData = getDataList($data);
 		break;
+	case "getUnbilledInvoices":
+		$returnData = getUnbilledInvoices($data);
+		break;
+	case "addInvoicesToBill":
+		$returnData = addInvoicesToBill($data);
+		break;
+	case "deleteBillItem":
+		$returnData = deleteBillItem($data);
+		break;
+
+
 
 	case "getDataSingle":
 		$returnData = getDataSingle($data);
@@ -23,13 +34,137 @@ switch ($task) {
 		$returnData = deleteData($data);
 		break;
 
-	case "getNextMRNumber":
-		$returnData = getNextMRNumber();
-		break;
+	// case "getNextMRNumber":
+	// 	$returnData = getNextMRNumber();
+	// 	break;
 
 	default:
 		echo "{failure:true}";
 		break;
+}
+
+function addInvoicesToBill($data)
+{
+
+	if ($_SERVER["REQUEST_METHOD"] != "POST") {
+		return $returnData = msg(0, 404, 'Page Not Found!');
+	}
+
+	$lan = trim($data->lan);
+	$UserId = trim($data->UserId);
+	$BillId = isset($data->PaymentId) ? trim($data->PaymentId) : "";
+	$invoices = isset($data->invoices) ? $data->invoices : [];
+
+	if ($BillId == "" || empty($invoices)) {
+		return $returnData = msg(0, 422, 'Please select at least one invoice.');
+	}
+
+	try {
+		$dbh = new Db();
+		$aQuerys = array();
+
+		foreach ($invoices as $obj) {
+			$InvoiceItemId = isset($obj->InvoiceItemId) ? $obj->InvoiceItemId : null;
+			if (!$InvoiceItemId) {
+				continue;
+			}
+
+			$chk = "SELECT count(1) as Cnt FROM t_billitems WHERE BillId=$BillId AND InvoiceItemId=$InvoiceItemId;";
+			$chkRes = $dbh->query($chk);
+			if (!empty($chkRes) && $chkRes[0]['Cnt'] > 0) {
+				continue;
+			}
+
+			$q = new insertq();
+			$q->table = 't_billitems';
+			$q->columns = ['BillId', 'InvoiceItemId'];
+			$q->values = [$BillId, $InvoiceItemId];
+			$q->pks = ['BillItemId'];
+			$q->bUseInsetId = true;
+			$q->build_query();
+			$aQuerys[] = $q;
+
+			// $u = new updateq();
+			// $u->table = 't_invoiceitems';
+			// $u->columns = ['IsBilled'];
+			// $u->values = [1];
+			// $u->pks = ['InvoiceItemId'];
+			// $u->pk_values = [$InvoiceItemId];
+			// $u->build_query();
+			// $aQuerys[] = $u;
+		}
+
+		if (count($aQuerys) === 0) {
+			return $returnData = msg(0, 422, 'No new invoices were added.');
+		}
+
+		$res = exec_query($aQuerys, $UserId, $lan);
+		$success = ($res['msgType'] == 'success') ? 1 : 0;
+		$status = ($res['msgType'] == 'success') ? 200 : 500;
+
+		$returnData = [
+			"success" => $success,
+			"status" => $status,
+			"message" => $res['msg'],
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+function deleteBillItem($data)
+{
+	if ($_SERVER["REQUEST_METHOD"] != "POST") {
+		return $returnData = msg(0, 404, 'Page Not Found!');
+	}
+
+	$lan = trim($data->lan);
+	$UserId = trim($data->UserId);
+	$BillId = isset($data->BillId) ? trim($data->BillId) : "";
+	$BillItemId = isset($data->BillItemId) ? trim($data->BillItemId) : "";
+	$InvoiceItemId = isset($data->InvoiceItemId) ? trim($data->InvoiceItemId) : "";
+
+	if ($BillId == "" || $BillItemId == "") {
+		return $returnData = msg(0, 422, 'Invalid bill item.');
+	}
+
+	try {
+		$aQuerys = array();
+
+		$d = new deleteq();
+		$d->table = 't_billitems';
+		$d->pks = ['BillItemId'];
+		$d->pk_values = [$BillItemId];
+		$d->build_query();
+		$aQuerys[] = $d;
+
+		// if ($InvoiceItemId != "") {
+		// 	$u = new updateq();
+		// 	$u->table = 't_invoiceitems';
+		// 	$u->columns = ['IsBilled'];
+		// 	$u->values = [0];
+		// 	$u->pks = ['InvoiceItemId'];
+		// 	$u->pk_values = [$InvoiceItemId];
+		// 	$u->build_query();
+		// 	$aQuerys[] = $u;
+		// }
+
+		$res = exec_query($aQuerys, $UserId, $lan);
+		$success = ($res['msgType'] == 'success') ? 1 : 0;
+		$status = ($res['msgType'] == 'success') ? 200 : 500;
+
+		$returnData = [
+			"success" => $success,
+			"status" => $status,
+			"message" => $res['msg'],
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
 }
 
 function getDataList($data)
@@ -64,6 +199,53 @@ function getDataList($data)
 	return $returnData;
 }
 
+function getUnbilledInvoices($data)
+{
+
+	$CustomerId = $data->CustomerId; 
+	$BuyerId = isset($data->BuyerId)?trim($data->BuyerId): ''; 
+	$MerchantId = isset($data->MerchantId)?trim($data->MerchantId): ''; 
+
+	$DateFilter = "";
+	if(isset($data->StartDate) && isset($data->EndDate)) {
+		$StartDate = trim($data->StartDate);
+		$EndDate = trim($data->EndDate) . " 23:59:59";
+
+		$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
+	}
+	// $StartDate ="2025-01-01";
+	// $EndDate = "2027-01-01 23:59:59";
+
+	try {
+		$dbh = new Db();
+	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.UserName as CustomerUserName
+		FROM t_invoiceitems a
+		left join t_users b on a.CustomerUserId=b.UserId
+		inner join t_customer c on a.AccountCode=c.CustomerCode
+		left join t_billitems d on a.InvoiceItemId=d.InvoiceItemId
+	    where c.CustomerId = $CustomerId 
+		and (a.GeneralDescription11 = '$BuyerId' OR '$BuyerId' = '')
+		and (a.GeneralDescription14 = '$MerchantId' OR '$MerchantId' = '')
+		and a.IsBilled=0
+		and d.BillItemId is null
+		$DateFilter
+		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
 
 function getDataSingle($data)
 {
@@ -79,7 +261,7 @@ function getDataSingle($data)
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 		
 		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
-		null OrderNumber,b.TransactionAmount, null ExchangeRate, b.BaseAmount,b.GeneralDescription14
+		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14
 		FROM t_billitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.BillId=$BillId
@@ -112,32 +294,38 @@ function dataAddEdit($data)
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
 
-		$PaymentId = $data->rowData->id;
-		$MRNo = $data->rowData->MRNo;
-		$RefNo = $data->rowData->RefNo ? $data->rowData->RefNo : null;
+		$BillId = $data->rowData->id;
+		// $MRNo = $data->rowData->MRNo;
+		// $RefNo = $data->rowData->RefNo ? $data->rowData->RefNo : null;
 
-		$PaymentDate = $data->rowData->PaymentDate;
+		$BillDate = $data->rowData->BillDate;
 		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
-		$CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
-		$BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
-		$BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
-		$ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
-		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
-		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
+		// $CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
+		// $BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
+		// $BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
+		// $ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
+		// $ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
+		// $TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
 
-		$items = isset($data->items) ? $data->items : [];
-
-		$query = "SELECT count(a.PaymentId) DraftCount
-		FROM t_payment a
-		where a.CustomerId=$CustomerId
-		and a.StatusId=1;";
-		$resultdatalist = $dbh->query($query);
-		if ($resultdatalist[0]['DraftCount'] >= 1 && $PaymentId == "") {
-			return $returnData = msg(0, 500, 'There is already a draft payment for this customer. Please complete or delete the existing draft payment before creating a new one.');
+		// $items = isset($data->items) ? $data->items : [];
+		
+		$BillIdCheck = "";
+		if($BillId != "") {
+			$BillIdCheck = " and a.BillId != $BillId ";
 		}
 
+		$query = "SELECT count(a.BillId) DraftCount
+		FROM t_bill a
+		where a.CustomerId=$CustomerId
+		and a.StatusId=1
+		$BillIdCheck;";
+
+		$resultdatalist = $dbh->query($query);
+		if ($resultdatalist[0]['DraftCount'] >= 1 && $BillId == "") {
+			return $returnData = msg(0, 500, 'There is already a draft bill for this customer. Please complete or delete the existing draft bill before creating a new one.');
+		}
 
 
 		try {
@@ -145,55 +333,50 @@ function dataAddEdit($data)
 			$dbh = new Db();
 			$aQuerys = array();
 
-			if ($PaymentId == "") {
-
-				$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
-				$result3 = $dbh->query($query3);
-				$MRNo = $result3[0]['NextMRNo'];
-
+			if ($BillId == "") {
 				$q = new insertq();
-				$q->table = 't_payment';
-				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'UserId', 'StatusId'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
-				$q->pks = ['PaymentId'];
+				$q->table = 't_bill';
+				$q->columns = ['BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId'];
+				$q->values = [$BillDate, $CustomerId, $Remarks, $UserId, $StatusId];
+				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
 				$aQuerys[] = $q;
 			} else {
-				$StatusId = 5; //Completed
+				// $StatusId = 5; //Completed
 				$u = new updateq();
-				$u->table = 't_payment';
-				$u->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
-				$u->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $StatusId];
-				$u->pks = ['PaymentId'];
-				$u->pk_values = [$PaymentId];
+				$u->table = 't_bill';
+				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId'];
+				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId];
+				$u->pks = ['BillId'];
+				$u->pk_values = [$BillId];
 				$u->build_query();
 				$aQuerys[] = $u;
 
 
-				foreach ($items as $key => $obj) {
-					// print_r($obj);
-					$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
+				// foreach ($items as $key => $obj) {
+				// 	// print_r($obj);
+				// 	$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
 
-					$u = new updateq();
-					$u->table = 't_paymentitems';
-					$u->columns = ['PaymentAmount','IsPaidPayment'];
-					$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null, $IsPaid];
-					$u->pks = ['PaymentItemId'];
-					$u->pk_values = [$obj->PaymentItemId];
-					$u->build_query();
-					$aQuerys[] = $u;
+				// 	$u = new updateq();
+				// 	$u->table = 't_paymentitems';
+				// 	$u->columns = ['PaymentAmount','IsPaidPayment'];
+				// 	$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null, $IsPaid];
+				// 	$u->pks = ['PaymentItemId'];
+				// 	$u->pk_values = [$obj->PaymentItemId];
+				// 	$u->build_query();
+				// 	$aQuerys[] = $u;
 
-					$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
-					$u = new updateq();
-					$u->table = 't_invoiceitems';
-					$u->columns = ['TotalPaymentAmount', 'IsPaid'];
-					$u->values = [$TotalPaymentAmount, $IsPaid];
-					$u->pks = ['InvoiceItemId'];
-					$u->pk_values = [$obj->InvoiceItemId];
-					$u->build_query();
-					$aQuerys[] = $u;
-				}
+				// 	$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
+				// 	$u = new updateq();
+				// 	$u->table = 't_invoiceitems';
+				// 	$u->columns = ['TotalPaymentAmount', 'IsPaid'];
+				// 	$u->values = [$TotalPaymentAmount, $IsPaid];
+				// 	$u->pks = ['InvoiceItemId'];
+				// 	$u->pk_values = [$obj->InvoiceItemId];
+				// 	$u->build_query();
+				// 	$aQuerys[] = $u;
+				// }
 			}
 
 
@@ -209,51 +392,51 @@ function dataAddEdit($data)
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
 			//when insert new payment, auto allocate payment amount to unpaid invoices
-			if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount > 0) {
-				$TmpAmp = $TotalPaymentAmount;
+			// if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount > 0) {
+			// 	$TmpAmp = $TotalPaymentAmount;
 
-				$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
-				(ifnull(a.BaseAmount,0) - ifnull(a.TotalPaymentAmount,0)) DueAmount
-				FROM `t_invoiceitems` a 
-				inner join t_customer b on a.AccountCode=b.CustomerCode 
-				WHERE b.CustomerId=$CustomerId 
-				and a.IsPaid=0
-				order by a.CreateTs desc;";
-				$result  = $dbh->query($query);
-				foreach ($result as $row) {
-					$PaymentAmount = 0;
-					$IsPaidPayment = 0;
-					$DueAmount = (int)$row['DueAmount'];
+			// 	$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
+			// 	(ifnull(a.BaseAmount,0) - ifnull(a.TotalPaymentAmount,0)) DueAmount
+			// 	FROM `t_invoiceitems` a 
+			// 	inner join t_customer b on a.AccountCode=b.CustomerCode 
+			// 	WHERE b.CustomerId=$CustomerId 
+			// 	and a.IsPaid=0
+			// 	order by a.CreateTs desc;";
+			// 	$result  = $dbh->query($query);
+			// 	foreach ($result as $row) {
+			// 		$PaymentAmount = 0;
+			// 		$IsPaidPayment = 0;
+			// 		$DueAmount = (int)$row['DueAmount'];
 
-					if ($TmpAmp > 0) {
+			// 		if ($TmpAmp > 0) {
 
-						if ($DueAmount <= $TmpAmp) {
-							$TmpAmp -= $DueAmount;
-							$PaymentAmount = $DueAmount;
-							$IsPaidPayment = 1;
-						} else {
-							$PaymentAmount = $TmpAmp;
-							$TmpAmp = 0;
-							$IsPaidPayment = 0;
-						}
-					}
+			// 			if ($DueAmount <= $TmpAmp) {
+			// 				$TmpAmp -= $DueAmount;
+			// 				$PaymentAmount = $DueAmount;
+			// 				$IsPaidPayment = 1;
+			// 			} else {
+			// 				$PaymentAmount = $TmpAmp;
+			// 				$TmpAmp = 0;
+			// 				$IsPaidPayment = 0;
+			// 			}
+			// 		}
 
-					$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId,PaidAmount,DueAmount, PaymentAmount,IsPaidPayment)
-					values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",".$row['TotalPaymentAmount'].",$DueAmount,$PaymentAmount,$IsPaidPayment);";
-					$dbh->query($query1);
+			// 		$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId,PaidAmount,DueAmount, PaymentAmount,IsPaidPayment)
+			// 		values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",".$row['TotalPaymentAmount'].",$DueAmount,$PaymentAmount,$IsPaidPayment);";
+			// 		$dbh->query($query1);
 
-					// if($TmpAmp <=0) {
-					// 	break;
-					// }
-				}
-			}
+			// 		// if($TmpAmp <=0) {
+			// 		// 	break;
+			// 		// }
+			// 	}
+			// }
 
 
 
 			$returnData = [
 				"success" => $success,
 				"status" => $status,
-				"PaymentId" => $PaymentId == "" ? $res['PaymentId'] : $PaymentId,
+				"BillId" => $BillId == "" ? $res['BillId'] : $BillId,
 				"UserId" => $UserId,
 				"message" => $res['msg'],
 			];
@@ -318,25 +501,25 @@ function deleteData($data)
 
 
 
-function getNextMRNumber()
-{
+// function getNextMRNumber()
+// {
 
-	try {
-		$dbh = new Db();
+// 	try {
+// 		$dbh = new Db();
 
-		$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
-		$result3 = $dbh->query($query3);
-		$MRNo = $result3[0]['NextMRNo'];
+// 		$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
+// 		$result3 = $dbh->query($query3);
+// 		$MRNo = $result3[0]['NextMRNo'];
 		
-		$returnData = [
-			"success" => 1,
-			"status" => 200,
-			"message" => "",
-			"MRNo" => $MRNo
-		];
-	} catch (PDOException $e) {
-		$returnData = msg(0, 500, $e->getMessage());
-	}
+// 		$returnData = [
+// 			"success" => 1,
+// 			"status" => 200,
+// 			"message" => "",
+// 			"MRNo" => $MRNo
+// 		];
+// 	} catch (PDOException $e) {
+// 		$returnData = msg(0, 500, $e->getMessage());
+// 	}
 
-	return $returnData;
-}
+// 	return $returnData;
+// }

@@ -33,9 +33,11 @@ function getDataList($data)
 
 	try {
 		$dbh = new Db();
-	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.UserName as CustomerUserName
+	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
+		b.UserName as CustomerUserName,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
+		left join t_customer c on a.AccountCode=c.CustomerCode
 		
 	   where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')
 		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";

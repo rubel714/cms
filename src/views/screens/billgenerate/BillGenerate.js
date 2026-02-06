@@ -2,6 +2,7 @@ import React, { forwardRef, useRef } from "react";
 import swal from "sweetalert";
 import { DeleteOutline, Edit } from "@material-ui/icons";
 import { Button } from "../../../components/CustomControl/Button";
+import InvoiceAddModal from "./InvoiceAddModal";
 
 import CustomTable from "components/CustomTable/CustomTable";
 import {
@@ -40,10 +41,11 @@ const BillGenerate = (props) => {
   const [CustomerList, setCustomerList] = useState(null);
   const [currCustomerId, setCurrCustomerId] = useState(null);
 
-  const [BankList, setBankList] = useState(null);
-  const [currBankId, setCurrBankId] = useState("");
+  // const [BankList, setBankList] = useState(null);
+  // const [currBankId, setCurrBankId] = useState("");
 
   const [editableItems, setEditableItems] = useState([]);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -52,7 +54,7 @@ const BillGenerate = (props) => {
     // console.log("currentRow: ", currentRow.id);
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
     window.open(
-      finalUrl + "?PaymentId=" + currentRow.id + "&TimeStamp=" + Date.now()
+      finalUrl + "?BillId=" + currentRow.id + "&TimeStamp=" + Date.now(),
     );
   };
 
@@ -165,9 +167,9 @@ const BillGenerate = (props) => {
   }
 
   React.useEffect(() => {
-    getCustomerGroupList();
+    // getCustomerGroupList();
     getCustomerList();
-    getBankList();
+    // getBankList();
   }, []);
 
   React.useEffect(() => {
@@ -183,26 +185,26 @@ const BillGenerate = (props) => {
   }, [CustomerList, currCustomerId]);
 
   // Memoize selected bank to avoid expensive findIndex on every render
-  const selectedBank = React.useMemo(() => {
-    if (!BankList || !currBankId) return null;
-    return BankList.find((list) => list.id === currBankId) || null;
-  }, [BankList, currBankId]);
+  // const selectedBank = React.useMemo(() => {
+  //   if (!BankList || !currBankId) return null;
+  //   return BankList.find((list) => list.id === currBankId) || null;
+  // }, [BankList, currBankId]);
 
-  function getCustomerGroupList() {
-    let params = {
-      action: "CustomerGroupList",
-      lan: language(),
-      UserId: UserInfo.UserId,
-    };
+  // function getCustomerGroupList() {
+  //   let params = {
+  //     action: "CustomerGroupList",
+  //     lan: language(),
+  //     UserId: UserInfo.UserId,
+  //   };
 
-    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-      setCustomerGroupList(
-        [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist)
-      );
+  //   apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+  //     setCustomerGroupList(
+  //       [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist),
+  //     );
 
-      // setCurrCustomerGroupId(selectCustomerGroupId);
-    });
-  }
+  //     // setCurrCustomerGroupId(selectCustomerGroupId);
+  //   });
+  // }
 
   function getCustomerList() {
     let params = {
@@ -214,26 +216,26 @@ const BillGenerate = (props) => {
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
       setCustomerList(
-        [{ id: "", name: "Select Customer" }].concat(res.data.datalist)
+        [{ id: "", name: "Select Customer" }].concat(res.data.datalist),
       );
 
       // setCurrCustomerId(selectCustomerGroupId);
     });
   }
 
-  function getBankList() {
-    let params = {
-      action: "BankList",
-      lan: language(),
-      UserId: UserInfo.UserId,
-    };
+  // function getBankList() {
+  //   let params = {
+  //     action: "BankList",
+  //     lan: language(),
+  //     UserId: UserInfo.UserId,
+  //   };
 
-    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-      setBankList([{ id: "", name: "Select Bank" }].concat(res.data.datalist));
+  //   apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+  //     setBankList([{ id: "", name: "Select Bank" }].concat(res.data.datalist));
 
-      // setCurrCustomerId(selectCustomerGroupId);
-    });
-  }
+  //     // setCurrCustomerId(selectCustomerGroupId);
+  //   });
+  // }
 
   /**Get data for table list */
   function getDataList() {
@@ -272,39 +274,39 @@ const BillGenerate = (props) => {
   }
 
   const addData = () => {
-    let params = {
-      action: "getNextMRNumber",
-      lan: language(),
-      UserId: UserInfo.UserId,
-    };
+    // let params = {
+    //   action: "getNextMRNumber",
+    //   lan: language(),
+    //   UserId: UserInfo.UserId,
+    // };
 
-    apiCall.post(serverpage, { params }, apiOption()).then((res) => {
-      console.log("res: ", res.data.MRNo);
+    // apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+    // console.log("res: ", res.data.MRNo);
 
-      setCurrentRow({
-        id: "",
-        PaymentDate: moment().format("YYYY-MM-DD"),
-        CustomerId: "",
-        CustomerGroupId: "",
-        MRNo: res.data.MRNo,
-        RefNo: "",
-        BankId: "",
-        ChequeNumber: "",
-        ChequeDate: "",
-        BankBranchName: "",
-        TotalPaymentAmount: "",
-        InvoiceTotalAmount: 0,
-        Remarks: "",
-        StatusId: 1,
-        Items: [],
-      });
-      setEditableItems([]);
-      setCurrCustomerGroupId("");
-      setCurrCustomerId("");
-      setCurrBankId("");
-
-      openModal();
+    setCurrentRow({
+      id: "",
+      BillDate: moment().format("YYYY-MM-DD"),
+      CustomerId: "",
+      // CustomerGroupId: "",
+      // MRNo: res.data.MRNo,
+      // RefNo: "",
+      // BankId: "",
+      // ChequeNumber: "",
+      // ChequeDate: "",
+      // BankBranchName: "",
+      // TotalPaymentAmount: "",
+      // InvoiceTotalAmount: 0,
+      Remarks: "",
+      StatusId: 1,
+      Items: [],
     });
+    setEditableItems([]);
+    // setCurrCustomerGroupId("");
+    setCurrCustomerId("");
+    // setCurrBankId("");
+
+    openModal();
+    // });
   };
 
   function openModal() {
@@ -323,7 +325,7 @@ const BillGenerate = (props) => {
     setCurrentRow(rowData);
     setCurrCustomerGroupId(rowData.CustomerGroupId);
     setCurrCustomerId(rowData.CustomerId);
-    setCurrBankId(rowData.BankId);
+    // setCurrBankId(rowData.BankId);
 
     getDataSingleFromServer(rowData.id);
     openModal();
@@ -372,6 +374,54 @@ const BillGenerate = (props) => {
     });
   };
 
+  const deleteBillItem = (rowData) => {
+    swal({
+      title: "Are you sure?",
+      text: "This invoice will be removed from the bill.",
+      icon: "warning",
+      buttons: {
+        confirm: {
+          text: "Yes",
+          value: true,
+          visible: true,
+          className: "",
+          closeModal: true,
+        },
+        cancel: {
+          text: "No",
+          value: null,
+          visible: true,
+          className: "",
+          closeModal: true,
+        },
+      },
+      dangerMode: true,
+    }).then((allowAction) => {
+      if (allowAction) {
+        const params = {
+          action: "deleteBillItem",
+          lan: language(),
+          UserId: UserInfo.UserId,
+          BillId: currentRow.id,
+          BillItemId: rowData.BillItemId,
+          InvoiceItemId: rowData.InvoiceItemId,
+        };
+
+        apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+          props.openNoticeModal({
+            isOpen: true,
+            msg: res.data.message,
+            msgtype: res.data.success,
+          });
+
+          if (res.data.success === 1) {
+            getDataSingleFromServer(currentRow.id);
+          }
+        });
+      }
+    });
+  };
+
   function deleteApi(rowData) {
     let params = {
       action: "deleteData",
@@ -406,27 +456,40 @@ const BillGenerate = (props) => {
   //   });
   // }
 
-  function addEditAPICall() {
+  function addEditInvoice() {
+    addEditAPICall(1);
+  }
+
+  function postInvoice() {
+    addEditAPICall(5);
+  }
+
+  function addEditAPICall(StatusId = 1) {
     if (validateForm()) {
-      if (currentRow.id) {
-        let invTotalAmount = calculateTotalPaymentAmount();
-        if (invTotalAmount != currentRow.TotalPaymentAmount) {
-          props.openNoticeModal({
-            isOpen: true,
-            msg: "Total Received Amount must be equal to sum of Received Amount in invoice list.",
-            msgtype: 0,
-          });
-          return;
-        }
-      }
+      // if (currentRow.id) {
+      //   let invTotalAmount = calculateTotalPaymentAmount();
+      //   if (invTotalAmount != currentRow.TotalPaymentAmount) {
+      //     props.openNoticeModal({
+      //       isOpen: true,
+      //       msg: "Total Received Amount must be equal to sum of Received Amount in invoice list.",
+      //       msgtype: 0,
+      //     });
+      //     return;
+      //   }
+      // }
+        let data = { ...currentRow };
+
+       if(StatusId == 5){
+        data["StatusId"] = StatusId;
+       } 
 
       let UserInfo = LoginUserInfo();
       let params = {
         action: "dataAddEdit",
         lan: language(),
         UserId: UserInfo.UserId,
-        rowData: currentRow,
-        items: editableItems,
+        rowData: data,
+        // items: editableItems,
       };
       apiCall.post(serverpage, { params }, apiOption()).then((res) => {
         // console.log('res: ', res);
@@ -440,30 +503,25 @@ const BillGenerate = (props) => {
         if (res.data.success === 1) {
           // hideModal();
           // getDataList();
-          let data = { ...currentRow };
+          // let data = { ...currentRow };
 
-          if (data["id"]) {
+          // if (data["id"]) {
             //when update and complete then set status to completed
-            data["StatusId"] = 5;
-          }
+            // data["StatusId"] = StatusId;
+          // }
 
-          data["id"] = res.data.PaymentId;
+          data["id"] = res.data.BillId;
           setCurrentRow(data);
-          console.log("data: ", data);
+          // console.log("data: ", data);
 
-          getDataSingleFromServer(res.data.PaymentId);
+          // getDataSingleFromServer(res.data.BillId);
         }
       });
     }
   }
 
   const validateForm = () => {
-    let validateFields = [
-      "MRNo",
-      "PaymentDate",
-      "CustomerId",
-      "TotalPaymentAmount",
-    ];
+    let validateFields = ["BillDate", "CustomerId"];
     let errorData = {};
     let isValid = true;
     validateFields.map((field) => {
@@ -478,20 +536,20 @@ const BillGenerate = (props) => {
 
   const handleChangeFilterDropDown = (name, value) => {
     let data = { ...currentRow };
-    if (name === "CustomerGroupId") {
-      data["CustomerGroupId"] = value;
-      setCurrCustomerGroupId(value);
-    }
+    // if (name === "CustomerGroupId") {
+    //   data["CustomerGroupId"] = value;
+    //   setCurrCustomerGroupId(value);
+    // }
 
     if (name === "CustomerId") {
       data["CustomerId"] = value;
       setCurrCustomerId(value);
     }
 
-    if (name === "BankId") {
-      data["BankId"] = value;
-      setCurrBankId(value);
-    }
+    // if (name === "BankId") {
+    //   data["BankId"] = value;
+    //   setCurrBankId(value);
+    // }
     setErrorObject({ ...errorObject, [name]: null });
     setCurrentRow(data);
   };
@@ -505,41 +563,41 @@ const BillGenerate = (props) => {
     setErrorObject({ ...errorObject, [name]: null });
   };
 
-  const handleChangeMany = (e, row) => {
-    const { name, value } = e.target;
-    const updatedItems = editableItems.map((item) => {
-      if (item.PaymentItemId === row.PaymentItemId) {
-        return {
-          ...item,
-          [name]: value,
-          IsPaid: value >= item.DueAmount ? true : false,
-        };
-      }
-      return item;
-    });
+  // const handleChangeMany = (e, row) => {
+  //   const { name, value } = e.target;
+  //   const updatedItems = editableItems.map((item) => {
+  //     if (item.PaymentItemId === row.PaymentItemId) {
+  //       return {
+  //         ...item,
+  //         [name]: value,
+  //         IsPaid: value >= item.DueAmount ? true : false,
+  //       };
+  //     }
+  //     return item;
+  //   });
 
-    setEditableItems(updatedItems);
-    // console.log('updatedItems: ', updatedItems);
+  //   setEditableItems(updatedItems);
+  //   // console.log('updatedItems: ', updatedItems);
 
-    // setErrorObject({ ...errorObject, [name]: null });
-  };
+  //   // setErrorObject({ ...errorObject, [name]: null });
+  // };
 
-  const handleChangeCheck = (e, row) => {
-    // console.log('e.target.checked: ', e.target.checked);
-    const { name, value } = e.target;
-    console.log("name, value: ", name, value);
-    const checked = e.target.checked;
+  // const handleChangeCheck = (e, row) => {
+  //   // console.log('e.target.checked: ', e.target.checked);
+  //   const { name, value } = e.target;
+  //   console.log("name, value: ", name, value);
+  //   const checked = e.target.checked;
 
-    const updatedItems = editableItems.map((item) => {
-      if (item.PaymentItemId === row.PaymentItemId) {
-        return { ...item, [name]: checked };
-      }
-      return item;
-    });
+  //   const updatedItems = editableItems.map((item) => {
+  //     if (item.PaymentItemId === row.PaymentItemId) {
+  //       return { ...item, [name]: checked };
+  //     }
+  //     return item;
+  //   });
 
-    setEditableItems(updatedItems);
-    console.log("updatedItems: ", updatedItems);
-  };
+  //   setEditableItems(updatedItems);
+  //   console.log("updatedItems: ", updatedItems);
+  // };
 
   const manyColumnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
@@ -597,7 +655,7 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
     },
- 
+
     {
       field: "TransactionAmount",
       label: "Amount USD",
@@ -606,6 +664,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      // bottomCalc: "sum",
     },
     {
       field: "ExchangeRate",
@@ -624,8 +683,10 @@ const BillGenerate = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      // bottomCalc: "sum",
+
     },
-    
+
     {
       field: "GeneralDescription14",
       label: "Responsible Person",
@@ -681,7 +742,7 @@ const BillGenerate = (props) => {
           // onBlur={(e) => handleChangeMany(e, rowData)}
         /> */}
 
-        <input
+        {/* <input
           id="IsPaid"
           name="IsPaid"
           type="checkbox"
@@ -689,7 +750,7 @@ const BillGenerate = (props) => {
           style={{ width: "30px", height: "18px", marginRight: "5px" }}
           checked={rowData.IsPaid}
           onChange={(e) => handleChangeCheck(e, rowData)}
-        />
+        /> */}
 
         {/* {permissionType === 0 && (
           // <Edit
@@ -708,23 +769,43 @@ const BillGenerate = (props) => {
           //   }}
           // />
         )} */}
+        {permissionType === 0 && currentRow.StatusId == 1 && (
+          <DeleteOutline
+            className={"table-delete-icon"}
+            onClick={() => {
+              deleteBillItem(rowData);
+            }}
+          />
+        )}
       </div>
     );
   }
 
-  function calculateTotalPaymentAmount() {
-    let total = 0;
+  // function calculateTotalPaymentAmount() {
+  //   let total = 0;
 
-    editableItems.forEach((item) => {
-      const paymentAmount = parseFloat(item.PaymentAmount) || 0;
-      total += paymentAmount;
-    });
-    // return total;
-    // let data = { ...currentRow };
-    // data["InvoiceTotalAmount"] = total.toFixed(0);
-    // setCurrentRow(data);
-    return total.toFixed(0);
-  }
+  //   editableItems.forEach((item) => {
+  //     const paymentAmount = parseFloat(item.PaymentAmount) || 0;
+  //     total += paymentAmount;
+  //   });
+  //   // return total;
+  //   // let data = { ...currentRow };
+  //   // data["InvoiceTotalAmount"] = total.toFixed(0);
+  //   // setCurrentRow(data);
+  //   return total.toFixed(0);
+  // }
+
+  const openInvoiceModal = () => {
+    setShowInvoiceModal(true);
+  };
+
+  const invoiceModalCallback = (action) => {
+    setShowInvoiceModal(false);
+    if (action === "addedit") {
+      // Refresh the invoice list after adding invoices
+      getDataSingleFromServer(currentRow.id);
+    }
+  };
 
   return (
     <>
@@ -769,24 +850,27 @@ const BillGenerate = (props) => {
                 onClick={hideModal}
               />
 
+              {/* {!currentRow.id && ( */}
+              <Button
+                label={currentRow.id ? "Update" : "Save"}
+                class={"btnSave"}
+                disabled={currentRow.StatusId == 5 ? true : false}
+                onClick={addEditInvoice}
+              />
+              {/* )} */}
+
               {currentRow.id && currentRow.StatusId == 1 && (
                 <Button
                   label={"Complete"} //update
                   class={"btnUpdate"}
-                  onClick={addEditAPICall}
-                />
-              )}
-              {!currentRow.id && (
-                <Button
-                  label={"Save"}
-                  class={"btnSave"}
-                  onClick={addEditAPICall}
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  onClick={postInvoice}
                 />
               )}
 
               {currentRow.id && (
                 <Button
-                  label={"Money Receipt"}
+                  label={"Export"}
                   class={"btnPrint"}
                   onClick={PDFGenerate}
                 />
@@ -795,7 +879,7 @@ const BillGenerate = (props) => {
 
             <div>
               <div class="fourColumnContainer pt-10">
-                <label>MR *</label>
+                {/* <label>MR *</label>
                 <input
                   type="text"
                   id="MRNo"
@@ -805,8 +889,8 @@ const BillGenerate = (props) => {
                   placeholder="Enter MR Number"
                   value={currentRow.MRNo}
                   onChange={(e) => handleChange(e)}
-                />
-
+                /> */}
+                {/* 
                 <label>Ref</label>
                 <input
                   type="text"
@@ -821,21 +905,21 @@ const BillGenerate = (props) => {
                   placeholder="Enter Ref Number"
                   value={currentRow.RefNo}
                   onChange={(e) => handleChange(e)}
-                />
+                /> */}
 
-                <label>Payment Date</label>
+                <label>Bill Date</label>
                 <input
                   type="date"
-                  id="PaymentDate"
-                  name="PaymentDate"
+                  id="BillDate"
+                  name="BillDate"
                   disabled={
                     editableItems.length > 0 || currentRow.StatusId == 5
                       ? true
                       : false
                   }
-                  class={errorObject.PaymentDate}
-                  placeholder="Enter Payment Date"
-                  value={currentRow.PaymentDate}
+                  class={errorObject.BillDate}
+                  placeholder="Enter Bill Date"
+                  value={currentRow.BillDate}
                   onChange={(e) => handleChange(e)}
                 />
 
@@ -896,7 +980,7 @@ const BillGenerate = (props) => {
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
                       "CustomerId",
-                      valueobj ? valueobj.id : ""
+                      valueobj ? valueobj.id : "",
                     )
                   }
                   filterOptions={(options, state) => {
@@ -905,7 +989,7 @@ const BillGenerate = (props) => {
                     if (!inputValue) return options.slice(0, 500); // Show only first 500 initially
                     return options
                       .filter((option) =>
-                        option.name.toLowerCase().includes(inputValue)
+                        option.name.toLowerCase().includes(inputValue),
                       )
                       .slice(0, 500); // Limit results to 500
                   }}
@@ -919,37 +1003,7 @@ const BillGenerate = (props) => {
                     />
                   )}
                 />
-                {/* </div>
-
-              <div class="contactmodalBody pt-10"> */}
-                <label>Bank</label>
-                <Autocomplete
-                  autoHighlight
-                  disableClearable
-                  className="chosen_dropdown"
-                  id="BankId"
-                  name="BankId"
-                  autoComplete
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  // class={errorObject.BankId}
-                  options={BankList ? BankList : []}
-                  getOptionLabel={(option) => option.name}
-                  value={selectedBank}
-                  onChange={(event, valueobj) =>
-                    handleChangeFilterDropDown(
-                      "BankId",
-                      valueobj ? valueobj.id : ""
-                    )
-                  }
-                  renderOption={(option) => option.name}
-                  renderInput={(params) => (
-                    <TextField {...params} variant="standard" fullWidth />
-                  )}
-                />
+                {/*               
 
                 <label>Branch Name</label>
                 <input
@@ -965,8 +1019,8 @@ const BillGenerate = (props) => {
                   placeholder="Enter Branch Name"
                   value={currentRow.BankBranchName}
                   onChange={(e) => handleChange(e)}
-                />
-
+                /> */}
+                {/* 
                 <label>Cheque Number</label>
                 <input
                   type="text"
@@ -997,9 +1051,9 @@ const BillGenerate = (props) => {
                   placeholder="Enter Cheque Date"
                   value={currentRow.ChequeDate}
                   onChange={(e) => handleChange(e)}
-                />
+                /> */}
 
-                <label>Total Received Amount *</label>
+                {/* <label>Total Received Amount *</label>
                 <input
                   type="number"
                   id="TotalPaymentAmount"
@@ -1013,10 +1067,8 @@ const BillGenerate = (props) => {
                   placeholder="Enter Total Received Amount"
                   value={currentRow.TotalPaymentAmount}
                   onChange={(e) => handleChange(e)}
-                />
-                {/* </div>
+                /> */}
 
-              <div class="contactmodalBody pt-10"> */}
                 <label>Remarks</label>
                 <input
                   type="text"
@@ -1028,7 +1080,7 @@ const BillGenerate = (props) => {
                   value={currentRow.Remarks}
                   onChange={(e) => handleChange(e)}
                 />
-
+                {/* 
                 <label>Invoice Total Amount</label>
                 <input
                   type="number"
@@ -1040,18 +1092,33 @@ const BillGenerate = (props) => {
                   // value={currentRow.InvoiceTotalAmount}
                   value={calculateTotalPaymentAmount()}
                   onChange={(e) => handleChange(e)}
-                />
+                /> */}
               </div>
 
-              {currentRow.id && (
-                <div class="subContainer  mt-10">
-                  <CustomTable
-                    columns={manyColumnList}
-                    rows={editableItems.length > 0 ? editableItems : {}}
-                    actioncontrol={actioncontrolmany}
-                  />
-                </div>
-              )}
+              {/* {currentRow.id && ( */}
+              {/* <> */}
+              <div class="searchAdd">
+                {/* {currentRow.id && currentRow.StatusId == 1 && ( */}
+                <Button
+                  label={"Add Invoice"} //update
+                  class={"btnSave"}
+                  disabled={
+                    currentRow.StatusId == 5 || !currentRow.id ? true : false
+                  }
+                  onClick={openInvoiceModal}
+                />
+                {/* )}*/}
+              </div>
+
+              <div class="subContainer  mt-10">
+                <CustomTable
+                  columns={manyColumnList}
+                  rows={editableItems.length > 0 ? editableItems : {}}
+                  actioncontrol={actioncontrolmany}
+                />
+              </div>
+              {/* </> */}
+              {/* // )} */}
 
               {/* <div class="modalItem">
                 {currentRow.id && (
@@ -1074,6 +1141,15 @@ const BillGenerate = (props) => {
         )}
       </div>
       {/* <!-- BODY CONTAINER END --> */}
+
+      {/* Invoice Add Modal */}
+      {showInvoiceModal && (
+        <InvoiceAddModal
+          currentRow={currentRow}
+          modalCallback={invoiceModalCallback}
+          masterProps={props}
+        />
+      )}
     </>
   );
 };

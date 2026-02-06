@@ -112,7 +112,7 @@ const InvoiceEditModal = (props) => {
         {/* <!-- Modal content --> */}
         <div class="modal-content">
           <div class="modalHeader">
-            <h4>Add/Edit Invoice</h4>
+            <h4>Add/Edit Invoice {currentRow.TransactionReference && `- ${currentRow.TransactionReference}`}</h4>
           </div>
 
           {/* <div class="contactmodalBody pt-10">

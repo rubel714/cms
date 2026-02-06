@@ -36,7 +36,12 @@ switch ($task) {
 	case "BankList":
 		$returnData = BankList($data);
 		break;
- 
+	case "BuyerList":
+		$returnData = BuyerList($data);
+		break;
+	case "MerchantList":
+		$returnData = MerchantList($data);
+		break;
 	case "MonthList":
 		$returnData = MonthList($data);
 		break;
@@ -318,6 +323,60 @@ function BankList($data)
 		$query = "SELECT `BankId` id,`BankName` `name`
 	 			 	FROM `t_bank` 
 					ORDER BY BankName;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+
+function BuyerList($data)
+{
+	try {
+
+		$dbh = new Db();
+
+		$query = "SELECT distinct `GeneralDescription11` id,`GeneralDescription11` `name`
+	 			 	FROM `t_invoiceitems` 
+					where GeneralDescription11 <> ''
+					ORDER BY GeneralDescription11;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+
+function MerchantList($data)
+{
+	try {
+
+		$dbh = new Db();
+
+		$query = "SELECT distinct `GeneralDescription14` id,`GeneralDescription14` `name`
+	 			 	FROM `t_invoiceitems` 
+					where GeneralDescription14 <> ''
+					ORDER BY GeneralDescription14;";
 
 		$resultdata = $dbh->query($query);
 

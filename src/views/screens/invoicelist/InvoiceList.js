@@ -118,8 +118,8 @@ const InvoiceList = (props) => {
       filter: true,
     },
     {
-      field: "AccountCode",
-      label: "Customer Code",
+      field: "CustomerName",
+      label: "Customer",
       align: "left",
       visible: true,
       sort: false,
