@@ -51,28 +51,12 @@ const BillGenerate = (props) => {
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
   const PDFGenerate = () => {
-    // console.log("currentRow: ", currentRow.id);
-    let finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
+    let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBill.php";
     window.open(
       finalUrl + "?BillId=" + currentRow.id + "&TimeStamp=" + Date.now(),
     );
   };
 
-  // const PrintPDFExcelExportFunction = (reportType) => {
-  //   let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
-
-  // window.open(
-  //   finalUrl +
-  //     "?action=ClientExport" +
-  //     "&reportType=excel" +
-  //     "&ClientId=" +
-  //     UserInfo.ClientId +
-  //     "&BranchId=" +
-  //     UserInfo.BranchId +
-  //     "&TimeStamp=" +
-  //     Date.now()
-  // );
-  // };
   /* =====End of Excel Export Code==== */
 
   const columnList = [
@@ -113,51 +97,6 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
     },
-    // {
-    //   field: "InvoiceStartDate",
-    //   label: "Invoice Start Date",
-    //   width: "9%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
-    // {
-    //   field: "InvoiceEndDate",
-    //   label: "Invoice End Date",
-    //   width: "10%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
-    // {
-    //   field: "BuyerName",
-    //   label: "Buyer Name",
-    //   width: "10%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
-    // {
-    //   field: "MerchantName",
-    //   label: "Merchant Name",
-    //   width: "10%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
-    // {
-    //   field: "BusinessLine",
-    //   label: "Business Line",
-    //   width: "8%",
-    //   align: "left",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
     {
       field: "custom",
       label: "Action",
@@ -176,9 +115,7 @@ const BillGenerate = (props) => {
   }
 
   React.useEffect(() => {
-    // getCustomerGroupList();
     getCustomerList();
-    // getBankList();
   }, []);
 
   React.useEffect(() => {
@@ -187,41 +124,11 @@ const BillGenerate = (props) => {
     }
   }, [manyDataList]);
 
-
-  //   React.useEffect(() => {
-  
-  //     calculateTotalAmount();
-      
-  // }, [editableItems]);
-
-
   // Memoize selected customer to avoid expensive findIndex on every render
   const selectedCustomer = React.useMemo(() => {
     if (!CustomerList || !currCustomerId) return null;
     return CustomerList.find((list) => list.id === currCustomerId) || null;
   }, [CustomerList, currCustomerId]);
-
-  // Memoize selected bank to avoid expensive findIndex on every render
-  // const selectedBank = React.useMemo(() => {
-  //   if (!BankList || !currBankId) return null;
-  //   return BankList.find((list) => list.id === currBankId) || null;
-  // }, [BankList, currBankId]);
-
-  // function getCustomerGroupList() {
-  //   let params = {
-  //     action: "CustomerGroupList",
-  //     lan: language(),
-  //     UserId: UserInfo.UserId,
-  //   };
-
-  //   apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-  //     setCustomerGroupList(
-  //       [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist),
-  //     );
-
-  //     // setCurrCustomerGroupId(selectCustomerGroupId);
-  //   });
-  // }
 
   function getCustomerList() {
     let params = {
@@ -236,24 +143,10 @@ const BillGenerate = (props) => {
         [{ id: "", name: "Select Customer" }].concat(res.data.datalist),
       );
 
-      // setCurrCustomerId(selectCustomerGroupId);
     });
   }
 
-  // function getBankList() {
-  //   let params = {
-  //     action: "BankList",
-  //     lan: language(),
-  //     UserId: UserInfo.UserId,
-  //   };
-
-  //   apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-  //     setBankList([{ id: "", name: "Select Bank" }].concat(res.data.datalist));
-
-  //     // setCurrCustomerId(selectCustomerGroupId);
-  //   });
-  // }
-
+  
   /**Get data for table list */
   function getDataList() {
     let params = {
@@ -291,59 +184,42 @@ const BillGenerate = (props) => {
   }
 
   const addData = () => {
-    // let params = {
-    //   action: "getNextMRNumber",
-    //   lan: language(),
-    //   UserId: UserInfo.UserId,
-    // };
+    let params = {
+      action: "getNextBillNumber",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
 
-    // apiCall.post(serverpage, { params }, apiOption()).then((res) => {
-    // console.log("res: ", res.data.MRNo);
-
-    setCurrentRow({
-      id: "",
-      BillDate: moment().format("YYYY-MM-DD"),
-      CustomerId: "",
-      // CustomerGroupId: "",
-      // MRNo: res.data.MRNo,
-      // RefNo: "",
-      // BankId: "",
-      // ChequeNumber: "",
-      // ChequeDate: "",
-      // BankBranchName: "",
-      // TotalPaymentAmount: "",
-      // InvoiceTotalAmount: 0,
-      Remarks: "",
-      StatusId: 1,
-      Items: [],
+    apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+      // console.log("res: ", res.data.NextBillNumber);
+      setCurrentRow({
+        id: "",
+        BillDate: moment().format("YYYY-MM-DD"),
+        CustomerId: "",
+        BillNumber: res.data.NextBillNumber,
+        Remarks: "",
+        StatusId: 1,
+        Items: [],
+      });
+      setEditableItems([]);
+      setCurrCustomerId("");
+      openModal();
     });
-    setEditableItems([]);
-    // setCurrCustomerGroupId("");
-    setCurrCustomerId("");
-    // setCurrBankId("");
-
-    openModal();
-    // });
   };
 
   function openModal() {
     setListedittoggle(false);
-    // setShowModal(true); //true=modal show, false=modal hide
   }
 
   function hideModal() {
     getDataList();
-
     setListedittoggle(true);
-    // setShowModal(true); //true=modal show, false=modal hide
   }
 
   const editData = (rowData) => {
     setCurrentRow(rowData);
     setCurrCustomerGroupId(rowData.CustomerGroupId);
     setCurrCustomerId(rowData.CustomerId);
-    // setCurrBankId(rowData.BankId);
-
     getDataSingleFromServer(rowData.id);
     openModal();
   };
@@ -355,10 +231,6 @@ const BillGenerate = (props) => {
       UserId: UserInfo.UserId,
       id: id,
     };
-
-    // setDeletedItems([]);
-
-    // ExecuteQuerySingle(serverpage, params);
     ExecuteQueryMany(serverpage, params);
   };
 
@@ -460,25 +332,52 @@ const BillGenerate = (props) => {
     });
   }
 
-  // function getNextMRNumber() {
-  //   let params = {
-  //     action: "getNextMRNumber",
-  //     lan: language(),
-  //     UserId: UserInfo.UserId
-  //   };
-
-  //   apiCall.post(serverpage, { params }, apiOption()).then((res) => {
-  //     console.log('res: ', res.data.MRNo);
-
-  //   });
-  // }
-
+  
   function addEditInvoice() {
     addEditAPICall(1);
   }
 
   function postInvoice() {
-    addEditAPICall(5);
+
+    if(editableItems.length == 0){
+      props.openNoticeModal({
+        isOpen: true,
+        msg: "No invoice to post.",
+        msgtype: 0,
+      });
+      return;
+    }
+
+
+
+
+
+    swal({
+      title: "Are you sure?",
+      text: "You want to complete this bill, it will not be editable after completion.",
+      icon: "warning",
+      buttons: {
+        confirm: {
+          text: "Yes",
+          value: true,
+          visible: true,
+          className: "",
+          closeModal: true,
+        },
+        cancel: {
+          text: "No",
+          value: null,
+          visible: true,
+          className: "",
+          closeModal: true,
+        },
+      },
+      dangerMode: true,
+    }).then((allowAction) => {
+      if (allowAction) {
+        addEditAPICall(5);
+      }
+    });
   }
 
   function addEditAPICall(StatusId = 1) {
@@ -494,11 +393,11 @@ const BillGenerate = (props) => {
       //     return;
       //   }
       // }
-        let data = { ...currentRow };
+      let data = { ...currentRow };
 
-       if(StatusId == 5){
+      if (StatusId == 5) {
         data["StatusId"] = StatusId;
-       } 
+      }
 
       let UserInfo = LoginUserInfo();
       let params = {
@@ -518,20 +417,8 @@ const BillGenerate = (props) => {
         });
 
         if (res.data.success === 1) {
-          // hideModal();
-          // getDataList();
-          // let data = { ...currentRow };
-
-          // if (data["id"]) {
-            //when update and complete then set status to completed
-            // data["StatusId"] = StatusId;
-          // }
-
           data["id"] = res.data.BillId;
           setCurrentRow(data);
-          // console.log("data: ", data);
-
-          // getDataSingleFromServer(res.data.BillId);
         }
       });
     }
@@ -702,8 +589,6 @@ const BillGenerate = (props) => {
       filter: true,
       type: "number",
       bottomcalc: "sum",
-
-
     },
 
     {
@@ -722,7 +607,7 @@ const BillGenerate = (props) => {
       label: "Billed",
       width: "5%",
       align: "center",
-      visible: currentRow.StatusId ==5 ? false : true,
+      visible: currentRow.StatusId == 5 ? false : true,
       sort: false,
       filter: false,
     },
@@ -814,20 +699,20 @@ const BillGenerate = (props) => {
   //   return total.toFixed(0);
   // }
 
-// function calculateTotalAmount() {
-//     let totalTransactionAmount = 0;
+  // function calculateTotalAmount() {
+  //     let totalTransactionAmount = 0;
 
-//     editableItems.forEach((item) => {
-//       const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
-//       totalTransactionAmount += TransactionAmount;
-//     });
-//     // return total;
-//     // let data = { ...currentRow };
-//     // data["InvoiceTotalAmount"] = total.toFixed(0);
-//     // setCurrentRow(data);
-//     console.log("totalTransactionAmount: ", totalTransactionAmount);
-//     return totalTransactionAmount.toFixed(0);
-//   }
+  //     editableItems.forEach((item) => {
+  //       const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
+  //       totalTransactionAmount += TransactionAmount;
+  //     });
+  //     // return total;
+  //     // let data = { ...currentRow };
+  //     // data["InvoiceTotalAmount"] = total.toFixed(0);
+  //     // setCurrentRow(data);
+  //     console.log("totalTransactionAmount: ", totalTransactionAmount);
+  //     return totalTransactionAmount.toFixed(0);
+  //   }
 
   const openInvoiceModal = () => {
     setShowInvoiceModal(true);
@@ -861,7 +746,7 @@ const BillGenerate = (props) => {
               /> */}
               <Button
                 disabled={permissionType}
-                label={"ADD"}
+                label={"New Bill"}
                 class={"btnAdd"}
                 onClick={addData}
               />
@@ -924,81 +809,36 @@ const BillGenerate = (props) => {
                   value={currentRow.MRNo}
                   onChange={(e) => handleChange(e)}
                 /> */}
-                {/* 
-                <label>Ref</label>
+
+                <label>Bill No</label>
                 <input
                   type="text"
-                  id="RefNo"
-                  name="RefNo"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  // class={errorObject.RefNo}
-                  placeholder="Enter Ref Number"
-                  value={currentRow.RefNo}
-                  onChange={(e) => handleChange(e)}
-                /> */}
+                  id="BillNumber"
+                  name="BillNumber"
+                  disabled={true}
+                  // class={errorObject.BillNumber}
+                  placeholder="Enter Bill Number"
+                  value={currentRow.BillNumber}
+                  // onChange={(e) => handleChange(e)}
+                />
 
                 <label>Bill Date</label>
                 <input
                   type="date"
                   id="BillDate"
                   name="BillDate"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
+                  disabled={currentRow.StatusId == 5? true: false}
                   class={errorObject.BillDate + " customer-dropdown-wide-1"}
                   placeholder="Enter Bill Date"
                   value={currentRow.BillDate}
                   onChange={(e) => handleChange(e)}
                 />
 
-                {/* <label>Customer Group *</label>
-                <Autocomplete
-                  autoHighlight
-                  disableClearable
-                  className="chosen_dropdown customer-dropdown-wide"
-                  id="CustomerGroupId"
-                  name="CustomerGroupId"
-                  autoComplete
-                  class={errorObject.CustomerGroupId}
-                  options={CustomerGroupList ? CustomerGroupList : []}
-                  getOptionLabel={(option) => option.name}
-                  defaultValue={{ id: 0, name: "Select Customer Group" }}
-                  value={
-                    CustomerGroupList
-                      ? CustomerGroupList[
-                          CustomerGroupList.findIndex(
-                            (list) => list.id === currCustomerGroupId
-                          )
-                        ]
-                      : null
-                  }
-                  onChange={(event, valueobj) =>
-                    handleChangeFilterDropDown(
-                      "CustomerGroupId",
-                      valueobj ? valueobj.id : ""
-                    )
-                  }
-                  renderOption={(option) => (
-                    <Typography className="chosen_dropdown_font">
-                      {option.name}
-                    </Typography>
-                  )}
-                  renderInput={(params) => (
-                    <TextField {...params} variant="standard" fullWidth />
-                  )}
-                /> */}
-
                 <label>Customer *</label>
                 <Autocomplete
                   autoHighlight
                   disableClearable
-                  className="chosen_dropdown customer-dropdown-wide-2"
+                  className="chosen_dropdown customer-dropdown-wide-3"
                   id="CustomerId"
                   name="CustomerId"
                   autoComplete
@@ -1108,7 +948,7 @@ const BillGenerate = (props) => {
                   type="text"
                   id="Remarks"
                   name="Remarks"
-                  class={"customer-dropdown-wide-2"}
+                  class={"customer-dropdown-wide-1"}
                   disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentDate}
                   placeholder="Enter Remarks"

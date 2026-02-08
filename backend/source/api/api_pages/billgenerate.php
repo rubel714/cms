@@ -34,9 +34,9 @@ switch ($task) {
 		$returnData = deleteData($data);
 		break;
 
-	// case "getNextMRNumber":
-	// 	$returnData = getNextMRNumber();
-	// 	break;
+	case "getNextBillNumber":
+		$returnData = getNextBillNumber();
+		break;
 
 	default:
 		echo "{failure:true}";
@@ -218,7 +218,8 @@ function getUnbilledInvoices($data)
 
 	try {
 		$dbh = new Db();
-	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.UserName as CustomerUserName
+	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
+		b.UserName as CustomerUserName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
 		inner join t_customer c on a.AccountCode=c.CustomerCode
@@ -295,37 +296,27 @@ function dataAddEdit($data)
 		$UserId = trim($data->UserId);
 
 		$BillId = $data->rowData->id;
-		// $MRNo = $data->rowData->MRNo;
-		// $RefNo = $data->rowData->RefNo ? $data->rowData->RefNo : null;
-
 		$BillDate = $data->rowData->BillDate;
 		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
-		// $CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
-		// $BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
-		// $BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
-		// $ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
-		// $ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
-		// $TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
 
-		// $items = isset($data->items) ? $data->items : [];
 		
-		$BillIdCheck = "";
-		if($BillId != "") {
-			$BillIdCheck = " and a.BillId != $BillId ";
-		}
+		// $BillIdCheck = "";
+		// if($BillId != "") {
+		// 	$BillIdCheck = " and a.BillId != $BillId ";
+		// }
 
-		$query = "SELECT count(a.BillId) DraftCount
-		FROM t_bill a
-		where a.CustomerId=$CustomerId
-		and a.StatusId=1
-		$BillIdCheck;";
+		// $query = "SELECT count(a.BillId) DraftCount
+		// FROM t_bill a
+		// where a.CustomerId=$CustomerId
+		// and a.StatusId=1
+		// $BillIdCheck;";
 
-		$resultdatalist = $dbh->query($query);
-		if ($resultdatalist[0]['DraftCount'] >= 1 && $BillId == "") {
-			return $returnData = msg(0, 500, 'There is already a draft bill for this customer. Please complete or delete the existing draft bill before creating a new one.');
-		}
+		// $resultdatalist = $dbh->query($query);
+		// if ($resultdatalist[0]['DraftCount'] >= 1 && $BillId == "") {
+		// 	return $returnData = msg(0, 500, 'There is already a draft bill for this customer. Please complete or delete the existing draft bill before creating a new one.');
+		// }
 
 
 		try {
@@ -442,25 +433,25 @@ function deleteData($data)
 
 
 
-// function getNextMRNumber()
-// {
+function getNextBillNumber()
+{
 
-// 	try {
-// 		$dbh = new Db();
+	try {
+		$dbh = new Db();
 
-// 		$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
-// 		$result3 = $dbh->query($query3);
-// 		$MRNo = $result3[0]['NextMRNo'];
+		$query3 = "SELECT ifnull(max(BillNumber),0) + 1 as NextBillNumber FROM t_bill;";
+		$result3 = $dbh->query($query3);
+		$NextBillNumber = $result3[0]['NextBillNumber'];
 		
-// 		$returnData = [
-// 			"success" => 1,
-// 			"status" => 200,
-// 			"message" => "",
-// 			"MRNo" => $MRNo
-// 		];
-// 	} catch (PDOException $e) {
-// 		$returnData = msg(0, 500, $e->getMessage());
-// 	}
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"NextBillNumber" => $NextBillNumber
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
 
-// 	return $returnData;
-// }
+	return $returnData;
+}
