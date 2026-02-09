@@ -33,18 +33,23 @@ require_once('TCPDF-master/examples/tcpdf_include.php');
 
 
 $CustomerName = "";
-$BillNumber = "11111";
+$BillNumber = "";
+$Remarks = "";
 
-// $PaymentDate = "";
-// $CustomerCode = "";
-// $TotalPaymentAmount = 0;
-// $TotalPaymentAmountUSD = 0;
-// $CustomerName = "";
-// $AmountInWords = "";
-// $ChequeNumber = "";
-// $ChequeDate = "";
-// $BankName = "";
-// $BankBranchName = "";
+$sqlm = "SELECT b.CustomerName,a.Remarks,a.BillNumber,a.BillDate
+		FROM t_bill a 
+		inner join t_customer b on a.CustomerId=b.CustomerId
+		where a.BillId=$BillId;";
+
+$sqlmresult = $db->query($sqlm);
+
+foreach ($sqlmresult as $result) {
+    $CustomerName = $result['CustomerName'];
+    $BillNumber = $result['BillNumber'];
+    $Remarks = $result['Remarks'];
+}
+
+
 
 $OutputFileDirectory = dirname(__FILE__) . '/../../media/files/';
 if (!is_dir($OutputFileDirectory)) {
@@ -55,7 +60,7 @@ class MYPDF extends TCPDF
 {
     public function Header()
     {
-        global $BillNumber;
+        global $BillNumber, $CustomerName, $Remarks;
 
         // Logo (right side)
         $image_file = '../../image/appmenu/Intertek_Logo.png';
@@ -65,41 +70,12 @@ class MYPDF extends TCPDF
         $x = $this->getPageWidth() - $margins['right'] - $logoWidth;
         $this->Image($image_file, $x, 5, $logoWidth, $logoHeight, 'PNG', '', '', false, 150, '', false, false, 1, false, false, false);
         // Set font
-        $this->SetFont('helvetica', 'B', 10);
 
-        $this->SetFont('helvetica', 'B', 10);
-        $this->SetXY(80, 5); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Money Receipt', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
+        $this->SetFont('helvetica', 'R', 10);
+        $this->SetXY(10, 15); // adjust X and Y as needed
+        $headerText = htmlspecialchars($Remarks, ENT_QUOTES, 'UTF-8') . ' <b>' . htmlspecialchars($CustomerName, ENT_QUOTES, 'UTF-8') . '</b>';
+        $this->writeHTMLCell(0, 0, 10, 15, $headerText, 0, 0, false, true, 'L', true);
 
-        // $this->SetFont('helvetica', 'B', 8);
-        // $this->SetXY(80, 15); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'MR - ' . $BillNumber, 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetFont('helvetica', 'B', 8);
-        // $this->SetXY(80, 25); // adjust X and Y as needed
-        // $this->Cell(21, 6, 'Customer Copy', 1, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-
-        // // Move to the right side
-        // $this->SetFont('helvetica', 'B', 8);
-        // $this->SetXY(160, 5); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'ITS Labtest Bangladesh Ltd.', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetFont('helvetica', 'B', 7);
-        // $this->SetXY(160, 10); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'Phoenix Tower, 2nd & 3rd Floors', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetXY(160, 15); // adjust X and Y as needed
-        // $this->Cell(0, 0, '407, Tejgoan Industrial Area', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetXY(160, 20); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'Dhaka-1208, Bangladesh,', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetXY(160, 25); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'Phone: +8809666776669', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetXY(160, 30); // adjust X and Y as needed
-        // $this->Cell(0, 0, 'Fax: +88029125866', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
     }
 
     // Page footer
@@ -132,12 +108,8 @@ $pdf->AddPage('L');
 
 $margins = $pdf->getMargins();
 $tableWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
-// Column widths in percent (must total 100)
-$colPercents = [12, 12, 12, 12, 10, 10, 10, 8, 8, 6];
-$colWidths = [];
-foreach ($colPercents as $p) {
-    $colWidths[] = $tableWidth * ($p / 100);
-}
+
+
 
 
 $sqlf = "SELECT DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
@@ -152,31 +124,55 @@ $sqlLoop1result = $db->query($sqlf);
 
 
 $html = '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
-$html .= '<thead><tr style="font-weight:bold;">';
-$html .= '<th width="10%">Report Due Date</th>';
-$html .= '<th width="10%">Report Number</th>';
+$html .= '<thead><tr style="font-weight:bold; background-color:#FFC900;">';
+$html .= '<th width="6%">Report Due Date</th>';
+$html .= '<th width="8%">Report Number</th>';
 $html .= '<th width="10%">Invoice Number</th>';
-$html .= '<th width="10%">Buyer Name</th>';
-$html .= '<th width="10%">Style number</th>';
+$html .= '<th width="15%">Buyer Name</th>';
+$html .= '<th width="15%">Style number</th>';
 $html .= '<th width="10%">Order Number</th>';
-$html .= '<th width="10%" align="right">Amount USD</th>';
-$html .= '<th width="10%" align="right">Exchange Rate</th>';
-$html .= '<th width="10%" align="right">Amount BDT</th>';
-$html .= '<th width="10%">Responsible Person</th>';
+$html .= '<th width="7%" align="right">Amount USD</th>';
+$html .= '<th width="6%" align="right">Exchange Rate</th>';
+$html .= '<th width="7%" align="right">Amount BDT</th>';
+$html .= '<th width="16%">Responsible Person</th>';
 $html .= '</tr></thead><tbody>';
-
+$TotalTransactionAmount = 0;
+$TotalBaseAmount = 0;
 foreach ($sqlLoop1result as $result) {
     $html .= '<tr>';
-    $html .= '<td width="10%" align="center">' . htmlspecialchars($result['TransactionDate'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="6%" align="center">' . htmlspecialchars($result['TransactionDate'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="8%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '<td width="10%">' . htmlspecialchars($result['TransactionReference'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['GeneralDescription17'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="15%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="15%">' . htmlspecialchars($result['GeneralDescription17'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '<td width="10%">' . htmlspecialchars($result['OrderNumber'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
-    $html .= '<td width="10%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
-    $html .= '<td width="10%" align="right">' . number_format($result['BaseAmount'], 2) . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['GeneralDescription14'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="7%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
+    $html .= '<td width="6%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
+    $html .= '<td width="7%" align="right">' . number_format($result['BaseAmount'], 2) . '</td>';
+    $html .= '<td width="16%">' . htmlspecialchars($result['GeneralDescription14'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '</tr>';
+
+    if($result['TransactionAmount']>0){
+        $TotalTransactionAmount += $result['TransactionAmount'];
+    }
+
+    if($result['BaseAmount']>0){
+        $TotalBaseAmount += $result['BaseAmount'];
+    }
+
+}
+if (count($sqlLoop1result) > 0) {
+     $html .= '<tr>';
+    $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="8%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="15%"></td>';
+    $html .= '<td width="15%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalTransactionAmount, 2).'</td>';
+    $html .= '<td width="6%" align="right"></td>';
+    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalBaseAmount, 2).'</td>';
+    $html .= '<td width="16%"></td>';
     $html .= '</tr>';
 }
 
@@ -186,6 +182,73 @@ $pdf->SetFont('helvetica', 'R', 8);
 $pdf->writeHTML($html, true, false, true, false, '');
 
 
+
+// Create two-column layout with summary tables
+$pdf->ln(5);
+$pdf->SetFont('helvetica', 'B', 10);
+
+$colWidth = ($tableWidth / 2) - 2;
+$pdf->MultiCell(0, 0, '', 0, 'C', false, 1); // Line break
+
+$pdf->SetXY($margins['left'], $pdf->GetY());
+$pdf->SetFont('helvetica', 'R', 8);
+
+
+$pdf->writeHTML($twoColumnHtml, true, false, true, false, '');
+// Left column - Summary
+$pdf->SetXY($margins['left'], $pdf->GetY());
+$summaryHtml = '<table border="1" cellpadding="3" cellspacing="0" width="45%">';
+$summaryHtml .= '<tr style="background-color:#FFC900; font-weight:bold;">';
+$summaryHtml .= '<th>Summary</th>';
+$summaryHtml .= '</tr>';
+$summaryHtml .= '<tr><td>Total USD: ' . number_format($TotalTransactionAmount, 2) . '</td></tr>';
+$summaryHtml .= '<tr><td>Total BDT: ' . number_format($TotalBaseAmount, 2) . '</td></tr>';
+$summaryHtml .= '</table>';
+
+// Right column - Terms
+$termsHtml = '<table border="1" cellpadding="3" cellspacing="0" width="45%">';
+$termsHtml .= '<tr style="background-color:#FFC900; font-weight:bold;">';
+$termsHtml .= '<th>Terms & Conditions</th>';
+$termsHtml .= '</tr>';
+$termsHtml .= '<tr><td style="font-size:8px;">Payment is due within 30 days of invoice date. Late payments subject to 1.5% monthly interest.</td></tr>';
+$termsHtml .= '</table>';
+
+$pdf->SetFont('helvetica', 'R', 8);
+$pdf->writeHTML($summaryHtml, true, false, true, false, '');
+$pdf->writeHTML($termsHtml, true, false, true, false, '');
+
+// $pdf->ln(10); // Line break
+
+// // Add payment details section
+// $pdf->SetFont('helvetica', 'R', 9);
+// $labelW = 40;
+// $valueW = 50;
+
+// $pdf->Cell($labelW, 8, 'Bank Name:', 0, 0, 'L');
+// $pdf->SetFont('helvetica', 'B', 9);
+// $pdf->Cell($valueW, 8, 'Standard Chartered Bank (SCB)', 0, 1, 'L');
+
+// $pdf->SetFont('helvetica', 'R', 9);
+// $pdf->Cell($labelW, 8, 'A/C Name:', 0, 0, 'L');
+// $pdf->SetFont('helvetica', 'B', 9);
+// $pdf->Cell($valueW, 8, 'ITS LABTEST BANGLADESH LTD', 0, 1, 'L');
+
+// $pdf->SetFont('helvetica', 'R', 9);
+// $pdf->Cell($labelW, 8, 'A/C Number:', 0, 0, 'L');
+// $pdf->SetFont('helvetica', 'B', 9);
+// $pdf->Cell($valueW, 8, '01-2334178-01', 0, 1, 'L');
+
+// $pdf->SetFont('helvetica', 'R', 9);
+// $pdf->Cell($labelW, 8, 'Branch:', 0, 0, 'L');
+// $pdf->SetFont('helvetica', 'B', 9);
+// $pdf->Cell($valueW, 8, 'Gulshan', 0, 1, 'L');
+
+// $pdf->ln(5);
+
+// $pdf->SetFont('helvetica', 'R', 9);
+// $pdf->Cell($labelW, 8, 'Payment Due:', 0, 0, 'L');
+// $pdf->SetFont('helvetica', 'B', 9);
+// $pdf->Cell($valueW, 8, 'September 15, 2025', 0, 1, 'L');
 // $pdf->ln(10); // Line break 
 
 // // Add watermark

@@ -217,8 +217,6 @@ const MyProfile = (props) => {
       action: "getDataList",
       lan: language(),
       UserId: UserInfo.UserId,
-      ClientId: UserInfo.ClientId,
-      BranchId: UserInfo.BranchId,
     };
     // console.log('LoginUserInfo params: ', params);
 

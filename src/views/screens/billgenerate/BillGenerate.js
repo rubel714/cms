@@ -877,103 +877,24 @@ const BillGenerate = (props) => {
                     />
                   )}
                 />
-                {/*               
-
-                <label>Branch Name</label>
-                <input
-                  type="text"
-                  id="BankBranchName"
-                  name="BankBranchName"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  // class={errorObject.BankBranchName}
-                  placeholder="Enter Branch Name"
-                  value={currentRow.BankBranchName}
-                  onChange={(e) => handleChange(e)}
-                /> */}
-                {/* 
-                <label>Cheque Number</label>
-                <input
-                  type="text"
-                  id="ChequeNumber"
-                  name="ChequeNumber"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  // class={errorObject.BankBranchName}
-                  placeholder="Enter Cheque Number"
-                  value={currentRow.ChequeNumber}
-                  onChange={(e) => handleChange(e)}
-                />
-
-                <label>Cheque Date</label>
-                <input
-                  type="date"
-                  id="ChequeDate"
-                  name="ChequeDate"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  // class={errorObject.BankBranchName}
-                  placeholder="Enter Cheque Date"
-                  value={currentRow.ChequeDate}
-                  onChange={(e) => handleChange(e)}
-                /> */}
-
-                {/* <label>Total Received Amount *</label>
-                <input
-                  type="number"
-                  id="TotalPaymentAmount"
-                  name="TotalPaymentAmount"
-                  disabled={
-                    editableItems.length > 0 || currentRow.StatusId == 5
-                      ? true
-                      : false
-                  }
-                  class={errorObject.TotalPaymentAmount}
-                  placeholder="Enter Total Received Amount"
-                  value={currentRow.TotalPaymentAmount}
-                  onChange={(e) => handleChange(e)}
-                /> */}
-
+              
                 <label>Remarks</label>
                 <input
                   type="text"
                   id="Remarks"
                   name="Remarks"
-                  class={"customer-dropdown-wide-1"}
+                  class={"customer-dropdown-wide-3"}
                   disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentDate}
                   placeholder="Enter Remarks"
                   value={currentRow.Remarks}
                   onChange={(e) => handleChange(e)}
                 />
-                {/* 
-                <label>Invoice Total Amount</label>
-                <input
-                  type="number"
-                  id="InvoiceTotalAmount"
-                  name="InvoiceTotalAmount"
-                  disabled={true}
-                  // class={errorObject.InvoiceTotalAmount}
-                  placeholder=""
-                  // value={currentRow.InvoiceTotalAmount}
-                  value={calculateTotalPaymentAmount()}
-                  onChange={(e) => handleChange(e)}
-                /> */}
+               
               </div>
 
-              {/* {currentRow.id && ( */}
-              {/* <> */}
+      
               <div class="searchAdd">
-                {/* {currentRow.id && currentRow.StatusId == 1 && ( */}
                 <Button
                   label={"Add Invoice"} //update
                   class={"btnSave"}
@@ -982,7 +903,6 @@ const BillGenerate = (props) => {
                   }
                   onClick={openInvoiceModal}
                 />
-                {/* )}*/}
               </div>
 
               <div class="subContainer  mt-10">
@@ -993,25 +913,7 @@ const BillGenerate = (props) => {
                   ispagination={false}
                 />
               </div>
-              {/* </> */}
-              {/* // )} */}
-
-              {/* <div class="modalItem">
-                {currentRow.id && (
-                  <Button
-                    label={"Complete"} //update
-                    class={"btnUpdate"}
-                    onClick={addEditAPICall}
-                  />
-                )}
-                {!currentRow.id && (
-                  <Button
-                    label={"Save"}
-                    class={"btnSave"}
-                    onClick={addEditAPICall}
-                  />
-                )}
-              </div> */}
+           
             </div>
           </>
         )}

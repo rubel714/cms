@@ -42,6 +42,7 @@ function LoginPage(props) {
   const [clientList, setClientList] = useState(null);
   const [branchList, setBranchList] = useState(null);
   const [bFirst, setBFirst] = useState(true);
+  const [passwordShown, setPasswordShown] = useState(false);
 
   React.useEffect(() => {
     document.body.classList.add("login-page");
@@ -62,6 +63,10 @@ function LoginPage(props) {
     console.log("data: ", data);
 
     setState(data);
+  };
+
+  const togglePasswordVisibility = () => {
+    setPasswordShown((prev) => !prev);
   };
 
   // const handleChangeChoosenMaster = (name, value) => {
@@ -164,78 +169,6 @@ function LoginPage(props) {
             <h3>User Login</h3>
           </div>
           <div class="userLogin">
-            {/* <label>Client</label>
-            <div class="">
-              <Autocomplete
-                autoHighlight
-                className="chosen_dropdown"
-                id="ClientId"
-                name="ClientId"
-                autoComplete
-                options={clientList ? clientList : []}
-                getOptionLabel={(option) => option.name}
-                value={
-                  clientList
-                    ? clientList[
-                      clientList.findIndex(
-                          (list) => list.id === state.ClientId
-                        )
-                      ]
-                    : null
-                }
-                onChange={(event, valueobj) =>
-                  handleChangeChoosenMaster(
-                    "ClientId",
-                    valueobj ? valueobj.id : ""
-                  )
-                }
-                renderOption={(option) => (
-                  <Typography className="chosen_dropdown_font">
-                    {option.name}
-                  </Typography>
-                )}
-                renderInput={(params) => (
-                  <TextField {...params} variant="standard" />
-                )}
-              />
-            </div> */}
-
-            {/* <label>Branch</label>
-            <div class="">
-              <Autocomplete
-                autoHighlight
-                className="chosen_dropdown"
-                id="BranchId"
-                name="BranchId"
-                autoComplete
-                options={branchList ? branchList : []}
-                getOptionLabel={(option) => option.name}
-                value={
-                  branchList
-                    ? branchList[
-                      branchList.findIndex(
-                          (list) => list.id === state.BranchId
-                        )
-                      ]
-                    : null
-                }
-                onChange={(event, valueobj) =>
-                  handleChangeChoosenMaster(
-                    "BranchId",
-                    valueobj ? valueobj.id : ""
-                  )
-                }
-                renderOption={(option) => (
-                  <Typography className="chosen_dropdown_font">
-                    {option.name}
-                  </Typography>
-                )}
-                renderInput={(params) => (
-                  <TextField {...params} variant="standard" />
-                )}
-              />
-            </div> */}
-
             <label>User Name</label>
             <input
               type="text"
@@ -244,12 +177,22 @@ function LoginPage(props) {
               onChange={(e) => handleChange(e)}
             />
             <label>Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              onChange={(e) => handleChange(e)}
-            />
+            <div className="password-field">
+              <input
+                type={passwordShown ? "text" : "password"}
+                id="password"
+                name="password"
+                onChange={(e) => handleChange(e)}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={passwordShown ? "Hide password" : "Show password"}
+                onClick={togglePasswordVisibility}
+              >
+                <i className={passwordShown ? "fa fa-eye-slash" : "fa fa-eye"} />
+              </button>
+            </div>
           </div>
 
           <Button label={"Login"} class={"btnLogin"} onClick={LoginPage} />
