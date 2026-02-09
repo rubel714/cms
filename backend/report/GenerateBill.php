@@ -35,6 +35,12 @@ require_once('TCPDF-master/examples/tcpdf_include.php');
 $CustomerName = "";
 $BillNumber = "";
 $Remarks = "";
+$BillDate = "";
+$withinPeriod = "15 days of invoice date";
+$contactPerson='Sheikh Zahid Hussain';
+$contactPhone='01711422132';
+
+
 
 $sqlm = "SELECT b.CustomerName,a.Remarks,a.BillNumber,a.BillDate
 		FROM t_bill a 
@@ -47,6 +53,7 @@ foreach ($sqlmresult as $result) {
     $CustomerName = $result['CustomerName'];
     $BillNumber = $result['BillNumber'];
     $Remarks = $result['Remarks'];
+    $BillDate = date('d/m/Y', strtotime($result['BillDate']));
 }
 
 
@@ -60,7 +67,7 @@ class MYPDF extends TCPDF
 {
     public function Header()
     {
-        global $BillNumber, $CustomerName, $Remarks;
+        global $BillNumber, $CustomerName, $Remarks, $BillDate;
 
         // Logo (right side)
         $image_file = '../../image/appmenu/Intertek_Logo.png';
@@ -73,7 +80,7 @@ class MYPDF extends TCPDF
 
         $this->SetFont('helvetica', 'R', 10);
         $this->SetXY(10, 15); // adjust X and Y as needed
-        $headerText = htmlspecialchars($Remarks, ENT_QUOTES, 'UTF-8') . ' <b>' . htmlspecialchars($CustomerName, ENT_QUOTES, 'UTF-8') . '</b>';
+        $headerText = htmlspecialchars($Remarks, ENT_QUOTES, 'UTF-8') . ' <b>' . htmlspecialchars($CustomerName, ENT_QUOTES, 'UTF-8') . '</b>, Bill Date: ' . htmlspecialchars($BillDate, ENT_QUOTES, 'UTF-8');
         $this->writeHTMLCell(0, 0, 10, 15, $headerText, 0, 0, false, true, 'L', true);
 
     }
@@ -184,179 +191,64 @@ $pdf->writeHTML($html, true, false, true, false, '');
 
 
 // Create two-column layout with summary tables
-$pdf->ln(5);
-$pdf->SetFont('helvetica', 'B', 10);
-
-$colWidth = ($tableWidth / 2) - 2;
-$pdf->MultiCell(0, 0, '', 0, 'C', false, 1); // Line break
-
-$pdf->SetXY($margins['left'], $pdf->GetY());
+$pdf->ln(2);
 $pdf->SetFont('helvetica', 'R', 8);
 
-
-$pdf->writeHTML($twoColumnHtml, true, false, true, false, '');
 // Left column - Summary
-$pdf->SetXY($margins['left'], $pdf->GetY());
-$summaryHtml = '<table border="1" cellpadding="3" cellspacing="0" width="45%">';
+$summaryHtml = '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
 $summaryHtml .= '<tr style="background-color:#FFC900; font-weight:bold;">';
-$summaryHtml .= '<th>Summary</th>';
+$summaryHtml .= '<th>Cash / BEFTN / RTGS /Pay Order / Cheque Deposit</th>';
 $summaryHtml .= '</tr>';
-$summaryHtml .= '<tr><td>Total USD: ' . number_format($TotalTransactionAmount, 2) . '</td></tr>';
-$summaryHtml .= '<tr><td>Total BDT: ' . number_format($TotalBaseAmount, 2) . '</td></tr>';
+$summaryHtml .= '<tr>
+                    <td width="50%"><b>Bank Name:</b> Standard Chartered Bank (SCB)</td>
+                    <td  width="50%"><b>Bank Name:</b> The Hongkong and Shanghai Banking Corporation (HSBC)</td>
+                </tr>';
+$summaryHtml .= '<tr>
+                    <td width="50%"><b>A/C Name:</b> ITS LABTEST BANGLADESH LTD</td>
+                    <td width="50%"><b>A/C Name:</b> ITS LABTEST BANGLADESH LTD</td>
+                </tr>';
+$summaryHtml .= '<tr>
+                    <td width="50%"><b>A/C Number:</b> 01-2334178-01</td>
+                    <td  width="50%"><b>A/C Number:</b> 001-289438-011</td>
+                </tr>';
+$summaryHtml .= '<tr>
+                    <td width="50%"><b>Branch:</b> Gulshan</td>
+                    <td  width="50%"><b>Branch:</b> Gulshan</td>
+                </tr>';
+$summaryHtml .= '<tr>
+                    <td style="background-color:#92d050; font-weight:bold;" width="100%">Online Payment Gateway: https://invoice.sslcommerz.com/invoice-form?&refer=5F868A8E0553C</td>
+                </tr>';
+
+
+
 $summaryHtml .= '</table>';
 
 // Right column - Terms
-$termsHtml = '<table border="1" cellpadding="3" cellspacing="0" width="45%">';
-$termsHtml .= '<tr style="background-color:#FFC900; font-weight:bold;">';
-$termsHtml .= '<th>Terms & Conditions</th>';
-$termsHtml .= '</tr>';
-$termsHtml .= '<tr><td style="font-size:8px;">Payment is due within 30 days of invoice date. Late payments subject to 1.5% monthly interest.</td></tr>';
+$termsHtml = '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
+// $termsHtml .= '<tr>';
+// $termsHtml .= '<th>Terms & Conditions</th>';
+// $termsHtml .= '</tr>';
+$termsHtml .= '<tr>
+                <td>You are cordially requested to settle the payment within '.$withinPeriod.'<br/></td>
+              </tr>';
+$termsHtml .= '<tr>
+                <td>For Any Kind of Query Please feel free to Communicate,<br/><br/>'.$contactPerson.'<br/>'.$contactPhone.'<br/><br/><br/>Credit Control & Invoicing</td>
+              </tr>';
 $termsHtml .= '</table>';
 
-$pdf->SetFont('helvetica', 'R', 8);
-$pdf->writeHTML($summaryHtml, true, false, true, false, '');
-$pdf->writeHTML($termsHtml, true, false, true, false, '');
+$twoColumnHtml = '<table cellpadding="0" cellspacing="0" width="100%">';
+$twoColumnHtml .= '<tr>';
+$twoColumnHtml .= '<td width="60%" valign="top">' . $summaryHtml . '</td>';
+$twoColumnHtml .= '<td width="2%"></td>';
+$twoColumnHtml .= '<td width="38%" valign="top">' . $termsHtml . '</td>';
+$twoColumnHtml .= '</tr>';
+$twoColumnHtml .= '</table>';
 
-// $pdf->ln(10); // Line break
-
-// // Add payment details section
-// $pdf->SetFont('helvetica', 'R', 9);
-// $labelW = 40;
-// $valueW = 50;
-
-// $pdf->Cell($labelW, 8, 'Bank Name:', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'Standard Chartered Bank (SCB)', 0, 1, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'A/C Name:', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'ITS LABTEST BANGLADESH LTD', 0, 1, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'A/C Number:', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, '01-2334178-01', 0, 1, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Branch:', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'Gulshan', 0, 1, 'L');
-
-// $pdf->ln(5);
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Payment Due:', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'September 15, 2025', 0, 1, 'L');
-// $pdf->ln(10); // Line break 
-
-// // Add watermark
-// $pdf->SetAlpha(0.15); // Set transparency (15%)
-// $pdf->Image('../../image/appmenu/Intertek_Logo_Only.png', 60, 30, 70, 60, 'PNG', '', '', false, 300, '', false, false, 1, false, false, false);
-// $pdf->SetAlpha(1); // Reset to full opacity
-
-// // Column widths
-// $labelW = 30;
-// $valueW = 90;
-
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Ref No', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $RefNo, 0, 0, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Date', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $PaymentDate, 0, 1, 'L');
-
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Customer`s Code', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $CustomerCode, 0, 0, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Sum of taka', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . number_format($TotalPaymentAmount, 2), 0, 1, 'L');
-
-// // Row
-// $pdf->Cell($labelW, 8, '', 0, 0, 'L');
-// $pdf->Cell($valueW, 8, '', 0, 0, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Sum of USD', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $TotalPaymentAmountUSD, 0, 1, 'L');
-
-// // $pdf->ln(2); // Line break
-
-// $labelW = 42;
-// $valueW = 90;
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Received with thanks from', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $CustomerName, 0, 1, 'L');
-
-// // Column widths
-// $labelW = 30;
-// $valueW = 90;
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'In words', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $AmountInWords, 0, 1, 'L');
+$pdf->writeHTML($twoColumnHtml, true, false, true, false, '');
 
 
-// // Column widths
-// $labelW = 30;
-// $valueW = 90;
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'By Cash/Cheque', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $ChequeNumber, 0, 0, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Cheque Date', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $ChequeDate, 0, 1, 'L');
-
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Bank', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $BankName, 0, 0, 'L');
-
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Branch', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, ': ' . $BankBranchName, 0, 1, 'L');
-
-// $pdf->ln(5); // Line break
-
-// // Column widths
-// $labelW = 80;
-// $valueW = 90;
-// // Row
-// $pdf->SetFont('helvetica', 'R', 9);
-// $pdf->Cell($labelW, 8, 'Subject to Realization', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'For ITS Labtest Bangladesh Ltd.', 0, 1, 'L');
-
-// $pdf->ln(15); // Line break
-
-// // Column widths
-// $labelW = 150;
-// $valueW = 90;
-// // Row
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($labelW, 8, 'Received By', 0, 0, 'L');
-// $pdf->SetFont('helvetica', 'B', 9);
-// $pdf->Cell($valueW, 8, 'Authorized By', 0, 1, 'L');
+$pdf->ln(1); // Line break
+$pdf->MultiCell(0, 0,"Note: This vat exemption is applicable for 100% export-oriented Industry only under SRO No. 188-Ain/2019/45-Mushok dated 13.06.2019 by the powers exercised as per section 126(1) of VAT Act, 2012. Please inform us to revise the invoice with VAT, if you are not eligible for Vat exemption under SRO No. 188-Ain/2019/45-Mushok. Service receiver will be responsible for any kind of claim/penalty for not being eligible for vat exemption issue.", 0, 'C', false, 1, '', '', true, 0, false, true, 0, 'T', true);
 
 
 $CheckListFileName = $BillNumber . '_' . date("Y_m_d_H_i_s") . '_bill.pdf';
