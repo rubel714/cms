@@ -208,10 +208,13 @@ function getUnbilledInvoices($data)
 
 	$DateFilter = "";
 	if(isset($data->StartDate) && isset($data->EndDate)) {
-		$StartDate = trim($data->StartDate);
-		$EndDate = trim($data->EndDate) . " 23:59:59";
+		if($data->StartDate != "" && $data->EndDate != "") {
 
-		$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
+			$StartDate = trim($data->StartDate);
+			$EndDate = trim($data->EndDate) . " 23:59:59";
+
+			$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
+		}
 	}
 	// $StartDate ="2025-01-01";
 	// $EndDate = "2027-01-01 23:59:59";

@@ -778,22 +778,23 @@ const BillGenerate = (props) => {
               />
               {/* )} */}
 
-              {currentRow.id && currentRow.StatusId == 1 && (
+              {/* {currentRow.id && currentRow.StatusId == 1 && ( */}
                 <Button
                   label={"Complete"} //update
                   class={"btnUpdate"}
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={!currentRow.id || currentRow.StatusId == 5 ? true : false}
                   onClick={postInvoice}
                 />
-              )}
+              {/*  )} */}
 
-              {currentRow.id && (
+               {/* {currentRow.id && currentRow.StatusId == 5 && ( */}
                 <Button
                   label={"Export"}
                   class={"btnPrint"}
+                  disabled={currentRow.id && currentRow.StatusId == 5 ? false : true}
                   onClick={PDFGenerate}
                 />
-              )}
+              {/* )} */}
             </div>
 
             <div>
