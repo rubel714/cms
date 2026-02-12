@@ -54,7 +54,7 @@ const PaymentReceive = (props) => {
     // console.log("currentRow: ", currentRow.id);
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
     window.open(
-      finalUrl + "?PaymentId=" + currentRow.id + "&TimeStamp=" + Date.now()
+      finalUrl + "?PaymentId=" + currentRow.id + "&TimeStamp=" + Date.now(),
     );
   };
 
@@ -144,7 +144,7 @@ const PaymentReceive = (props) => {
     {
       field: "BankName",
       label: "Bank Name",
-      // width: "20%",
+      width: "12%",
       align: "left",
       visible: true,
       sort: true,
@@ -160,15 +160,15 @@ const PaymentReceive = (props) => {
       filter: true,
     },
 
-    {
-      field: "TotalPaymentAmount",
-      label: "Total Amount",
-      width: "8%",
-      align: "right",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+    // {
+    //   field: "TotalPaymentAmount",
+    //   label: "Total Amount",
+    //   width: "8%",
+    //   align: "right",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
 
     {
       field: "custom",
@@ -220,7 +220,7 @@ const PaymentReceive = (props) => {
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
       setCustomerGroupList(
-        [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist)
+        [{ id: "", name: "Select Customer Group" }].concat(res.data.datalist),
       );
 
       // setCurrCustomerGroupId(selectCustomerGroupId);
@@ -237,7 +237,7 @@ const PaymentReceive = (props) => {
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
       setCustomerList(
-        [{ id: "", name: "Select Customer" }].concat(res.data.datalist)
+        [{ id: "", name: "Select Customer" }].concat(res.data.datalist),
       );
 
       // setCurrCustomerId(selectCustomerGroupId);
@@ -477,14 +477,12 @@ const PaymentReceive = (props) => {
   //   });
   // }
 
-  
   function addEditInvoice() {
     addEditAPICall(1);
   }
 
   function postInvoice() {
-
-    if(editableItems.length == 0){
+    if (editableItems.length == 0) {
       props.openNoticeModal({
         isOpen: true,
         msg: "No invoice to post.",
@@ -492,10 +490,6 @@ const PaymentReceive = (props) => {
       });
       return;
     }
-
-
-
-
 
     swal({
       title: "Are you sure?",
@@ -527,8 +521,6 @@ const PaymentReceive = (props) => {
 
   function addEditAPICall(StatusId = 1) {
     if (validateForm()) {
-
-
       // if (currentRow.id) {
       //   let invTotalAmount = calculateTotalPaymentAmount();
       //   if (invTotalAmount != currentRow.TotalPaymentAmount) {
@@ -541,14 +533,11 @@ const PaymentReceive = (props) => {
       //   }
       // }
 
-
       let data = { ...currentRow };
 
       if (StatusId == 5) {
         data["StatusId"] = StatusId;
       }
-
-
 
       let UserInfo = LoginUserInfo();
       let params = {
@@ -673,19 +662,11 @@ const PaymentReceive = (props) => {
 
   const manyColumnList = [
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
+
     {
-      field: "AccountCode",
-      label: "Customer Code",
-      width: "8%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "Description",
-      label: "Description",
-      // width: "9%",
+      field: "AccountingPeriod",
+      label: "Acc. Period",
+      width: "6%",
       align: "left",
       visible: true,
       sort: true,
@@ -693,8 +674,17 @@ const PaymentReceive = (props) => {
     },
     {
       field: "TransactionDate",
-      label: "Invoice Date",
+      label: "Transaction Date",
       width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+    {
+      field: "Description",
+      label: "Description",
       align: "left",
       visible: true,
       sort: true,
@@ -702,64 +692,50 @@ const PaymentReceive = (props) => {
     },
     {
       field: "TransactionReference",
-      label: "Report No",
-      width: "10%",
+      label: "Transaction Reference",
+      width: "15%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
+
+    {
+      field: "TransactionAmount",
+      label: "Amount (USD)",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+      bottomcalc: "sum",
+    },
+
+    {
+      field: "ExchangeRate",
+      label: "Currency Rate",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
     {
       field: "BaseAmount",
-      label: "Invoice Amount",
-      width: "8%",
+      label: "Base Amount (BDT)",
+      width: "10%",
       align: "right",
       visible: true,
       sort: true,
       filter: true,
-    },
-    {
-      field: "BaseAmountWithoutVat",
-      label: "Amount (BDT)",
-      align: "right",
-      width: "8%",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "VatAmount",
-      label: "VAT (BDT)",
-      align: "right",
-      width: "5%",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "TotalPaymentAmount",
-      label: "Paid Amount",
-      width: "7%",
-      align: "right",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "DueAmount",
-      label: "Due Amount",
-      width: "7%",
-      align: "right",
-      visible: true,
-      sort: true,
-      filter: true,
-      // type: "number",
+      bottomcalc: "sum",
     },
 
     {
       field: "custom",
-      label: "Received Amount",
-      width: "8%",
+      label: "Action",
+      width: "5%",
       align: "center",
       visible: true,
       sort: false,
@@ -771,15 +747,15 @@ const PaymentReceive = (props) => {
   function actioncontrolmany(rowData) {
     return (
       <>
-      
-              {permissionType === 0 && currentRow.StatusId == 1 && (
+        {permissionType === 0 && currentRow.StatusId == 1 && (
           <DeleteOutline
             className={"table-delete-icon"}
             onClick={() => {
               deletePaymentItem(rowData);
             }}
           />
-        )}</>
+        )}
+      </>
       // <div
       //   style={{
       //     display: "flex",
@@ -814,7 +790,6 @@ const PaymentReceive = (props) => {
       //     checked={rowData.IsPaid}
       //     onChange={(e) => handleChangeCheck(e, rowData)}
       //   />
-
 
       // </div>
     );
@@ -895,14 +870,15 @@ const PaymentReceive = (props) => {
                 onClick={addEditInvoice}
               />
 
-
               {/* {currentRow.id && currentRow.StatusId == 1 && ( */}
-                <Button
-                  label={"Complete"} //update
-                  class={"btnUpdate"}
-                  disabled={!currentRow.id || currentRow.StatusId == 5 ? true : false}
-                  onClick={postInvoice}
-                />
+              <Button
+                label={"Complete"} //update
+                class={"btnUpdate"}
+                disabled={
+                  !currentRow.id || currentRow.StatusId == 5 ? true : false
+                }
+                onClick={postInvoice}
+              />
               {/* )} */}
               {/* {!currentRow.id && (
                 <Button
@@ -913,12 +889,14 @@ const PaymentReceive = (props) => {
               )} */}
 
               {/* {currentRow.id && ( */}
-                <Button
-                  label={"Money Receipt"}
-                  class={"btnPrint"}
-                  disabled={currentRow.id && currentRow.StatusId == 5 ? false : true}
-                  onClick={PDFGenerate}
-                />
+              <Button
+                label={"Money Receipt"}
+                class={"btnPrint"}
+                disabled={
+                  currentRow.id && currentRow.StatusId == 5 ? false : true
+                }
+                onClick={PDFGenerate}
+              />
               {/* )} */}
             </div>
 
@@ -1025,7 +1003,7 @@ const PaymentReceive = (props) => {
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
                       "CustomerId",
-                      valueobj ? valueobj.id : ""
+                      valueobj ? valueobj.id : "",
                     )
                   }
                   filterOptions={(options, state) => {
@@ -1034,7 +1012,7 @@ const PaymentReceive = (props) => {
                     if (!inputValue) return options.slice(0, 500); // Show only first 500 initially
                     return options
                       .filter((option) =>
-                        option.name.toLowerCase().includes(inputValue)
+                        option.name.toLowerCase().includes(inputValue),
                       )
                       .slice(0, 500); // Limit results to 500
                   }}
@@ -1071,7 +1049,7 @@ const PaymentReceive = (props) => {
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
                       "BankId",
-                      valueobj ? valueobj.id : ""
+                      valueobj ? valueobj.id : "",
                     )
                   }
                   renderOption={(option) => option.name}
@@ -1128,7 +1106,6 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-              
                 {/* </div>
 
               <div class="contactmodalBody pt-10"> */}
@@ -1144,7 +1121,7 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                  <label>Total Received Amount *</label>
+                <label>Total Received Amount *</label>
                 <input
                   type="number"
                   id="TotalPaymentAmount"
@@ -1176,28 +1153,26 @@ const PaymentReceive = (props) => {
 
               {/* {currentRow.id && (
                 <> */}
-<div class="searchAdd">
-                    <Button
-                      label={"Add Invoice"}
-                      class={"btnSave"}
-                      disabled={
-                        currentRow.StatusId == 5 || !currentRow.id ? true : false
-                      }
-                      onClick={openInvoiceModal}
-                    />
-                  </div>
-                <div class="subContainer  mt-10">
-                  
-                  <CustomTable
-                    columns={manyColumnList}
-                    rows={editableItems.length > 0 ? editableItems : {}}
-                    actioncontrol={actioncontrolmany}
-                    ispagination={false}
-                  />
-                </div>
+              <div class="searchAdd">
+                <Button
+                  label={"Add Invoice"}
+                  class={"btnSave"}
+                  disabled={
+                    currentRow.StatusId == 5 || !currentRow.id ? true : false
+                  }
+                  onClick={openInvoiceModal}
+                />
+              </div>
+              <div class="subContainer  mt-10">
+                <CustomTable
+                  columns={manyColumnList}
+                  rows={editableItems.length > 0 ? editableItems : {}}
+                  actioncontrol={actioncontrolmany}
+                  ispagination={false}
+                />
+              </div>
 
-
-               <div class="fourColumnContainer pt-10">
+              <div class="fourColumnContainer pt-10">
                 <label>PAYMENT RCVD *</label>
                 <input
                   type="text"
@@ -1209,10 +1184,9 @@ const PaymentReceive = (props) => {
                   value={currentRow.MRNo}
                   onChange={(e) => handleChange(e)}
                 />
+              </div>
 
-                </div>
-
-                {/* </>
+              {/* </>
 
 
               )} */}

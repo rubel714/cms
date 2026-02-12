@@ -44,7 +44,9 @@ const PaymentInvoiceAddModal = (props) => {
     };
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-      setBuyerList([{ id: "", name: "Select Buyer" }].concat(res.data.datalist));
+      setBuyerList(
+        [{ id: "", name: "Select Buyer" }].concat(res.data.datalist),
+      );
     });
   }
 
@@ -58,7 +60,7 @@ const PaymentInvoiceAddModal = (props) => {
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
       setMerchantList(
-        [{ id: "", name: "Select Merchant" }].concat(res.data.datalist)
+        [{ id: "", name: "Select Merchant" }].concat(res.data.datalist),
       );
     });
   }
@@ -104,7 +106,8 @@ const PaymentInvoiceAddModal = (props) => {
       });
   }
 
-  const getRowKey = (item) => item.InvoiceItemId ?? item.TransactionId ?? item.id;
+  const getRowKey = (item) =>
+    item.InvoiceItemId ?? item.TransactionId ?? item.id;
 
   const handleChangeCheck = (e, row) => {
     const checked = e.target.checked;
@@ -124,7 +127,7 @@ const PaymentInvoiceAddModal = (props) => {
       setSelectedInvoices((prev) => [...prev, row]);
     } else {
       setSelectedInvoices((prev) =>
-        prev.filter((item) => getRowKey(item) !== rowKey)
+        prev.filter((item) => getRowKey(item) !== rowKey),
       );
     }
   };
@@ -188,7 +191,8 @@ const PaymentInvoiceAddModal = (props) => {
         <input
           type="checkbox"
           checked={
-            invoiceList.length > 0 && invoiceList.every((item) => item.IsSelected)
+            invoiceList.length > 0 &&
+            invoiceList.every((item) => item.IsSelected)
           }
           onChange={handleSelectAll}
           style={{ width: "18px", height: "18px" }}
@@ -202,14 +206,24 @@ const PaymentInvoiceAddModal = (props) => {
     },
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
-      field: "AccountCode",
-      label: "Customer Code",
-      width: "8%",
+      field: "AccountingPeriod",
+      label: "Acc. Period",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
+    {
+      field: "TransactionDate",
+      label: "Transaction Date",
+      width: "12%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
     {
       field: "Description",
       label: "Description",
@@ -219,68 +233,80 @@ const PaymentInvoiceAddModal = (props) => {
       filter: true,
     },
     {
-      field: "TransactionDate",
-      label: "Invoice Date",
-      width: "8%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
       field: "TransactionReference",
-      label: "Report No",
-      width: "10%",
+      label: "Transaction Reference",
+      width: "15%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
+
+    {
+      field: "TransactionAmount",
+      label: "Amount (USD)",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+    {
+      field: "ExchangeRate",
+      label: "Currency Rate",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
     {
       field: "BaseAmount",
-      label: "Invoice Amount",
+      label: "Base Amount (BDT)",
       width: "8%",
       align: "right",
       visible: true,
       sort: true,
       filter: true,
     },
-    {
-      field: "BaseAmountWithoutVat",
-      label: "Amount (BDT)",
-      align: "right",
-      width: "8%",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "VatAmount",
-      label: "VAT (BDT)",
-      align: "right",
-      width: "5%",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "TotalPaymentAmount",
-      label: "Paid Amount",
-      width: "7%",
-      align: "right",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "DueAmount",
-      label: "Due Amount",
-      width: "7%",
-      align: "right",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
+    // {
+    //   field: "BaseAmountWithoutVat",
+    //   label: "Amount (BDT)",
+    //   align: "right",
+    //   width: "8%",
+    //   visible: true,
+    //   sort: false,
+    //   filter: true,
+    // },
+    // {
+    //   field: "VatAmount",
+    //   label: "VAT (BDT)",
+    //   align: "right",
+    //   width: "5%",
+    //   visible: true,
+    //   sort: false,
+    //   filter: true,
+    // },
+    // {
+    //   field: "TotalPaymentAmount",
+    //   label: "Paid Amount",
+    //   width: "7%",
+    //   align: "right",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
+    // {
+    //   field: "DueAmount",
+    //   label: "Due Amount",
+    //   width: "7%",
+    //   align: "right",
+    //   visible: true,
+    //   sort: true,
+    //   filter: true,
+    // },
   ];
 
   function actioncontrol(rowData) {
@@ -321,7 +347,10 @@ const PaymentInvoiceAddModal = (props) => {
   return (
     <>
       <div id="invoiceModal" className="modal">
-        <div className="modal-content" style={{ width: "90%", maxWidth: "1200px" }}>
+        <div
+          className="modal-content"
+          style={{ width: "90%", maxWidth: "1200px" }}
+        >
           <div className="modalHeader">
             <h4>Add Invoice to Payment</h4>
           </div>
@@ -348,7 +377,7 @@ const PaymentInvoiceAddModal = (props) => {
             />
           </div>
 
-          <div className="contactmodalBody pt-10">
+          {/* <div className="contactmodalBody pt-10">
             <label>Buyer</label>
             <Autocomplete
               autoHighlight
@@ -396,7 +425,7 @@ const PaymentInvoiceAddModal = (props) => {
                 <TextField {...params} variant="standard" fullWidth />
               )}
             />
-          </div>
+          </div> */}
 
           <div
             className="contactmodalBody pt-10"

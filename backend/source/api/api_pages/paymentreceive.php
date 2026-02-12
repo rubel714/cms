@@ -89,13 +89,13 @@ function deletePaymentItem($data)
 function getUnpaidInvoices($data)
 {
 	$CustomerId = $data->CustomerId;
-	$BuyerId = isset($data->BuyerId) ? trim($data->BuyerId) : '';
-	$MerchantId = isset($data->MerchantId) ? trim($data->MerchantId) : '';
-	$PaymentId = isset($data->PaymentId) && trim($data->PaymentId) !== "" ? trim($data->PaymentId) : 0;
+	// $BuyerId = isset($data->BuyerId) ? trim($data->BuyerId) : '';
+	// $MerchantId = isset($data->MerchantId) ? trim($data->MerchantId) : '';
+	// $PaymentId = isset($data->PaymentId) && trim($data->PaymentId) !== "" ? trim($data->PaymentId) : 0;
 
 	$DateFilter = "";
 	if (isset($data->InvoiceStartDate) && isset($data->InvoiceEndDate)) {
-		if($data->StartDate != "" && $data->EndDate != "") {
+		if($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
 
 		$StartDate = trim($data->InvoiceStartDate);
 		$EndDate = trim($data->InvoiceEndDate) . " 23:59:59";
@@ -106,10 +106,9 @@ function getUnpaidInvoices($data)
 
 	try {
 		$dbh = new Db();
-		$query = "SELECT a.InvoiceItemId, a.AccountCode, a.Description,
+		$query = "SELECT a.InvoiceItemId,a.AccountingPeriod, a.AccountCode, a.Description,
 			DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
-			a.TransactionReference,
-			a.TransactionAmount, a.ExchangeRate, a.BaseAmount
+			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
 
 			FROM t_invoiceitems a
 			inner join t_customer c on a.AccountCode=c.CustomerCode
@@ -226,7 +225,7 @@ function getDataList($data)
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
 		LEFT JOIN t_customergroup c ON a.CustomerGroupId = c.CustomerGroupId
 		LEFT JOIN t_bank d ON a.BankId = d.BankId
-		ORDER BY a.PaymentDate DESC, a.PaymentId DESC;";
+		ORDER BY a.PaymentDate DESC, a.MRNo DESC;";
 
 		$resultdatalist = $dbh->query($query);
 
@@ -260,11 +259,12 @@ function getDataSingle($data)
 
 		$resultdataMaster = []; // $dbh->query($query);
 
+
 		/**Items Data */
-		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`, a.`PaymentAmount`
-		,b.AccountCode, b.Description, b.TransactionDate, b.TransactionReference, FLOOR(b.BaseAmount) as BaseAmount,
-		ifnull(a.PaidAmount,0) as TotalPaymentAmount, FLOOR(ifnull(a.DueAmount,0)) DueAmount, ifnull(a.IsPaidPayment,0) as IsPaid
-		, FLOOR(b.BaseAmountWithoutVat) as BaseAmountWithoutVat, FLOOR(b.VatAmount) as VatAmount
+		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,b.AccountingPeriod, 
+		a.`PaymentAmount`,b.AccountCode, b.Description, 
+		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
+		b.TransactionAmount, b.ExchangeRate,b.BaseAmount
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
@@ -332,9 +332,13 @@ function dataAddEdit($data)
 
 			if ($PaymentId == "") {
 
-				$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
-				$result3 = $dbh->query($query3);
-				$MRNo = $result3[0]['NextMRNo'];
+				// $query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
+				// $result3 = $dbh->query($query3);
+				// $MRNo = $result3[0]['NextMRNo'];
+
+				$NextMR = getNextMRNumber();
+				$MRNo = $NextMR['MRNo'];
+
 
 				$q = new insertq();
 				$q->table = 't_payment';
@@ -348,8 +352,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
-				$u->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $StatusId];
+				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $StatusId];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -509,7 +513,7 @@ function getNextMRNumber()
 	try {
 		$dbh = new Db();
 
-		$query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
+		$query3 = "SELECT CONCAT('MR-',LPAD((IFNULL(MAX(SUBSTRING_INDEX(MRNo, '-', -1)),0) + 1),6,'0')) AS NextMRNo FROM t_payment;";
 		$result3 = $dbh->query($query3);
 		$MRNo = $result3[0]['NextMRNo'];
 		

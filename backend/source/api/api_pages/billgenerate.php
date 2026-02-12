@@ -207,11 +207,11 @@ function getUnbilledInvoices($data)
 	$MerchantId = isset($data->MerchantId)?trim($data->MerchantId): ''; 
 
 	$DateFilter = "";
-	if(isset($data->StartDate) && isset($data->EndDate)) {
-		if($data->StartDate != "" && $data->EndDate != "") {
+	if(isset($data->InvoiceStartDate) && isset($data->InvoiceEndDate)) {
+		if($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
 
-			$StartDate = trim($data->StartDate);
-			$EndDate = trim($data->EndDate) . " 23:59:59";
+			$StartDate = trim($data->InvoiceStartDate);
+			$EndDate = trim($data->InvoiceEndDate) . " 23:59:59";
 
 			$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
 		}

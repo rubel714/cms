@@ -91,7 +91,7 @@ const InvoiceList = (props) => {
       field: "rownumber",
       label: "SL",
       align: "center",
-      width: "5%",
+      width: "4%",
     },
     {
       field: "Name",
@@ -154,30 +154,6 @@ const InvoiceList = (props) => {
       label: "Journal Type",
       align: "left",
       visible: false,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "BaseAmount",
-      label: "Invoice Amount (BDT)",
-      align: "right",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "BaseAmountWithoutVat",
-      label: "Amount (BDT)",
-      align: "right",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
-    {
-      field: "VatAmount",
-      label: "VAT (BDT)",
-      align: "right",
-      visible: true,
       sort: false,
       filter: true,
     },
@@ -269,6 +245,7 @@ const InvoiceList = (props) => {
       sort: false,
       filter: true,
     },
+
     {
       field: "TransactionAmount",
       label: "Amount (USD)",
@@ -277,6 +254,43 @@ const InvoiceList = (props) => {
       sort: false,
       filter: true,
     },
+        {
+      field: "ExchangeRate",
+      label: "Exchange Rate",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+
+    {
+      field: "BaseAmount",
+      label: "Invoice Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "BaseAmountWithoutVat",
+      label: "Amount (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
+      field: "VatAmount",
+      label: "VAT (BDT)",
+      align: "right",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+
+
+
+
     {
       field: "CurrencyCode",
       label: "Currency Code",
