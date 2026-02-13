@@ -156,35 +156,26 @@ function addInvoicesToPayment($data)
 		$aQuerys = array();
 
 		foreach ($invoices as $obj) {
+
+		
 			$InvoiceItemId = isset($obj->InvoiceItemId) ? $obj->InvoiceItemId : null;
+			// if ($InvoiceItemId == null) {
 			if (!$InvoiceItemId) {
 				continue;
 			}
 
-			$chk = "SELECT count(1) as Cnt FROM t_paymentitems WHERE PaymentId=$PaymentId AND InvoiceItemId=$InvoiceItemId;";
+
+			//if already added to payment items, skip to avoid duplicate entry
+			$chk = "SELECT count(1) as Cnt FROM t_paymentitems WHERE InvoiceItemId=$InvoiceItemId;";
 			$chkRes = $dbh->query($chk);
 			if (!empty($chkRes) && $chkRes[0]['Cnt'] > 0) {
 				continue;
 			}
 
-			$invoiceQuery = "SELECT ifnull(BaseAmount,0) as BaseAmount, ifnull(TotalPaymentAmount,0) as TotalPaymentAmount
-				FROM t_invoiceitems WHERE InvoiceItemId=$InvoiceItemId;";
-			$invoiceRes = $dbh->query($invoiceQuery);
-			if (empty($invoiceRes)) {
-				continue;
-			}
-
-			$baseAmount = (float)$invoiceRes[0]['BaseAmount'];
-			$totalPaid = (float)$invoiceRes[0]['TotalPaymentAmount'];
-			$dueAmount = $baseAmount - $totalPaid;
-			if ($dueAmount <= 0) {
-				continue;
-			}
-
 			$q = new insertq();
 			$q->table = 't_paymentitems';
-			$q->columns = ['PaymentId', 'InvoiceItemId', 'PaidAmount', 'DueAmount', 'PaymentAmount', 'IsPaidPayment'];
-			$q->values = [$PaymentId, $InvoiceItemId, $totalPaid, $dueAmount, 0, 0];
+			$q->columns = ['PaymentId', 'InvoiceItemId'];
+			$q->values = [$PaymentId, $InvoiceItemId];
 			$q->pks = ['PaymentItemId'];
 			$q->bUseInsetId = true;
 			$q->build_query();
@@ -220,7 +211,9 @@ function getDataList($data)
 
 		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
-		a.TotalPaymentAmount,a.Remarks,0 as InvoiceTotalAmount,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
+		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
+		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.AitDeduction
+
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
 		LEFT JOIN t_customergroup c ON a.CustomerGroupId = c.CustomerGroupId
@@ -253,7 +246,7 @@ function getDataSingle($data)
 
 		/**Master Data */
 		// $query = "SELECT PaymentId AS id, `PaymentDate`, `CustomerId`, `CustomerGroupId`, `BankId`, 
-		// `TotalPaymentAmount`, `Remarks`, `UserId`
+		//  `Remarks`, `UserId`
 		// FROM t_payment
 		// where PaymentId=$PaymentId;";
 
@@ -262,7 +255,7 @@ function getDataSingle($data)
 
 		/**Items Data */
 		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,b.AccountingPeriod, 
-		a.`PaymentAmount`,b.AccountCode, b.Description, 
+		b.AccountCode, b.Description, 
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
 		b.TransactionAmount, b.ExchangeRate,b.BaseAmount
 		FROM t_paymentitems a 
@@ -308,9 +301,14 @@ function dataAddEdit($data)
 		$BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
 		$ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
 		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
-		$TotalPaymentAmount = $data->rowData->TotalPaymentAmount ? $data->rowData->TotalPaymentAmount : 0;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
+		$TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
+		$TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
+		$PaymentReceiveAmount = $data->rowData->PaymentReceiveAmount ? $data->rowData->PaymentReceiveAmount : 0;
+		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : 0;
+		$AitDeduction = $data->rowData->AitDeduction ? $data->rowData->AitDeduction : 0;
+
 
 		// $items = isset($data->items) ? $data->items : [];
 
@@ -339,11 +337,10 @@ function dataAddEdit($data)
 				$NextMR = getNextMRNumber();
 				$MRNo = $NextMR['MRNo'];
 
-
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'UserId', 'StatusId'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $UserId, $StatusId];
+				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','TotalBaseAmount','TotalTransactionAmount','PaymentReceiveAmount','RebateAmount','AitDeduction'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $TotalBaseAmount, $TotalTransactionAmount, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -352,91 +349,60 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'TotalPaymentAmount', 'Remarks', 'StatusId'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $TotalPaymentAmount, $Remarks, $StatusId];
+				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','TotalBaseAmount','TotalTransactionAmount','PaymentReceiveAmount','RebateAmount','AitDeduction'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $TotalBaseAmount, $TotalTransactionAmount, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
 				$aQuerys[] = $u;
 
-
-				// foreach ($items as $key => $obj) {
-				// 	// print_r($obj);
-				// 	$IsPaid = $obj->IsPaid ? $obj->IsPaid : 0;
-
-				// 	$u = new updateq();
-				// 	$u->table = 't_paymentitems';
-				// 	$u->columns = ['PaymentAmount','IsPaidPayment'];
-				// 	$u->values = [$obj->PaymentAmount ? $obj->PaymentAmount : null, $IsPaid];
-				// 	$u->pks = ['PaymentItemId'];
-				// 	$u->pk_values = [$obj->PaymentItemId];
-				// 	$u->build_query();
-				// 	$aQuerys[] = $u;
-
-				// 	$TotalPaymentAmount = ($obj->TotalPaymentAmount + ($obj->PaymentAmount ? $obj->PaymentAmount : 0));
-				// 	$u = new updateq();
-				// 	$u->table = 't_invoiceitems';
-				// 	$u->columns = ['TotalPaymentAmount', 'IsPaid'];
-				// 	$u->values = [$TotalPaymentAmount, $IsPaid];
-				// 	$u->pks = ['InvoiceItemId'];
-				// 	$u->pk_values = [$obj->InvoiceItemId];
-				// 	$u->build_query();
-				// 	$aQuerys[] = $u;
-				// }
 			}
 
 
+			if($StatusId == 5){
+				
+				if($RebateAmount > 0){
+					$PaymentExtendTypeId = 1;
+					$RptPreFix = "REBATE";
+					$RptNumber = getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$Amount = $RebateAmount;
+					$q = new insertq();
+					$q->table = 't_paymentextend';
+					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
+					$q->pks = ['PaymentExtendId'];
+					$q->bUseInsetId = true;
+					$q->build_query();
+					$aQuerys[] = $q;
+				}
 
-
-
-
-
+				if($AitDeduction > 0){
+					$PaymentExtendTypeId = 2;
+					$RptPreFix = "AIT";
+					$RptNumber = getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$Amount = $AitDeduction;
+					$q = new insertq();
+					$q->table = 't_paymentextend';
+					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
+					$q->pks = ['PaymentExtendId'];
+					$q->bUseInsetId = true;
+					$q->build_query();
+					$aQuerys[] = $q;
+				}
+			}
 
 
 			$res = exec_query($aQuerys, $UserId, $lan);
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
-			//when insert new payment, auto allocate payment amount to unpaid invoices
-			// if ($success == 1 && $PaymentId == "" && $CustomerId && $TotalPaymentAmount > 0) {
-			// 	$TmpAmp = $TotalPaymentAmount;
-
-			// 	$query = "SELECT a.`InvoiceItemId`, a.BaseAmount, ifnull(a.TotalPaymentAmount,0) as TotalPaymentAmount, 
-			// 	(ifnull(a.BaseAmount,0) - ifnull(a.TotalPaymentAmount,0)) DueAmount
-			// 	FROM `t_invoiceitems` a 
-			// 	inner join t_customer b on a.AccountCode=b.CustomerCode 
-			// 	WHERE b.CustomerId=$CustomerId 
-			// 	and a.IsPaid=0
-			// 	order by a.CreateTs desc;";
-			// 	$result  = $dbh->query($query);
-			// 	foreach ($result as $row) {
-			// 		$PaymentAmount = 0;
-			// 		$IsPaidPayment = 0;
-			// 		$DueAmount = (int)$row['DueAmount'];
-
-			// 		if ($TmpAmp > 0) {
-
-			// 			if ($DueAmount <= $TmpAmp) {
-			// 				$TmpAmp -= $DueAmount;
-			// 				$PaymentAmount = $DueAmount;
-			// 				$IsPaidPayment = 1;
-			// 			} else {
-			// 				$PaymentAmount = $TmpAmp;
-			// 				$TmpAmp = 0;
-			// 				$IsPaidPayment = 0;
-			// 			}
-			// 		}
-
-			// 		$query1 = "INSERT INTO t_paymentitems (PaymentId, InvoiceItemId,PaidAmount,DueAmount, PaymentAmount,IsPaidPayment)
-			// 		values(" . $res['PaymentId'] . "," . $row['InvoiceItemId'] . ",".$row['TotalPaymentAmount'].",$DueAmount,$PaymentAmount,$IsPaidPayment);";
-			// 		$dbh->query($query1);
-
-			// 		// if($TmpAmp <=0) {
-			// 		// 	break;
-			// 		// }
-			// 	}
-			// }
-
+			//when post then set billed flag in invoice
+			if ($success == 1 && $PaymentId != "" && $StatusId == 5) {
+				$query1 = "update t_invoiceitems set IsPaid = 1 
+					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId);";
+					$dbh->query($query1);
+			}
 
 
 			$returnData = [
@@ -446,6 +412,9 @@ function dataAddEdit($data)
 				"UserId" => $UserId,
 				"message" => $res['msg'],
 			];
+
+
+
 		} catch (PDOException $e) {
 			$returnData = msg(0, 500, $e->getMessage());
 		}
@@ -522,6 +491,32 @@ function getNextMRNumber()
 			"status" => 200,
 			"message" => "",
 			"MRNo" => $MRNo
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+
+
+function getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)
+{
+
+	try {
+		$dbh = new Db();
+
+		$query3 = "SELECT CONCAT('$RptPreFix-',LPAD((IFNULL(MAX(SUBSTRING_INDEX(RptNumber, '-', -1)),0) + 1),6,'0')) AS NextRptNumber
+		FROM t_paymentextend where PaymentExtendTypeId = $PaymentExtendTypeId;";
+		$result3 = $dbh->query($query3);
+		$NextRptNumber = $result3[0]['NextRptNumber'];
+		
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"NextRptNumber" => $NextRptNumber
 		];
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());

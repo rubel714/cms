@@ -114,8 +114,9 @@ $MRNo = "";
 $RefNo = "";
 $PaymentDate = "";
 $CustomerCode = "";
-$TotalPaymentAmount = 0;
-$TotalPaymentAmountUSD = 0;
+$PaymentReceiveAmount = 0;//TK
+$TotalBaseAmount = 0;//TK
+$TotalTransactionAmount = 0;//USD
 $CustomerName = "";
 $AmountInWords = "";
 $ChequeNumber = "";
@@ -124,8 +125,7 @@ $BankName = "";
 $BankBranchName = "";
 
 $sqlf = "SELECT a.PaymentId, DATE_FORMAT(a.PaymentDate, '%d-%b-%Y') AS PaymentDate
-			,a.MRNo,a.RefNo,b.CustomerCode,b.CustomerName,a.TotalPaymentAmount,
-            a.ChequeNumber,
+			,a.MRNo,a.RefNo,b.CustomerCode,b.CustomerName,a.TotalBaseAmount, a.PaymentReceiveAmount, a.ChequeNumber,
             case when a.ChequeDate IS NULL then '' else DATE_FORMAT(a.ChequeDate, '%d-%b-%Y') end as ChequeDate,
              c.BankName, a.BankBranchName
 			FROM t_payment a
@@ -140,9 +140,9 @@ foreach ($sqlLoop1result as $result) {
     $PaymentDate = $result['PaymentDate'];
     $CustomerCode = $result['CustomerCode'];
     $CustomerName = $result['CustomerName'];
-    $TotalPaymentAmount = $result['TotalPaymentAmount'];
-    $TotalPaymentAmountUSD = '';
-    $AmountInWords = numberToWords($TotalPaymentAmount);
+    $PaymentReceiveAmount = $result['PaymentReceiveAmount'];
+    $TotalTransactionAmount = '';
+    $AmountInWords = numberToWords($PaymentReceiveAmount);
     $ChequeNumber = $result['ChequeNumber'];
     $ChequeDate = $result['ChequeDate'];
     $BankName = $result['BankName'];
@@ -172,7 +172,7 @@ class MYPDF extends TCPDF
 
         $this->SetFont('helvetica', 'B', 8);
         $this->SetXY(80, 15); // adjust X and Y as needed
-        $this->Cell(0, 0, 'MR - ' . $MRNo, 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
+        $this->Cell(0, 0,  $MRNo, 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
 
         $this->SetFont('helvetica', 'B', 8);
         $this->SetXY(80, 25); // adjust X and Y as needed
@@ -259,7 +259,7 @@ $pdf->Cell($valueW, 8, ': ' . $CustomerCode, 0, 0, 'L');
 $pdf->SetFont('helvetica', 'R', 9);
 $pdf->Cell($labelW, 8, 'Sum of taka', 0, 0, 'L');
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . number_format($TotalPaymentAmount, 2), 0, 1, 'L');
+$pdf->Cell($valueW, 8, ': ' . number_format($PaymentReceiveAmount, 2), 0, 1, 'L');
 
 // Row
 $pdf->Cell($labelW, 8, '', 0, 0, 'L');
@@ -268,7 +268,7 @@ $pdf->Cell($valueW, 8, '', 0, 0, 'L');
 $pdf->SetFont('helvetica', 'R', 9);
 $pdf->Cell($labelW, 8, 'Sum of USD', 0, 0, 'L');
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $TotalPaymentAmountUSD, 0, 1, 'L');
+$pdf->Cell($valueW, 8, ': ' . $TotalTransactionAmount, 0, 1, 'L');
 
 // $pdf->ln(2); // Line break
 

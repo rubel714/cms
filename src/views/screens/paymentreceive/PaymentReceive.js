@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef } from "react";
+import React, { forwardRef, useEffect, useRef } from "react";
 import swal from "sweetalert";
 import { DeleteOutline, Edit } from "@material-ui/icons";
 import { Button } from "../../../components/CustomControl/Button";
@@ -13,8 +13,9 @@ import {
 } from "../../../actions/api";
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import { Typography, TextField } from "@material-ui/core";
+import { Typography, TextField, styled } from "@material-ui/core";
 import moment from "moment";
+import { use } from "react";
 
 const PaymentReceive = (props) => {
   const serverpage = "paymentreceive"; // this is .php server page
@@ -159,16 +160,6 @@ const PaymentReceive = (props) => {
       sort: true,
       filter: true,
     },
-
-    // {
-    //   field: "TotalPaymentAmount",
-    //   label: "Total Amount",
-    //   width: "8%",
-    //   align: "right",
-    //   visible: true,
-    //   sort: true,
-    //   filter: true,
-    // },
 
     {
       field: "custom",
@@ -315,9 +306,12 @@ const PaymentReceive = (props) => {
         ChequeNumber: "",
         ChequeDate: "",
         BankBranchName: "",
-        TotalPaymentAmount: "",
-        InvoiceTotalAmount: 0,
         Remarks: "",
+        TotalBaseAmount: "",
+        TotalTransactionAmount: 0,
+        PaymentReceiveAmount: 0,
+        RebateAmount: 0,
+        AitDeduction: 0,
         StatusId: 1,
         Items: [],
       });
@@ -581,7 +575,6 @@ const PaymentReceive = (props) => {
       "MRNo",
       "PaymentDate",
       "CustomerId",
-      "TotalPaymentAmount",
     ];
     let errorData = {};
     let isValid = true;
@@ -624,24 +617,24 @@ const PaymentReceive = (props) => {
     setErrorObject({ ...errorObject, [name]: null });
   };
 
-  const handleChangeMany = (e, row) => {
-    const { name, value } = e.target;
-    const updatedItems = editableItems.map((item) => {
-      if (item.PaymentItemId === row.PaymentItemId) {
-        return {
-          ...item,
-          [name]: value,
-          IsPaid: value >= item.DueAmount ? true : false,
-        };
-      }
-      return item;
-    });
+  // const handleChangeMany = (e, row) => {
+  //   const { name, value } = e.target;
+  //   const updatedItems = editableItems.map((item) => {
+  //     if (item.PaymentItemId === row.PaymentItemId) {
+  //       return {
+  //         ...item,
+  //         [name]: value,
+  //         IsPaid: value >= item.DueAmount ? true : false,
+  //       };
+  //     }
+  //     return item;
+  //   });
 
-    setEditableItems(updatedItems);
-    // console.log('updatedItems: ', updatedItems);
+  //   setEditableItems(updatedItems);
+  //   // console.log('updatedItems: ', updatedItems);
 
-    // setErrorObject({ ...errorObject, [name]: null });
-  };
+  //   // setErrorObject({ ...errorObject, [name]: null });
+  // };
 
   const handleChangeCheck = (e, row) => {
     // console.log('e.target.checked: ', e.target.checked);
@@ -795,18 +788,29 @@ const PaymentReceive = (props) => {
     );
   }
 
-  function calculateTotalPaymentAmount() {
-    let total = 0;
+  useEffect(() => {
+    calculateTotalAmount();
+  }, [editableItems]);
+
+
+  function calculateTotalAmount() {
+    let totalTransactionAmountt = 0;
+    let totalBaseAmount = 0;
 
     editableItems.forEach((item) => {
-      const paymentAmount = parseFloat(item.PaymentAmount) || 0;
-      total += paymentAmount;
+      const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
+      totalTransactionAmountt += TransactionAmount;
+
+      const BaseAmount = parseFloat(item.BaseAmount) || 0;
+      totalBaseAmount += BaseAmount;
     });
     // return total;
-    // let data = { ...currentRow };
-    // data["InvoiceTotalAmount"] = total.toFixed(0);
-    // setCurrentRow(data);
-    return total.toFixed(0);
+    let data = { ...currentRow };
+    data["TotalTransactionAmount"] = totalTransactionAmountt.toFixed(2);
+    data["TotalBaseAmount"] = totalBaseAmount.toFixed(2);
+
+    setCurrentRow(data);
+    // return total.toFixed(0);
   }
 
   const openInvoiceModal = () => {
@@ -819,6 +823,15 @@ const PaymentReceive = (props) => {
       getDataSingleFromServer(currentRow.id);
     }
   };
+
+ const calTotal = () => {
+    const paymentReceiveAmount = parseFloat(currentRow.PaymentReceiveAmount) || 0;
+    const rebateAmount = parseFloat(currentRow.RebateAmount) || 0;
+    const aitDeduction = parseFloat(currentRow.AitDeduction) || 0;
+    
+    return (paymentReceiveAmount + rebateAmount + aitDeduction).toFixed(2);
+  };
+
 
   return (
     <>
@@ -930,7 +943,7 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>Payment Receive Date</label>
+                <label>Payment Receive Date *</label>
                 <input
                   type="date"
                   id="PaymentDate"
@@ -1121,34 +1134,36 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>Total Received Amount *</label>
+            
+                {/* <label>Total Amount (USD)</label>
                 <input
                   type="number"
-                  id="TotalPaymentAmount"
-                  name="TotalPaymentAmount"
+                  id="TotalTransactionAmount"
+                  name="TotalTransactionAmount"
+                  disabled={true}
+                  // class={errorObject.TotalTransactionAmount}
+                  placeholder=""
+                  value={currentRow.TotalTransactionAmount}
+                  // value={calculateTotalPaymentAmount()}
+                  onChange={(e) => handleChange(e)}
+                /> */}
+
+                {/* <label>Total Base Amount (BDT)</label>
+                <input
+                  type="number"
+                  id="TotalBaseAmount"
+                  name="TotalBaseAmount"
                   disabled={
                     editableItems.length > 0 || currentRow.StatusId == 5
                       ? true
                       : false
                   }
-                  class={errorObject.TotalPaymentAmount}
-                  placeholder="Enter Total Received Amount"
-                  value={currentRow.TotalPaymentAmount}
+                  // class={errorObject.TotalBaseAmount}
+                  // placeholder="Enter Total Base Amount"
+                  value={currentRow.TotalBaseAmount}
                   onChange={(e) => handleChange(e)}
-                />
+                /> */}
 
-                <label>Invoice Total Amount</label>
-                <input
-                  type="number"
-                  id="InvoiceTotalAmount"
-                  name="InvoiceTotalAmount"
-                  disabled={true}
-                  // class={errorObject.InvoiceTotalAmount}
-                  placeholder=""
-                  // value={currentRow.InvoiceTotalAmount}
-                  value={calculateTotalPaymentAmount()}
-                  onChange={(e) => handleChange(e)}
-                />
               </div>
 
               {/* {currentRow.id && (
@@ -1173,18 +1188,83 @@ const PaymentReceive = (props) => {
               </div>
 
               <div class="fourColumnContainer pt-10">
-                <label>PAYMENT RCVD *</label>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>Payment Received</label>
                 <input
-                  type="text"
-                  id="MRNo"
-                  name="MRNo"
-                  disabled={true}
-                  class={errorObject.MRNo}
-                  placeholder="Enter PAYMENT RCVD"
-                  value={currentRow.MRNo}
+                  type="number"
+                  id="PaymentReceiveAmount"
+                  name="PaymentReceiveAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.PaymentReceiveAmount}
+                  // placeholder="Enter Payment Received"
+                  value={currentRow.PaymentReceiveAmount}
                   onChange={(e) => handleChange(e)}
                 />
+              {/* </div>
+              <div class="fourColumnContainer pt-10"> */}
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>Rebate Amount</label>
+                <input
+                  type="number"
+                  id="RebateAmount"
+                  name="RebateAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.RebateAmount}
+                  // placeholder="Enter Rebate Amount"
+                  value={currentRow.RebateAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+              {/* </div>
+                <div class="fourColumnContainer pt-10"> */}
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>AIT Deduction</label>
+                <input
+                  type="number"
+                  id="AitDeduction"
+                  name="AitDeduction"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.AitDeduction}
+                  // placeholder="Enter AIT Deduction"
+                  value={currentRow.AitDeduction}
+                  onChange={(e) => handleChange(e)}
+                />
+
+
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label><strong>Total</strong></label>
+                <input
+                  type="number"
+                  id="Total"
+                  name="Total"
+                  disabled={true}
+                  style={{fontWeight: 'bold'}}
+                  // class={errorObject.RebateAmount}
+                  // placeholder="Enter Rebate Amount"
+                  value={calTotal()}
+                  // onChange={(e) => handleChange(e)}
+                />
               </div>
+
 
               {/* </>
 

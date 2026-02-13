@@ -269,7 +269,17 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                   
+                    {menuShowPermision("billgenerate") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("billgenerate")}
+                        >
+                          Bill Generate
+                        </a>
+                      </li>
+                    )}
+
                     {menuShowPermision("paymentreceive") === 1 && (
                       <li>
                         <a
@@ -281,16 +291,6 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
                    
-                    {menuShowPermision("billgenerate") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("billgenerate")}
-                        >
-                          Bill Generate
-                        </a>
-                      </li>
-                    )}
 
 
                     {/* {menuShowPermision("machine") === 1 && (
