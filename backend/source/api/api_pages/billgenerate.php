@@ -174,11 +174,7 @@ function getDataList($data)
 		$dbh = new Db();
 
 		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
-		a.CustomerId,b.CustomerCode,b.CustomerName, 
-		case when a.InvoiceStartDate is not null then DATE_FORMAT(a.InvoiceStartDate, '%Y-%m-%d') else null end as InvoiceStartDate,
-		case when a.InvoiceEndDate is not null then DATE_FORMAT(a.InvoiceEndDate, '%Y-%m-%d') else null end as InvoiceEndDate,
-		a.BuyerName,a.MerchantName,
-		a.BusinessLine,a.Remarks,a.StatusId
+		a.CustomerId,b.CustomerCode,b.CustomerName, a.RebateAmount, a.VATAmount, a.TaxAmount,a.Remarks,a.StatusId
 		FROM t_bill a
 		INNER JOIN t_customer b ON a.CustomerId = b.CustomerId
 		ORDER BY a.BillDate DESC, a.BillId DESC;";
@@ -303,6 +299,10 @@ function dataAddEdit($data)
 		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
+		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : null;
+		$VATAmount = $data->rowData->VATAmount ? $data->rowData->VATAmount : null;
+		$TaxAmount = $data->rowData->TaxAmount ? $data->rowData->TaxAmount : null;
+
 
 		
 		// $BillIdCheck = "";
@@ -329,14 +329,19 @@ function dataAddEdit($data)
 
 			if ($BillId == "") {
 
-				$query = "SELECT ifnull(max(BillNumber), 0)+1 NextBillNumber FROM t_bill;";
-				$resultdatalist = $dbh->query($query);
-				$BillNumber = $resultdatalist[0]['NextBillNumber'];
+				// $query = "SELECT ifnull(max(BillNumber), 0)+1 NextBillNumber FROM t_bill;";
+				// $resultdatalist = $dbh->query($query);
+				// $BillNumber = $resultdatalist[0]['NextBillNumber'];
+				$NextBillObj = getNextBillNumber();
+				$BillNumber = $NextBillObj['NextBillNumber'];
+				$NextBillSerial = $NextBillObj['NextBillSerial'];
+				$Year = date('Y');
+				$MonthId = date('m');
 
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillNumber','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId'];
-				$q->values = [$BillNumber, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId];
+				$q->columns = ['BillNumber','Year','MonthId','BillSerial','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebateAmount', 'VATAmount', 'TaxAmount'];
+				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebateAmount, $VATAmount, $TaxAmount];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -345,8 +350,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_bill';
-				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId'];
-				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId];
+				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId', 'RebateAmount', 'VATAmount', 'TaxAmount'];
+				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebateAmount, $VATAmount, $TaxAmount];
 				$u->pks = ['BillId'];
 				$u->pk_values = [$BillId];
 				$u->build_query();
@@ -441,16 +446,27 @@ function getNextBillNumber()
 
 	try {
 		$dbh = new Db();
+		$RptPreFix = "ITS";
+		// $query3 = "SELECT ifnull(max(BillNumber),0) + 1 as NextBillNumber FROM t_bill;";
+		$Year = date('Y');
+		$MonthId = date('m');
+		$PaymentExtendTypeId = 1; // Assuming this is the correct type ID for bills. Adjust if necessary.
+		$query3 = "SELECT ifnull(max(BillSerial),0) + 1 as NextBillSerial
+		FROM t_bill 
+		where Year = $Year
+		and MonthId = $MonthId;";
 
-		$query3 = "SELECT ifnull(max(BillNumber),0) + 1 as NextBillNumber FROM t_bill;";
 		$result3 = $dbh->query($query3);
-		$NextBillNumber = $result3[0]['NextBillNumber'];
+		$NextBillSerial = $result3[0]['NextBillSerial'];
+
+		$NextBillNumber = $RptPreFix . '/' . $Year . '/' . str_pad($MonthId, 2, "0", STR_PAD_LEFT) . '/' . str_pad($NextBillSerial, 3, "0", STR_PAD_LEFT);
 		
 		$returnData = [
 			"success" => 1,
 			"status" => 200,
 			"message" => "",
-			"NextBillNumber" => $NextBillNumber
+			"NextBillNumber" => $NextBillNumber,
+			"NextBillSerial" => $NextBillSerial
 		];
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());

@@ -251,7 +251,7 @@ $pdf->ln(1); // Line break
 $pdf->MultiCell(0, 0,"Note: This vat exemption is applicable for 100% export-oriented Industry only under SRO No. 188-Ain/2019/45-Mushok dated 13.06.2019 by the powers exercised as per section 126(1) of VAT Act, 2012. Please inform us to revise the invoice with VAT, if you are not eligible for Vat exemption under SRO No. 188-Ain/2019/45-Mushok. Service receiver will be responsible for any kind of claim/penalty for not being eligible for vat exemption issue.", 0, 'C', false, 1, '', '', true, 0, false, true, 0, 'T', true);
 
 
-$CheckListFileName = $BillNumber . '_' . date("Y_m_d_H_i_s") . '_bill.pdf';
+$CheckListFileName = 'bill_'.str_replace('/', '_', $BillNumber) . '_date_' . date("Y_m_d_H_i_s") . '.pdf';
 $SecondFilePath = $OutputFileDirectory . $CheckListFileName;
 $pdf->Output($SecondFilePath, 'F'); // save file to disk
 

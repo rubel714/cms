@@ -63,7 +63,7 @@ const BillGenerate = (props) => {
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
       field: "BillNumber",
-      label: "Bill Number",
+      label: "Ref. No",
       width: "10%",
       align: "left",
       visible: true,
@@ -199,6 +199,9 @@ const BillGenerate = (props) => {
         BillNumber: res.data.NextBillNumber,
         Remarks: "",
         StatusId: 1,
+        RebateAmount: "",
+        VATAmount: "",
+        TaxAmount: "",
         Items: [],
       });
       setEditableItems([]);
@@ -811,14 +814,14 @@ const BillGenerate = (props) => {
                   onChange={(e) => handleChange(e)}
                 /> */}
 
-                <label>Bill No</label>
+                <label>Ref. No</label>
                 <input
                   type="text"
                   id="BillNumber"
                   name="BillNumber"
                   disabled={true}
                   // class={errorObject.BillNumber}
-                  placeholder="Enter Bill Number"
+                  placeholder="Enter Ref No"
                   value={currentRow.BillNumber}
                   // onChange={(e) => handleChange(e)}
                 />

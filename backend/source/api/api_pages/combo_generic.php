@@ -236,10 +236,10 @@ function CustomerList($data)
 
 		$CustomerGroupId = $data->CustomerGroupId?$data->CustomerGroupId:0;
 		$dbh = new Db();
-		$query = "SELECT `CustomerId` id, CustomerName `name`
+		$query = "SELECT `CustomerId` id, concat(CustomerCode,' - ', CustomerName) `name`
 	 			 	FROM `t_customer` 
 					where (CustomerGroupId = $CustomerGroupId OR $CustomerGroupId = 0)
-					ORDER BY CustomerName;";
+					ORDER BY CustomerCode, CustomerName;";
 
 		$resultdata = $dbh->query($query);
 
