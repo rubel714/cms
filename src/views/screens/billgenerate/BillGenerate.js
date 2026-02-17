@@ -57,6 +57,13 @@ const BillGenerate = (props) => {
     );
   };
 
+  const ExcelGenerate = () => {
+    let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBillExcel.php";
+    window.open(
+      finalUrl + "?BillId=" + currentRow.id + "&TimeStamp=" + Date.now(),
+    );
+  };
+
   /* =====End of Excel Export Code==== */
 
   const columnList = [
@@ -805,14 +812,19 @@ const BillGenerate = (props) => {
                 />
               {/*  )} */}
 
-               {/* {currentRow.id && currentRow.StatusId == 5 && ( */}
                 <Button
-                  label={"Export"}
-                  class={"btnPrint"}
+                  label={"Export to PDF"}
+                  class={"btnPDF"}
                   disabled={currentRow.id && currentRow.StatusId == 5 ? false : true}
                   onClick={PDFGenerate}
                 />
-              {/* )} */}
+                <Button
+                  label={"Export to Excel"}
+                  class={"btnPrint"}
+                  disabled={currentRow.id && currentRow.StatusId == 5 ? false : true}
+                  onClick={ExcelGenerate}
+                />
+              
             </div>
 
             <div>
