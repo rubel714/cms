@@ -307,8 +307,10 @@ const PaymentReceive = (props) => {
         ChequeDate: "",
         BankBranchName: "",
         Remarks: "",
+
         TotalBaseAmount: "",
         TotalTransactionAmount: 0,
+
         PaymentReceiveAmount: 0,
         RebateAmount: 0,
         AitDeduction: 0,
@@ -788,30 +790,30 @@ const PaymentReceive = (props) => {
     );
   }
 
-  useEffect(() => {
-    calculateTotalAmount();
-  }, [editableItems]);
+  // useEffect(() => {
+  //   calculateTotalAmount();
+  // }, [editableItems]);
 
 
-  function calculateTotalAmount() {
-    let totalTransactionAmountt = 0;
-    let totalBaseAmount = 0;
+  // function calculateTotalAmount() {
+  //   let totalTransactionAmountt = 0;
+  //   let totalBaseAmount = 0;
 
-    editableItems.forEach((item) => {
-      const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
-      totalTransactionAmountt += TransactionAmount;
+  //   editableItems.forEach((item) => {
+  //     const TransactionAmount = parseFloat(item.TransactionAmount) || 0;
+  //     totalTransactionAmountt += TransactionAmount;
 
-      const BaseAmount = parseFloat(item.BaseAmount) || 0;
-      totalBaseAmount += BaseAmount;
-    });
-    // return total;
-    let data = { ...currentRow };
-    data["TotalTransactionAmount"] = totalTransactionAmountt.toFixed(2);
-    data["TotalBaseAmount"] = totalBaseAmount.toFixed(2);
+  //     const BaseAmount = parseFloat(item.BaseAmount) || 0;
+  //     totalBaseAmount += BaseAmount;
+  //   });
+  //   // return total;
+  //   let data = { ...currentRow };
+  //   data["TotalTransactionAmount"] = totalTransactionAmountt.toFixed(2);
+  //   data["TotalBaseAmount"] = totalBaseAmount.toFixed(2);
 
-    setCurrentRow(data);
-    // return total.toFixed(0);
-  }
+  //   setCurrentRow(data);
+  //   // return total.toFixed(0);
+  // }
 
   const openInvoiceModal = () => {
     setShowInvoiceModal(true);

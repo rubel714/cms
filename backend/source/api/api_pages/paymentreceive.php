@@ -303,8 +303,8 @@ function dataAddEdit($data)
 		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
-		$TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
-		$TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
+		// $TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
+		// $TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
 		$PaymentReceiveAmount = $data->rowData->PaymentReceiveAmount ? $data->rowData->PaymentReceiveAmount : 0;
 		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : 0;
 		$AitDeduction = $data->rowData->AitDeduction ? $data->rowData->AitDeduction : 0;
@@ -339,8 +339,8 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','TotalBaseAmount','TotalTransactionAmount','PaymentReceiveAmount','RebateAmount','AitDeduction'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $TotalBaseAmount, $TotalTransactionAmount, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
+				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','PaymentReceiveAmount','RebateAmount','AitDeduction'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -349,8 +349,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','TotalBaseAmount','TotalTransactionAmount','PaymentReceiveAmount','RebateAmount','AitDeduction'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $TotalBaseAmount, $TotalTransactionAmount, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
+				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','PaymentReceiveAmount','RebateAmount','AitDeduction'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -399,9 +399,24 @@ function dataAddEdit($data)
 
 			//when post then set billed flag in invoice
 			if ($success == 1 && $PaymentId != "" && $StatusId == 5) {
+				//when payment is completed then mark the related invoice items as paid
 				$query1 = "update t_invoiceitems set IsPaid = 1 
 					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId);";
 					$dbh->query($query1);
+
+
+					// 'TotalBaseAmount','TotalTransactionAmount',
+
+					//when payment completed then calculate and update total base amount and total transaction amount in payment table
+				$query2 = "UPDATE t_payment a 
+							INNER JOIN (SELECT m.PaymentId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
+								FROM t_paymentitems m
+								INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
+								WHERE m.PaymentId = $PaymentId
+								GROUP BY m.PaymentId) b ON a.PaymentId=b.PaymentId
+							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
+							WHERE a.PaymentId = $PaymentId;";
+					$dbh->query($query2);
 			}
 
 
