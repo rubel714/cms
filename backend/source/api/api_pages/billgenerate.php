@@ -261,7 +261,7 @@ function getDataSingle($data)
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 		
 		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
-		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14
+		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
 		FROM t_billitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.BillId=$BillId
@@ -366,9 +366,23 @@ function dataAddEdit($data)
 
 			//when post then set billed flag in invoice
 			if ($success == 1 && $BillId != "" && $StatusId == 5) {
+
+				//update billed flag in invoice items table
 				$query1 = "update t_invoiceitems set IsBilled = 1 
 					where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
-					$dbh->query($query1);
+				$dbh->query($query1);
+
+
+				//when bill completed then calculate and update total base amount and total transaction amount in bill table
+				$query2 = "UPDATE t_bill a 
+							INNER JOIN (SELECT m.BillId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
+								FROM t_billitems m
+								INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
+								WHERE m.BillId = $BillId
+								GROUP BY m.BillId) b ON a.BillId=b.BillId
+							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
+							WHERE a.BillId = $BillId;";
+					$dbh->query($query2);
 			}
 
 

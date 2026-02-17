@@ -510,26 +510,27 @@ const BillGenerate = (props) => {
     { field: "rownumber", label: "SL", align: "center", width: "3%" },
     {
       field: "TransactionDate",
-      label: "Report Due Date",
+      label: "Invoice Date",
       width: "5%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
+
     {
-      field: "GeneralDescription9",
-      label: "Report Number",
-      width: "8%",
+      field: "TransactionReference",
+      label: "Invoice Number",
+      width: "10%",
       align: "left",
       visible: true,
       sort: true,
       filter: true,
     },
-    {
-      field: "TransactionReference",
-      label: "Invoice Number",
-      width: "10%",
+        {
+      field: "GeneralDescription9",
+      label: "Report Number",
+      width: "8%",
       align: "left",
       visible: true,
       sort: true,
@@ -544,28 +545,11 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
     },
-    {
-      field: "GeneralDescription17",
-      label: "Style number",
-      // width: "10%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
-    {
-      field: "OrderNumber",
-      label: "Order Number",
-      width: "10%",
-      align: "left",
-      visible: true,
-      sort: true,
-      filter: true,
-    },
 
+    
     {
       field: "TransactionAmount",
-      label: "Amount USD",
+      label: "Amount in FC",
       width: "5%",
       align: "right",
       visible: true,
@@ -575,18 +559,18 @@ const BillGenerate = (props) => {
     },
     {
       field: "ExchangeRate",
-      label: "Exchange Rate",
+      label: "Ex. Rate",
       align: "right",
-      width: "5%",
+      width: "4%",
       visible: true,
       sort: false,
       filter: true,
     },
     {
       field: "BaseAmount",
-      label: "Amount BDT",
+      label: "Amount in BDT",
       align: "right",
-      width: "5%",
+      width: "6%",
       visible: true,
       sort: false,
       filter: true,
@@ -594,10 +578,41 @@ const BillGenerate = (props) => {
       bottomcalc: "sum",
     },
 
+
+
+    {
+      field: "GeneralDescription17",
+      label: "Style No.",
+      // width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
+      field: "OrderNumber",
+      label: "Order No.",
+      width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
     {
       field: "GeneralDescription14",
-      label: "Responsible Person",
+      label: "Merchandiser Name",
       width: "10%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+      // type: "number",
+    },
+    {
+      field: "GeneralDescription20",
+      label: "Service Type",
+      width: "5%",
       align: "left",
       visible: true,
       sort: true,
@@ -608,7 +623,7 @@ const BillGenerate = (props) => {
     {
       field: "custom",
       label: "Billed",
-      width: "5%",
+      width: "4%",
       align: "center",
       visible: currentRow.StatusId == 5 ? false : true,
       sort: false,
@@ -917,6 +932,73 @@ const BillGenerate = (props) => {
                   ispagination={false}
                 />
               </div>
+
+
+
+              
+              <div class="fourColumnContainer pt-10">
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>Rebate</label>
+                <input
+                  type="number"
+                  id="RebateAmount"
+                  name="RebateAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.RebateAmount}
+                  // placeholder="Enter Rebate Amount"
+                  value={currentRow.RebateAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+              {/* </div>
+              <div class="fourColumnContainer pt-10"> */}
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>VAT</label>
+                <input
+                  type="number"
+                  id="VATAmount"
+                  name="VATAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.VATAmount}
+                  // placeholder="Enter Rebate Amount"
+                  value={currentRow.VATAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+              {/* </div>
+                <div class="fourColumnContainer pt-10"> */}
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>TAX</label>
+                <input
+                  type="number"
+                  id="TaxAmount"
+                  name="TaxAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.TaxAmount}
+                  // placeholder="Enter TAX Amount"
+                  value={currentRow.TaxAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+ 
+              </div>
+
+
+
+
            
             </div>
           </>

@@ -32,6 +32,7 @@ $siteTitle = reportsitetitleeng;
 require_once('TCPDF-master/examples/tcpdf_include.php');
 
 
+$CustomerCode = "";
 $CustomerName = "";
 $BillNumber = "";
 $Remarks = "";
@@ -42,7 +43,7 @@ $contactPhone='01711422132';
 
 
 
-$sqlm = "SELECT b.CustomerName,a.Remarks,a.BillNumber,a.BillDate
+$sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate
 		FROM t_bill a 
 		inner join t_customer b on a.CustomerId=b.CustomerId
 		where a.BillId=$BillId;";
@@ -50,6 +51,7 @@ $sqlm = "SELECT b.CustomerName,a.Remarks,a.BillNumber,a.BillDate
 $sqlmresult = $db->query($sqlm);
 
 foreach ($sqlmresult as $result) {
+    $CustomerCode = $result['CustomerCode'];
     $CustomerName = $result['CustomerName'];
     $BillNumber = $result['BillNumber'];
     $Remarks = $result['Remarks'];
@@ -67,7 +69,7 @@ class MYPDF extends TCPDF
 {
     public function Header()
     {
-        global $BillNumber, $CustomerName, $Remarks, $BillDate;
+        global $BillNumber,$CustomerCode, $CustomerName, $Remarks, $BillDate;
 
         // Logo (right side)
         $image_file = '../../image/appmenu/Intertek_Logo.png';
@@ -77,12 +79,16 @@ class MYPDF extends TCPDF
         $x = $this->getPageWidth() - $margins['right'] - $logoWidth;
         $this->Image($image_file, $x, 5, $logoWidth, $logoHeight, 'PNG', '', '', false, 150, '', false, false, 1, false, false, false);
         // Set font
-
-        $this->SetFont('helvetica', 'R', 10);
+        $this->SetFont('helvetica', 'R', 12);
         $this->SetXY(10, 15); // adjust X and Y as needed
-        $headerText = htmlspecialchars($Remarks, ENT_QUOTES, 'UTF-8') . ' <b>' . htmlspecialchars($CustomerName, ENT_QUOTES, 'UTF-8') . '</b>, Bill Date: ' . htmlspecialchars($BillDate, ENT_QUOTES, 'UTF-8');
-        $this->writeHTMLCell(0, 0, 10, 15, $headerText, 0, 0, false, true, 'L', true);
+        $this->writeHTMLCell(0, 0, 10, 5, '<b>'.($Remarks?"Bill (".$Remarks.")":"Bill").'</b>', 0, 0, false, true, 'L', true);
 
+         $this->SetFont('helvetica', 'R', 10);
+        $this->SetXY(10, 17); // adjust X and Y as needed
+        $headerText = 'Bill Reference No: <b>'.$BillNumber . '</b><br/>Client Code: <b>'.$CustomerCode . '</b><br/>Client Name: <b>' . htmlspecialchars($CustomerName, ENT_QUOTES, 'UTF-8') . '</b><br/>Bill Date: <b>' . htmlspecialchars($BillDate, ENT_QUOTES, 'UTF-8') . '</b>' ;
+        $this->writeHTMLCell(0, 0, 10, 12, $headerText, 0, 0, false, true, 'L', true);
+ 
+ 
     }
 
     // Page footer
@@ -107,7 +113,7 @@ class MYPDF extends TCPDF
 
 
 $pdf = new MyPDF();
-$pdf->SetMargins(5, 25, 5);
+$pdf->SetMargins(5, 35, 5);
 $pdf->SetAutoPageBreak(true, 5);
 $pdf->SetFont('helvetica', 'R', 9); //Global font size of this pdf
 $pdf->AddPage('L');
@@ -121,7 +127,7 @@ $tableWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
 
 $sqlf = "SELECT DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
-		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14
+		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
 		FROM t_billitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.BillId=$BillId
@@ -132,31 +138,36 @@ $sqlLoop1result = $db->query($sqlf);
 
 $html = '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
 $html .= '<thead><tr style="font-weight:bold; background-color:#FFC900;">';
-$html .= '<th width="6%">Report Due Date</th>';
-$html .= '<th width="8%">Report Number</th>';
+$html .= '<th width="6%">Invoice Date</th>';
 $html .= '<th width="10%">Invoice Number</th>';
-$html .= '<th width="15%">Buyer Name</th>';
-$html .= '<th width="15%">Style number</th>';
+$html .= '<th width="8%">Report Number</th>';
+$html .= '<th width="16%">Buyer Name</th>';
+$html .= '<th width="5%" align="right">Amount in FC</th>';
+$html .= '<th width="4%" align="right">Ex. Rate</th>';
+$html .= '<th width="7%" align="right">Amount in BDT</th>';
+$html .= '<th width="13%">Style number</th>';
 $html .= '<th width="10%">Order Number</th>';
-$html .= '<th width="7%" align="right">Amount USD</th>';
-$html .= '<th width="6%" align="right">Exchange Rate</th>';
-$html .= '<th width="7%" align="right">Amount BDT</th>';
-$html .= '<th width="16%">Responsible Person</th>';
+$html .= '<th width="13%">Merchandiser Name</th>';
+$html .= '<th width="6%">Service Type</th>';
 $html .= '</tr></thead><tbody>';
 $TotalTransactionAmount = 0;
 $TotalBaseAmount = 0;
 foreach ($sqlLoop1result as $result) {
     $html .= '<tr>';
     $html .= '<td width="6%" align="center">' . htmlspecialchars($result['TransactionDate'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="8%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '<td width="10%">' . htmlspecialchars($result['TransactionReference'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="15%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="15%">' . htmlspecialchars($result['GeneralDescription17'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['OrderNumber'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="7%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
-    $html .= '<td width="6%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
+    $html .= '<td width="8%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="16%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
+
+        $html .= '<td width="5%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
+    $html .= '<td width="4%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
     $html .= '<td width="7%" align="right">' . number_format($result['BaseAmount'], 2) . '</td>';
-    $html .= '<td width="16%">' . htmlspecialchars($result['GeneralDescription14'], ENT_QUOTES, 'UTF-8') . '</td>';
+
+    $html .= '<td width="13%">' . htmlspecialchars($result['GeneralDescription17'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="10%">' . htmlspecialchars($result['OrderNumber'], ENT_QUOTES, 'UTF-8') . '</td>';
+
+    $html .= '<td width="13%">' . htmlspecialchars($result['GeneralDescription14'], ENT_QUOTES, 'UTF-8') . '</td>';
+    $html .= '<td width="6%">' . htmlspecialchars($result['GeneralDescription20'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '</tr>';
 
     if($result['TransactionAmount']>0){
@@ -171,15 +182,16 @@ foreach ($sqlLoop1result as $result) {
 if (count($sqlLoop1result) > 0) {
      $html .= '<tr>';
     $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="10%"></td>';
     $html .= '<td width="8%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="15%"></td>';
-    $html .= '<td width="15%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalTransactionAmount, 2).'</td>';
-    $html .= '<td width="6%" align="right"></td>';
-    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalBaseAmount, 2).'</td>';
     $html .= '<td width="16%"></td>';
+    $html .= '<td width="5%" align="right" style="font-weight:bold">'.number_format($TotalTransactionAmount, 2).'</td>';
+    $html .= '<td width="4%"></td>';
+    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalBaseAmount, 2).'</td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="6%"></td>';
     $html .= '</tr>';
 }
 
