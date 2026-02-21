@@ -313,7 +313,9 @@ const PaymentReceive = (props) => {
 
         PaymentReceiveAmount: 0,
         RebateAmount: 0,
+        CNAmount: 0,
         AitDeduction: 0,
+        VatAmount: 0,
         StatusId: 1,
         Items: [],
       });
@@ -829,9 +831,11 @@ const PaymentReceive = (props) => {
  const calTotal = () => {
     const paymentReceiveAmount = parseFloat(currentRow.PaymentReceiveAmount) || 0;
     const rebateAmount = parseFloat(currentRow.RebateAmount) || 0;
+    const CNAmount = parseFloat(currentRow.CNAmount) || 0;
     const aitDeduction = parseFloat(currentRow.AitDeduction) || 0;
+    const VatAmount = parseFloat(currentRow.VatAmount) || 0;
     
-    return (paymentReceiveAmount + rebateAmount + aitDeduction).toFixed(2);
+    return (paymentReceiveAmount + rebateAmount + CNAmount + aitDeduction + VatAmount).toFixed(2);
   };
 
 
@@ -1226,6 +1230,23 @@ const PaymentReceive = (props) => {
                   value={currentRow.RebateAmount}
                   onChange={(e) => handleChange(e)}
                 />
+                             <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>CN Amount</label>
+                <input
+                  type="number"
+                  id="CNAmount"
+                  name="CNAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.CNAmount}
+                  // placeholder="Enter CN Amount"
+                  value={currentRow.CNAmount}
+                  onChange={(e) => handleChange(e)}
+                />
               {/* </div>
                 <div class="fourColumnContainer pt-10"> */}
                 <label></label>
@@ -1246,6 +1267,23 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>VAT Amount</label>
+                <input
+                  type="number"
+                  id="VatAmount"
+                  name="VatAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.VatAmount}
+                  // placeholder="Enter VAT Amount"
+                  value={currentRow.VatAmount}
+                  onChange={(e) => handleChange(e)}
+                />
 
                 <label></label>
                 <div></div>

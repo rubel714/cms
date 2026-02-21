@@ -212,7 +212,7 @@ function getDataList($data)
 		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
 		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
-		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.AitDeduction
+		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.CNAmount,a.AitDeduction,a.VatAmount
 
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
@@ -307,8 +307,9 @@ function dataAddEdit($data)
 		// $TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
 		$PaymentReceiveAmount = $data->rowData->PaymentReceiveAmount ? $data->rowData->PaymentReceiveAmount : 0;
 		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : 0;
+		$CNAmount = $data->rowData->CNAmount ? $data->rowData->CNAmount : 0;
 		$AitDeduction = $data->rowData->AitDeduction ? $data->rowData->AitDeduction : 0;
-
+		$VatAmount = $data->rowData->VatAmount ? $data->rowData->VatAmount : 0;
 
 		// $items = isset($data->items) ? $data->items : [];
 
@@ -339,8 +340,8 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','PaymentReceiveAmount','RebateAmount','AitDeduction'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
+				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','PaymentReceiveAmount','RebateAmount','CNAmount','AitDeduction','VatAmount'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -349,8 +350,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','PaymentReceiveAmount','RebateAmount','AitDeduction'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $AitDeduction];
+				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','PaymentReceiveAmount','RebateAmount','CNAmount','AitDeduction','VatAmount'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -361,11 +362,11 @@ function dataAddEdit($data)
 
 			if($StatusId == 5){
 				
-				if($RebateAmount > 0){
+				if($CNAmount > 0){
 					$PaymentExtendTypeId = 1;
-					$RptPreFix = "REBATE";
-					$RptNumber = getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $RebateAmount;
+					$RptPreFix = "CN";
+					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$Amount = $CNAmount;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
 					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
@@ -379,8 +380,23 @@ function dataAddEdit($data)
 				if($AitDeduction > 0){
 					$PaymentExtendTypeId = 2;
 					$RptPreFix = "AIT";
-					$RptNumber = getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $AitDeduction;
+					$q = new insertq();
+					$q->table = 't_paymentextend';
+					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
+					$q->pks = ['PaymentExtendId'];
+					$q->bUseInsetId = true;
+					$q->build_query();
+					$aQuerys[] = $q;
+				}
+
+				if($VatAmount > 0){
+					$PaymentExtendTypeId = 3;
+					$RptPreFix = "VAT";
+					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$Amount = $VatAmount;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
 					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
@@ -404,9 +420,7 @@ function dataAddEdit($data)
 					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId);";
 					$dbh->query($query1);
 
-
-					// 'TotalBaseAmount','TotalTransactionAmount',
-
+ 
 					//when payment completed then calculate and update total base amount and total transaction amount in payment table
 				$query2 = "UPDATE t_payment a 
 							INNER JOIN (SELECT m.PaymentId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
