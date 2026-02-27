@@ -174,7 +174,8 @@ function getDataList($data)
 		$dbh = new Db();
 
 		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
-		a.CustomerId,b.CustomerCode,b.CustomerName, a.RebateAmount, a.VATAmount, a.TaxAmount,a.Remarks,a.StatusId
+		a.CustomerId, b.CustomerCode, b.CustomerName, a.RebatePercentage, a.RebateAmount, 
+		a.VATPercentage, a.VATAmount, a.TaxPercentage, a.TaxAmount, a.Remarks, a.StatusId
 		FROM t_bill a
 		INNER JOIN t_customer b ON a.CustomerId = b.CustomerId
 		ORDER BY a.BillDate DESC, a.BillId DESC;";
@@ -259,7 +260,7 @@ function getDataSingle($data)
 		/**Items Data */
 		$query = "SELECT a.BillItemId as autoId, a.BillItemId, a.`BillId`, a.`InvoiceItemId`, 
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
-		
+
 		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
 		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
 		FROM t_billitems a 
@@ -299,8 +300,13 @@ function dataAddEdit($data)
 		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
+		$TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
+		$TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
+		$RebatePercentage = $data->rowData->RebatePercentage ? $data->rowData->RebatePercentage : null;
 		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : null;
+		$VATPercentage = $data->rowData->VATPercentage ? $data->rowData->VATPercentage : null;
 		$VATAmount = $data->rowData->VATAmount ? $data->rowData->VATAmount : null;
+		$TaxPercentage = $data->rowData->TaxPercentage ? $data->rowData->TaxPercentage : null;
 		$TaxAmount = $data->rowData->TaxAmount ? $data->rowData->TaxAmount : null;
 
 
@@ -340,8 +346,8 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillNumber','Year','MonthId','BillSerial','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebateAmount', 'VATAmount', 'TaxAmount'];
-				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebateAmount, $VATAmount, $TaxAmount];
+				$q->columns = ['BillNumber','Year','MonthId','BillSerial','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
+				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -350,8 +356,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_bill';
-				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId', 'RebateAmount', 'VATAmount', 'TaxAmount'];
-				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebateAmount, $VATAmount, $TaxAmount];
+				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
+				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
 				$u->pks = ['BillId'];
 				$u->pk_values = [$BillId];
 				$u->build_query();
