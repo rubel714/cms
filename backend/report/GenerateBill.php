@@ -42,11 +42,23 @@ $contactPerson='Sheikh Zahid Hussain';
 $contactPhone='01711422132';
 
 
+$TotalBaseAmount=0;
+$TotalTransactionAmount=0;
+$RebatePercentage=0;
+$RebateAmount=0;
+$VATPercentage=0;
+$VATAmount=0;
+$TaxPercentage=0;
+$TaxAmount=0;
+$Total=0;
 
-$sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate
-		FROM t_bill a 
-		inner join t_customer b on a.CustomerId=b.CustomerId
-		where a.BillId=$BillId;";
+$sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate,
+ifnull(a.TotalBaseAmount,0) as TotalBaseAmount,ifnull(a.TotalTransactionAmount,0) as TotalTransactionAmount, ifnull(a.RebatePercentage,0) as RebatePercentage, 
+ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount,
+ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount
+FROM t_bill a 
+inner join t_customer b on a.CustomerId=b.CustomerId
+where a.BillId=$BillId;";
 
 $sqlmresult = $db->query($sqlm);
 
@@ -56,6 +68,17 @@ foreach ($sqlmresult as $result) {
     $BillNumber = $result['BillNumber'];
     $Remarks = $result['Remarks'];
     $BillDate = date('d/m/Y', strtotime($result['BillDate']));
+
+    $TotalBaseAmount = $result['TotalBaseAmount'];
+    $TotalTransactionAmount = $result['TotalTransactionAmount'];
+    $RebatePercentage = $result['RebatePercentage'];
+    $RebateAmount = $result['RebateAmount'];
+    $VATPercentage = $result['VATPercentage'];
+    $VATAmount = $result['VATAmount'];
+    $TaxPercentage = $result['TaxPercentage'];
+    $TaxAmount = $result['TaxAmount'];
+    $Total = $TotalBaseAmount - $RebateAmount - $VATAmount - $TaxAmount;
+
 }
 
 
@@ -150,8 +173,7 @@ $html .= '<th width="10%">Order Number</th>';
 $html .= '<th width="13%">Merchandiser Name</th>';
 $html .= '<th width="6%">Service Type</th>';
 $html .= '</tr></thead><tbody>';
-$TotalTransactionAmount = 0;
-$TotalBaseAmount = 0;
+
 foreach ($sqlLoop1result as $result) {
     $html .= '<tr>';
     $html .= '<td width="6%" align="center">' . htmlspecialchars($result['TransactionDate'], ENT_QUOTES, 'UTF-8') . '</td>';
@@ -170,24 +192,74 @@ foreach ($sqlLoop1result as $result) {
     $html .= '<td width="6%">' . htmlspecialchars($result['GeneralDescription20'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '</tr>';
 
-    if($result['TransactionAmount']>0){
-        $TotalTransactionAmount += $result['TransactionAmount'];
-    }
-
-    if($result['BaseAmount']>0){
-        $TotalBaseAmount += $result['BaseAmount'];
-    }
-
 }
 if (count($sqlLoop1result) > 0) {
      $html .= '<tr>';
     $html .= '<td width="6%" align="center"></td>';
     $html .= '<td width="10%"></td>';
     $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%"></td>';
+    $html .= '<td width="16%" style="font-weight:bold">Sub Total</td>';
     $html .= '<td width="5%" align="right" style="font-weight:bold">'.number_format($TotalTransactionAmount, 2).'</td>';
     $html .= '<td width="4%"></td>';
     $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalBaseAmount, 2).'</td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="6%"></td>';
+    $html .= '</tr>';
+
+    $html .= '<tr>';
+    $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="8%"></td>';
+    $html .= '<td width="16%">Rebate(' . $RebatePercentage . '%)</td>';
+    $html .= '<td width="5%"></td>';
+    $html .= '<td width="4%"></td>';
+    $html .= '<td width="7%" align="right">'.number_format($RebateAmount, 2).'</td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="6%"></td>';
+    $html .= '</tr>';
+
+    $html .= '<tr>';
+    $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="8%"></td>';
+    $html .= '<td width="16%">VAT(' . $VATPercentage . '%)</td>';
+    $html .= '<td width="5%"></td>';
+    $html .= '<td width="4%"></td>';
+    $html .= '<td width="7%" align="right">'.number_format($VATAmount, 2).'</td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="6%"></td>';
+    $html .= '</tr>';
+
+    
+    $html .= '<tr>';
+    $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="8%"></td>';
+    $html .= '<td width="16%">Tax(' . $TaxPercentage . '%)</td>';
+    $html .= '<td width="5%"></td>';
+    $html .= '<td width="4%"></td>';
+    $html .= '<td width="7%" align="right">'.number_format($TaxAmount, 2).'</td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="13%"></td>';
+    $html .= '<td width="6%"></td>';
+    $html .= '</tr>';
+
+        
+    $html .= '<tr>';
+    $html .= '<td width="6%" align="center"></td>';
+    $html .= '<td width="10%"></td>';
+    $html .= '<td width="8%"></td>';
+    $html .= '<td width="16%" style="font-weight:bold">Total</td>';
+    $html .= '<td width="5%"></td>';
+    $html .= '<td width="4%"></td>';
+    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($Total, 2).'</td>';
     $html .= '<td width="13%"></td>';
     $html .= '<td width="10%"></td>';
     $html .= '<td width="13%"></td>';

@@ -84,14 +84,14 @@ function addInvoicesToBill($data)
 			$q->build_query();
 			$aQuerys[] = $q;
 
-			// $u = new updateq();
-			// $u->table = 't_invoiceitems';
-			// $u->columns = ['IsBilled'];
-			// $u->values = [1];
-			// $u->pks = ['InvoiceItemId'];
-			// $u->pk_values = [$InvoiceItemId];
-			// $u->build_query();
-			// $aQuerys[] = $u;
+			$u = new updateq();
+			$u->table = 't_invoiceitems';
+			$u->columns = ['IsBilled'];
+			$u->values = [1];
+			$u->pks = ['InvoiceItemId'];
+			$u->pk_values = [$InvoiceItemId];
+			$u->build_query();
+			$aQuerys[] = $u;
 		}
 
 		if (count($aQuerys) === 0) {
@@ -223,12 +223,10 @@ function getUnbilledInvoices($data)
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
 		inner join t_customer c on a.AccountCode=c.CustomerCode
-		left join t_billitems d on a.InvoiceItemId=d.InvoiceItemId
 	    where c.CustomerId = $CustomerId 
 		and (a.GeneralDescription11 = '$BuyerId' OR '$BuyerId' = '')
 		and (a.GeneralDescription14 = '$MerchantId' OR '$MerchantId' = '')
 		and a.IsBilled=0
-		and d.BillItemId is null
 		$DateFilter
 		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
@@ -335,9 +333,6 @@ function dataAddEdit($data)
 
 			if ($BillId == "") {
 
-				// $query = "SELECT ifnull(max(BillNumber), 0)+1 NextBillNumber FROM t_bill;";
-				// $resultdatalist = $dbh->query($query);
-				// $BillNumber = $resultdatalist[0]['NextBillNumber'];
 				$NextBillObj = getNextBillNumber();
 				$BillNumber = $NextBillObj['NextBillNumber'];
 				$NextBillSerial = $NextBillObj['NextBillSerial'];
@@ -371,25 +366,25 @@ function dataAddEdit($data)
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
 
 			//when post then set billed flag in invoice
-			if ($success == 1 && $BillId != "" && $StatusId == 5) {
+			// if ($success == 1 && $BillId != "" && $StatusId == 5) {
 
 				//update billed flag in invoice items table
-				$query1 = "update t_invoiceitems set IsBilled = 1 
-					where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
-				$dbh->query($query1);
+				// $query1 = "update t_invoiceitems set IsBilled = 1 
+				// 	where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
+				// $dbh->query($query1);
 
 
 				//when bill completed then calculate and update total base amount and total transaction amount in bill table
-				$query2 = "UPDATE t_bill a 
-							INNER JOIN (SELECT m.BillId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
-								FROM t_billitems m
-								INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
-								WHERE m.BillId = $BillId
-								GROUP BY m.BillId) b ON a.BillId=b.BillId
-							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
-							WHERE a.BillId = $BillId;";
-					$dbh->query($query2);
-			}
+				// $query2 = "UPDATE t_bill a 
+				// 			INNER JOIN (SELECT m.BillId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
+				// 				FROM t_billitems m
+				// 				INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
+				// 				WHERE m.BillId = $BillId
+				// 				GROUP BY m.BillId) b ON a.BillId=b.BillId
+				// 			SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
+				// 			WHERE a.BillId = $BillId;";
+				// 	$dbh->query($query2);
+			// }
 
 
 

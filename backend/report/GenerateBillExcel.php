@@ -40,11 +40,24 @@ $withinPeriod = "15 days of invoice date";
 $contactPerson = 'Sheikh Zahid Hussain';
 $contactPhone = '01711422132';
 
+$TotalBaseAmount=0;
+$TotalTransactionAmount=0;
+$RebatePercentage=0;
+$RebateAmount=0;
+$VATPercentage=0;
+$VATAmount=0;
+$TaxPercentage=0;
+$TaxAmount=0;
+$Total=0;
+
 // Get Bill Header Data
-$sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate
-		FROM t_bill a 
-		inner join t_customer b on a.CustomerId=b.CustomerId
-		where a.BillId=$BillId;";
+$sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate,
+ifnull(a.TotalBaseAmount,0) as TotalBaseAmount,ifnull(a.TotalTransactionAmount,0) as TotalTransactionAmount, ifnull(a.RebatePercentage,0) as RebatePercentage, 
+ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount,
+ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount
+FROM t_bill a 
+inner join t_customer b on a.CustomerId=b.CustomerId
+where a.BillId=$BillId;";
 
 $sqlmresult = $db->query($sqlm);
 
@@ -54,6 +67,16 @@ foreach ($sqlmresult as $result) {
     $BillNumber = $result['BillNumber'];
     $Remarks = $result['Remarks'];
     $BillDate = date('d/m/Y', strtotime($result['BillDate']));
+
+    $TotalBaseAmount = $result['TotalBaseAmount'];
+    $TotalTransactionAmount = $result['TotalTransactionAmount'];
+    $RebatePercentage = $result['RebatePercentage'];
+    $RebateAmount = $result['RebateAmount'];
+    $VATPercentage = $result['VATPercentage'];
+    $VATAmount = $result['VATAmount'];
+    $TaxPercentage = $result['TaxPercentage'];
+    $TaxAmount = $result['TaxAmount'];
+    $Total = $TotalBaseAmount - $RebateAmount - $VATAmount - $TaxAmount;
 }
 
 // Get Bill Items Data
@@ -144,8 +167,6 @@ $sheet->getStyle('A' . $headerRow . ':K' . $headerRow)->applyFromArray($headerSt
 
 // Data Rows
 $dataRow = 8;
-$TotalTransactionAmount = 0;
-$TotalBaseAmount = 0;
 
 foreach ($sqlLoop1result as $result) {
     $sheet->setCellValue('A' . $dataRow, $result['TransactionDate']);
@@ -160,23 +181,40 @@ foreach ($sqlLoop1result as $result) {
     $sheet->setCellValue('J' . $dataRow, $result['GeneralDescription14']);
     $sheet->setCellValue('K' . $dataRow, $result['GeneralDescription20']);
 
-    if ($result['TransactionAmount'] > 0) {
-        $TotalTransactionAmount += $result['TransactionAmount'];
-    }
-    if ($result['BaseAmount'] > 0) {
-        $TotalBaseAmount += $result['BaseAmount'];
-    }
-
     $dataRow++;
 }
 
-// Total Row
+// Summary Rows
 if (count($sqlLoop1result) > 0) {
-    $sheet->setCellValue('D' . $dataRow, 'Total:');
+    // Sub Total Row
+    $sheet->setCellValue('D' . $dataRow, 'Sub Total');
     $sheet->setCellValue('E' . $dataRow, $TotalTransactionAmount);
     $sheet->setCellValue('G' . $dataRow, $TotalBaseAmount);
-    
-    $sheet->getStyle('D' . $dataRow . ':K' . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle('D' . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle('E' . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle('G' . $dataRow)->getFont()->setBold(true);
+    $dataRow++;
+
+    // Rebate Row
+    $sheet->setCellValue('D' . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
+    $sheet->setCellValue('G' . $dataRow, $RebateAmount);
+    $dataRow++;
+
+    // VAT Row
+    $sheet->setCellValue('D' . $dataRow, 'VAT(' . $VATPercentage . '%)');
+    $sheet->setCellValue('G' . $dataRow, $VATAmount);
+    $dataRow++;
+
+    // Tax Row
+    $sheet->setCellValue('D' . $dataRow, 'Tax(' . $TaxPercentage . '%)');
+    $sheet->setCellValue('G' . $dataRow, $TaxAmount);
+    $dataRow++;
+
+    // Total Row
+    $sheet->setCellValue('D' . $dataRow, 'Total');
+    $sheet->setCellValue('G' . $dataRow, $Total);
+    $sheet->getStyle('D' . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle('G' . $dataRow)->getFont()->setBold(true);
 }
 
 // Style data area with borders
