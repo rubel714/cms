@@ -1,4 +1,6 @@
 <?php
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 
 include_once('../env.php');
 include_once('../source/api/pdolibs/pdo_lib.php');
@@ -127,8 +129,8 @@ function InvoiceListExport()
 	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left");
 	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
 	$tableProperties["width_excel"] = array("35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20");
-	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", 2, "string", "string", "string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
 	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1

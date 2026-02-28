@@ -140,16 +140,16 @@ function deleteBillItem($data)
 		$d->build_query();
 		$aQuerys[] = $d;
 
-		// if ($InvoiceItemId != "") {
-		// 	$u = new updateq();
-		// 	$u->table = 't_invoiceitems';
-		// 	$u->columns = ['IsBilled'];
-		// 	$u->values = [0];
-		// 	$u->pks = ['InvoiceItemId'];
-		// 	$u->pk_values = [$InvoiceItemId];
-		// 	$u->build_query();
-		// 	$aQuerys[] = $u;
-		// }
+		if ($InvoiceItemId != "") {
+			$u = new updateq();
+			$u->table = 't_invoiceitems';
+			$u->columns = ['IsBilled'];
+			$u->values = [0];
+			$u->pks = ['InvoiceItemId'];
+			$u->pk_values = [$InvoiceItemId];
+			$u->build_query();
+			$aQuerys[] = $u;
+		}
 
 		$res = exec_query($aQuerys, $UserId, $lan);
 		$success = ($res['msgType'] == 'success') ? 1 : 0;
@@ -199,13 +199,13 @@ function getDataList($data)
 function getUnbilledInvoices($data)
 {
 
-	$CustomerId = $data->CustomerId; 
-	$BuyerId = isset($data->BuyerId)?trim($data->BuyerId): ''; 
-	$MerchantId = isset($data->MerchantId)?trim($data->MerchantId): ''; 
+	$CustomerId = $data->CustomerId;
+	$BuyerId = isset($data->BuyerId) ? trim($data->BuyerId) : '';
+	$MerchantId = isset($data->MerchantId) ? trim($data->MerchantId) : '';
 
 	$DateFilter = "";
-	if(isset($data->InvoiceStartDate) && isset($data->InvoiceEndDate)) {
-		if($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
+	if (isset($data->InvoiceStartDate) && isset($data->InvoiceEndDate)) {
+		if ($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
 
 			$StartDate = trim($data->InvoiceStartDate);
 			$EndDate = trim($data->InvoiceEndDate) . " 23:59:59";
@@ -218,7 +218,7 @@ function getUnbilledInvoices($data)
 
 	try {
 		$dbh = new Db();
-	 	$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
+		$query = "SELECT a.*,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
 		b.UserName as CustomerUserName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
@@ -308,7 +308,7 @@ function dataAddEdit($data)
 		$TaxAmount = $data->rowData->TaxAmount ? $data->rowData->TaxAmount : null;
 
 
-		
+
 		// $BillIdCheck = "";
 		// if($BillId != "") {
 		// 	$BillIdCheck = " and a.BillId != $BillId ";
@@ -341,7 +341,7 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillNumber','Year','MonthId','BillSerial','BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
+				$q->columns = ['BillNumber', 'Year', 'MonthId', 'BillSerial', 'BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
 				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
@@ -351,13 +351,12 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_bill';
-				$u->columns = ['BillDate', 'CustomerId','Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
+				$u->columns = ['BillDate', 'CustomerId', 'Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
 				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
 				$u->pks = ['BillId'];
 				$u->pk_values = [$BillId];
 				$u->build_query();
 				$aQuerys[] = $u;
-
 			}
 
 
@@ -368,22 +367,22 @@ function dataAddEdit($data)
 			//when post then set billed flag in invoice
 			// if ($success == 1 && $BillId != "" && $StatusId == 5) {
 
-				//update billed flag in invoice items table
-				// $query1 = "update t_invoiceitems set IsBilled = 1 
-				// 	where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
-				// $dbh->query($query1);
+			//update billed flag in invoice items table
+			// $query1 = "update t_invoiceitems set IsBilled = 1 
+			// 	where InvoiceItemId in (select InvoiceItemId from t_billitems where BillId = $BillId);";
+			// $dbh->query($query1);
 
 
-				//when bill completed then calculate and update total base amount and total transaction amount in bill table
-				// $query2 = "UPDATE t_bill a 
-				// 			INNER JOIN (SELECT m.BillId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
-				// 				FROM t_billitems m
-				// 				INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
-				// 				WHERE m.BillId = $BillId
-				// 				GROUP BY m.BillId) b ON a.BillId=b.BillId
-				// 			SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
-				// 			WHERE a.BillId = $BillId;";
-				// 	$dbh->query($query2);
+			//when bill completed then calculate and update total base amount and total transaction amount in bill table
+			// $query2 = "UPDATE t_bill a 
+			// 			INNER JOIN (SELECT m.BillId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
+			// 				FROM t_billitems m
+			// 				INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
+			// 				WHERE m.BillId = $BillId
+			// 				GROUP BY m.BillId) b ON a.BillId=b.BillId
+			// 			SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
+			// 			WHERE a.BillId = $BillId;";
+			// 	$dbh->query($query2);
 			// }
 
 
@@ -406,7 +405,8 @@ function dataAddEdit($data)
 
 function deleteData($data)
 {
-
+	$dbh = new Db();
+	$aQuerys = array();
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return $returnData = msg(0, 404, 'Page Not Found!');
 	}
@@ -421,6 +421,34 @@ function deleteData($data)
 		$UserId = trim($data->UserId);
 
 		try {
+
+			$chk = "SELECT InvoiceItemId FROM t_billitems WHERE BillId=$BillId;";
+			$chkRes = $dbh->query($chk);
+
+			foreach ($chkRes as $obj) {
+				$InvoiceItemId = $obj['InvoiceItemId'];
+
+				$u = new updateq();
+				$u->table = 't_invoiceitems';
+				$u->columns = ['IsBilled'];
+				$u->values = [0];
+				$u->pks = ['InvoiceItemId'];
+				$u->pk_values = [$InvoiceItemId];
+				$u->build_query();
+				$aQuerys[] = $u;
+			}
+
+
+
+
+
+
+
+
+
+
+
+
 
 			$d = new deleteq();
 			$d->table = 't_billitems';
@@ -475,7 +503,7 @@ function getNextBillNumber()
 		$NextBillSerial = $result3[0]['NextBillSerial'];
 
 		$NextBillNumber = $RptPreFix . '/' . $Year . '/' . str_pad($MonthId, 2, "0", STR_PAD_LEFT) . '/' . str_pad($NextBillSerial, 3, "0", STR_PAD_LEFT);
-		
+
 		$returnData = [
 			"success" => 1,
 			"status" => 200,
