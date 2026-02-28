@@ -174,7 +174,7 @@ function getDataList($data)
 		$dbh = new Db();
 
 		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
-		a.CustomerId, b.CustomerCode, b.CustomerName, a.RebatePercentage, a.RebateAmount, 
+		a.CustomerId, b.CustomerCode, b.CustomerName,a.TotalBaseAmount, a.RebatePercentage, a.RebateAmount, 
 		a.VATPercentage, a.VATAmount, a.TaxPercentage, a.TaxAmount, a.Remarks, a.StatusId
 		FROM t_bill a
 		INNER JOIN t_customer b ON a.CustomerId = b.CustomerId

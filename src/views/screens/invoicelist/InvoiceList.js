@@ -69,21 +69,26 @@ const InvoiceList = (props) => {
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
-  // const PrintPDFExcelExportFunction = () => {
-  //   let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
+  const PrintPDFExcelExportFunction = (reportType) => {
+    let finalUrl = EXCEL_EXPORT_URL + "report/print_pdf_excel_server.php";
 
-  //   window.open(
-  //     finalUrl +
-  //       "?action=CheckListExport" +
-  //       "&reportType=excel" +
-  //       "&ClientId=" +
-  //       UserInfo.ClientId +
-  //       "&BranchId=" +
-  //       UserInfo.BranchId +
-  //       "&TimeStamp=" +
-  //       Date.now()
-  //   );
-  // };
+    window.open(
+      finalUrl +
+        "?action=InvoiceListExport" +
+        "&reportType=excel" +
+        "&StartDate=" +
+        StartDate +
+        "&EndDate=" +
+        EndDate +
+        "&UserId=" +
+        UserInfo.UserId +
+        "&RoleId=" +
+        UserInfo.RoleId[0] +
+        "&TimeStamp=" +
+        Date.now()
+    );
+  };
+
   /* =====End of Excel Export Code==== */
 
   const columnList = [
@@ -644,6 +649,11 @@ const InvoiceList = (props) => {
             </div>
           </div>
 
+          <Button
+            label={"Export"}
+            class={"btnPrint"}
+            onClick={PrintPDFExcelExportFunction}
+          />
           {/* <div class="">
             <label>Show Last Number of Invoice: </label>
             <input

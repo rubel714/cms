@@ -20,6 +20,16 @@ if (isset($_POST['action'])) {
 }
 
 switch ($task) {
+		case "InvoiceListExport":
+		InvoiceListExport();
+		break;
+
+
+
+
+
+
+
 	case "UserExport":
 		UserExport();
 		break;
@@ -52,9 +62,6 @@ switch ($task) {
 		break;
 	case "MachineserialExport":
 		MachineserialExport();
-		break;
-	case "FeedbackExport":
-		FeedbackExport();
 		break;
 
 
@@ -94,6 +101,50 @@ switch ($task) {
 		echo "{failure:true}";
 		break;
 }
+
+
+function InvoiceListExport()
+{
+	global $sql, $tableProperties, $TEXT, $siteTitle;
+
+	$StartDate = $_REQUEST['StartDate'];
+	$EndDate = $_REQUEST['EndDate'] . " 23-59-59"; 
+
+	$sql = "SELECT concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,a.AccountingPeriod,a.Description
+	,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, a.TransactionReference,a.AnalysisCode3
+	,a.TransactionAmount,a.ExchangeRate,a.BaseAmount,a.BaseAmountWithoutVat,a.VatAmount,a.GeneralDescription9,a.GeneralDescription11,
+	a.GeneralDescription14,a.GeneralDescription17,a.GeneralDescription18,a.GeneralDescription20,b.UserName as CustomerUserName
+
+	FROM t_invoiceitems a
+	left join t_users b on a.CustomerUserId=b.UserId
+	left join t_customer c on a.AccountCode=c.CustomerCode
+	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')
+	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+
+
+	$tableProperties["query_field"] = array("CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName");
+	$tableProperties["table_header"] = array("Customer", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff");
+	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left");
+	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20");
+	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", 2, "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
+	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
+	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
+
+	//Report header list
+	$tableProperties["header_list"][0] = $siteTitle;
+	$tableProperties["header_list"][1] = 'Invoice List';
+	// $tableProperties["header_list"][1] = 'Heading 2';
+
+	//Report save name. Not allow any type of special character
+	$tableProperties["report_save_name"] = 'Invoice_List';
+}
+
+
+
+
 
 
 function UserExport()
@@ -445,72 +496,6 @@ function MachineserialExport()
 	//Report save name. Not allow any type of special character
 	$tableProperties["report_save_name"] = 'Machine_Serial';
 }
-
-
-function FeedbackExport()
-{
-
-	global $sql, $tableProperties, $TEXT, $siteTitle;
-	$UserId = $_REQUEST['UserId'];
-	$Search = $_REQUEST['Search'];
-
-	$sWhere = "";
-		if ($Search === "Y") {
-			$sWhere = " AND a.IsLinemanFeedback='Y' ";
-		} else if ($Search === "N") {
-			$sWhere = " AND a.IsLinemanFeedback='N' ";
-		}
-
-		$sql = "SELECT  
-	 (case when a.CustomerId=38 then concat(c.CustomerName,'-',a.DummyCustomerDesc) else c.CustomerName end) CustomerName,
-
-		DATE_FORMAT(a.TransactionDate, '%d-%b-%Y %h:%i:%s %p') AS VisitDate,g.UserName AS VisitorName,
-		ifnull(b.DisplayName,'') AS Purpose, 
-		ifnull(d.DisplayName,'') AS Transportation, ifnull(a.PublicTransportDesc,'') AS PublicTransportDesc,
-		ifnull(a.SelfDiscussion,'') AS SelfDiscussion,ifnull(a.ConveyanceAmount,'') AS ConveyanceAmount, 
-	 	ifnull(a.RefreshmentAmount,'') AS RefreshmentAmount,ifnull(a.DinnerBillAmount,'') AS DinnerBillAmount,	
-		case when a.ApprovedRefreshmentAmount is null then a.RefreshmentAmount else a.ApprovedRefreshmentAmount end AS ApprovedRefreshmentAmount,
-		case when a.ApprovedConveyanceAmount is null then a.ConveyanceAmount else a.ApprovedConveyanceAmount end AS ApprovedConveyanceAmount,
-		case when a.ApprovedDinnerBillAmount is null then a.DinnerBillAmount else a.ApprovedDinnerBillAmount end AS ApprovedDinnerBillAmount,
-
-		a.IsLinemanFeedback
-
-	FROM t_transaction a
-	inner join t_users g on a.UserId=g.UserId
-	left join t_dropdownlist b on a.DropDownListIDForPurpose=b.DropDownListID
-	left join t_customer c on a.CustomerId=c.CustomerId
-	left join t_dropdownlist d on a.DropDownListIDForTransportation=d.DropDownListID
-	left join t_machine e on a.MachineId=e.MachineId
-	left join t_machinemodel f on a.MachineModelId=f.MachineModelId
-	where (g.LinemanUserId=$UserId or $UserId=0)
-	and a.TransactionTypeId=1
-	and a.IsVisitorFeedback='Y'
-	$sWhere
-	and (a.ConveyanceAmount>0 OR a.RefreshmentAmount>0 OR a.ApprovedRefreshmentAmount>0 OR a.ApprovedConveyanceAmount>0 OR a.DinnerBillAmount>0 OR a.ApprovedDinnerBillAmount>0)
-	ORDER BY a.TransactionDate DESC;";
-
-
-	$tableProperties["query_field"] = array("CustomerName", "VisitDate","VisitorName", "Purpose","Transportation","PublicTransportDesc","SelfDiscussion","ConveyanceAmount","RefreshmentAmount","DinnerBillAmount","ApprovedConveyanceAmount","ApprovedRefreshmentAmount","ApprovedDinnerBillAmount","IsLinemanFeedback");
-	$tableProperties["table_header"] = array('Customer Name', 'Visit Date','Employee', 'Purpose','Transportation','Transportation Description','Discussion','Conveyance','Refreshment','Dinner Bill','Approved Conveyance','Approved Refreshment','Approved Dinner Bill','Approved');
-	$tableProperties["align"] = array("left", "left", "left");
-	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%","10%", "10%", "10%", "10%", "5%","5%", "5%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("25", "22", "20","20", "15", "15", "15", "15", "15","16", "20", "20", "20", "12");
-	$tableProperties["precision"] = array("string", "string","string", "string", "string", "string", "string",2,2,2,2, 2,2, "string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,0,0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,0,0); //colorcode field = 1 not color code field = 0
-	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
-	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
-
-	//Report header list
-	$tableProperties["header_list"][0] = $siteTitle;
-	$tableProperties["header_list"][1] = 'Feedback';
-	// $tableProperties["header_list"][1] = 'Heading 2';
-
-	//Report save name. Not allow any type of special character
-	$tableProperties["report_save_name"] = 'Feedback';
-}
-
-
 
 
 

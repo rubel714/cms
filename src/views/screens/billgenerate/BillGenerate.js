@@ -51,6 +51,9 @@ const BillGenerate = (props) => {
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
+  
+  /* =====Start of Excel Export Code==== */
+
   const PDFGenerate = () => {
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBill.php";
     window.open(
@@ -65,6 +68,8 @@ const BillGenerate = (props) => {
     );
   };
 
+  
+
   /* =====End of Excel Export Code==== */
 
   const columnList = [
@@ -72,7 +77,7 @@ const BillGenerate = (props) => {
     {
       field: "BillNumber",
       label: "Ref. No",
-      width: "10%",
+      width: "8%",
       align: "left",
       visible: true,
       sort: true,
@@ -81,7 +86,7 @@ const BillGenerate = (props) => {
     {
       field: "BillDate",
       label: "Bill Date",
-      width: "10%",
+      width: "6%",
       align: "left",
       visible: true,
       sort: true,
@@ -90,7 +95,7 @@ const BillGenerate = (props) => {
     {
       field: "CustomerCode",
       label: "Customer Code",
-      width: "10%",
+      width: "8%",
       align: "left",
       visible: true,
       sort: true,
@@ -105,10 +110,77 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
     },
+        {
+      field: "TotalBaseAmount",
+      label: "Amount in BDT",
+      width: "9%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+            {
+      field: "RebatePercentage",
+      label: "Rebate (%)",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+                {
+      field: "RebateAmount",
+      label: "Rebate Amount",
+      width: "9%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+
+                {
+      field: "VATPercentage",
+      label: "VAT (%)",
+      width: "5%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+                {
+      field: "VATAmount",
+      label: "VAT Amount",
+      width: "8%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
+                    {
+      field: "TaxPercentage",
+      label: "Tax (%)",
+      width: "4%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+                {
+      field: "TaxAmount",
+      label: "Tax Amount",
+      width: "7%",
+      align: "right",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+
     {
       field: "custom",
       label: "Action",
-      width: "8%",
+      width: "4%",
       align: "left",
       visible: true,
       sort: false,
@@ -834,11 +906,7 @@ const BillGenerate = (props) => {
         {listedittoggle && (
           <div>
             <div class="searchAdd">
-              {/* <Button
-                label={"Export"}
-                class={"btnPrint"}
-                onClick={PrintPDFExcelExportFunction}
-              /> */}
+
               <Button
                 disabled={permissionType}
                 label={"New Bill"}
