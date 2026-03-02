@@ -112,7 +112,9 @@ function InvoiceListExport()
 	$StartDate = $_REQUEST['StartDate'];
 	$EndDate = $_REQUEST['EndDate'] . " 23-59-59"; 
 
-	$sql = "SELECT concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,a.AccountingPeriod,a.Description
+	$sql = "SELECT a.AccountCode as CustomerCode,c.CustomerName,
+	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod
+	,a.Description
 	,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, a.TransactionReference,a.AnalysisCode3
 	,a.TransactionAmount,a.ExchangeRate,a.BaseAmount,a.BaseAmountWithoutVat,a.VatAmount,a.GeneralDescription9,a.GeneralDescription11,
 	a.GeneralDescription14,a.GeneralDescription17,a.GeneralDescription18,a.GeneralDescription20,b.UserName as CustomerUserName
@@ -124,14 +126,14 @@ function InvoiceListExport()
 	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
 
-	$tableProperties["query_field"] = array("CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName");
-	$tableProperties["table_header"] = array("Customer", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff");
-	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left");
+	$tableProperties["query_field"] = array("CustomerCode","CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName");
+	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff");
+	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left");
 	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20");
-	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
+	$tableProperties["width_excel"] = array("18","35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20");
+	$tableProperties["precision"] = array("string","string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
 

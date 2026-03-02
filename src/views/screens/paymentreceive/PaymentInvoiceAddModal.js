@@ -250,11 +250,12 @@ const PaymentInvoiceAddModal = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
 
     {
       field: "ExchangeRate",
-      label: "Currency Rate",
+      label: "Ex. Rate",
       width: "7%",
       align: "right",
       visible: true,
@@ -270,6 +271,7 @@ const PaymentInvoiceAddModal = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
     // {
     //   field: "BaseAmountWithoutVat",

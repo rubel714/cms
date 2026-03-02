@@ -251,6 +251,7 @@ const InvoiceAddModal = (props) => {
       sort: true,
       filter: true,
       bottomcalc: "sum",
+      type: "number",
     },
     {
       field: "ExchangeRate",
@@ -260,6 +261,7 @@ const InvoiceAddModal = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "BaseAmount",
@@ -302,7 +304,6 @@ const InvoiceAddModal = (props) => {
       visible: true,
       sort: true,
       filter: true,
-      // type: "number",
     },
     {
       field: "GeneralDescription20",

@@ -62,7 +62,7 @@ const InvoiceList = (props) => {
   const [lastInvoiceLimit, setLastInvoiceLimit] = useState(200);
 
   const [StartDate, setStartDate] = useState(
-    moment().add(-30, "days").format("YYYY-MM-DD")
+    moment().add(-30, "days").format("YYYY-MM-DD"),
   );
   const [EndDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
 
@@ -85,7 +85,7 @@ const InvoiceList = (props) => {
         "&RoleId=" +
         UserInfo.RoleId[0] +
         "&TimeStamp=" +
-        Date.now()
+        Date.now(),
     );
   };
 
@@ -258,14 +258,16 @@ const InvoiceList = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
-        {
+    {
       field: "ExchangeRate",
       label: "Exchange Rate",
       align: "right",
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
 
     {
@@ -275,6 +277,7 @@ const InvoiceList = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "BaseAmountWithoutVat",
@@ -283,6 +286,7 @@ const InvoiceList = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "VatAmount",
@@ -291,10 +295,8 @@ const InvoiceList = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
-
-
-
 
     {
       field: "CurrencyCode",

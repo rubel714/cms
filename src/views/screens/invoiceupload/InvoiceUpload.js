@@ -156,6 +156,7 @@ const InvoiceUpload = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
         {
       field: "BaseAmountWithoutVat",
@@ -164,6 +165,7 @@ const InvoiceUpload = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "VatAmount",
@@ -172,6 +174,7 @@ const InvoiceUpload = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "TransactionDate",
@@ -268,6 +271,7 @@ const InvoiceUpload = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "CurrencyCode",

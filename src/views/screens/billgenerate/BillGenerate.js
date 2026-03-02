@@ -118,6 +118,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
             {
       field: "RebatePercentage",
@@ -127,6 +128,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
                 {
       field: "RebateAmount",
@@ -136,6 +138,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
 
 
@@ -147,6 +150,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
                 {
       field: "VATAmount",
@@ -156,6 +160,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
 
                     {
@@ -166,6 +171,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
                 {
       field: "TaxAmount",
@@ -175,6 +181,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: true,
       filter: true,
+      type: "number",
     },
 
     {
@@ -705,6 +712,7 @@ const BillGenerate = (props) => {
       sort: true,
       filter: true,
       bottomcalc: "sum",
+      type: "number",
     },
     {
       field: "ExchangeRate",
@@ -714,6 +722,7 @@ const BillGenerate = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      type: "number",
     },
     {
       field: "BaseAmount",

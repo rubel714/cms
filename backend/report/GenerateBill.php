@@ -181,7 +181,7 @@ foreach ($sqlLoop1result as $result) {
     $html .= '<td width="8%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
     $html .= '<td width="16%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
 
-        $html .= '<td width="5%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
+    $html .= '<td width="5%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
     $html .= '<td width="4%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
     $html .= '<td width="7%" align="right">' . number_format($result['BaseAmount'], 2) . '</td>';
 
@@ -208,6 +208,8 @@ if (count($sqlLoop1result) > 0) {
     $html .= '<td width="6%"></td>';
     $html .= '</tr>';
 
+    
+if( $RebatePercentage>0){
     $html .= '<tr>';
     $html .= '<td width="6%" align="center"></td>';
     $html .= '<td width="10%"></td>';
@@ -221,7 +223,9 @@ if (count($sqlLoop1result) > 0) {
     $html .= '<td width="13%"></td>';
     $html .= '<td width="6%"></td>';
     $html .= '</tr>';
+}
 
+if( $VATPercentage>0){
     $html .= '<tr>';
     $html .= '<td width="6%" align="center"></td>';
     $html .= '<td width="10%"></td>';
@@ -235,8 +239,9 @@ if (count($sqlLoop1result) > 0) {
     $html .= '<td width="13%"></td>';
     $html .= '<td width="6%"></td>';
     $html .= '</tr>';
+}
 
-    
+    if( $TaxPercentage>0){
     $html .= '<tr>';
     $html .= '<td width="6%" align="center"></td>';
     $html .= '<td width="10%"></td>';
@@ -250,6 +255,7 @@ if (count($sqlLoop1result) > 0) {
     $html .= '<td width="13%"></td>';
     $html .= '<td width="6%"></td>';
     $html .= '</tr>';
+}
 
         
     $html .= '<tr>';

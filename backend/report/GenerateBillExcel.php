@@ -196,19 +196,25 @@ if (count($sqlLoop1result) > 0) {
     $dataRow++;
 
     // Rebate Row
-    $sheet->setCellValue('D' . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
-    $sheet->setCellValue('G' . $dataRow, $RebateAmount);
-    $dataRow++;
+    if ($RebatePercentage > 0) {
+        $sheet->setCellValue('D' . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
+        $sheet->setCellValue('G' . $dataRow, $RebateAmount);
+        $dataRow++;
+    }
 
     // VAT Row
-    $sheet->setCellValue('D' . $dataRow, 'VAT(' . $VATPercentage . '%)');
-    $sheet->setCellValue('G' . $dataRow, $VATAmount);
-    $dataRow++;
+    if ($VATPercentage > 0) {
+        $sheet->setCellValue('D' . $dataRow, 'VAT(' . $VATPercentage . '%)');
+        $sheet->setCellValue('G' . $dataRow, $VATAmount);
+        $dataRow++;
+    }
 
     // Tax Row
-    $sheet->setCellValue('D' . $dataRow, 'Tax(' . $TaxPercentage . '%)');
-    $sheet->setCellValue('G' . $dataRow, $TaxAmount);
-    $dataRow++;
+    if ($TaxPercentage > 0) {
+        $sheet->setCellValue('D' . $dataRow, 'Tax(' . $TaxPercentage . '%)');
+        $sheet->setCellValue('G' . $dataRow, $TaxAmount);
+        $dataRow++;
+    }
 
     // Total Row
     $sheet->setCellValue('D' . $dataRow, 'Total');

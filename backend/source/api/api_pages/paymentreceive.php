@@ -106,7 +106,10 @@ function getUnpaidInvoices($data)
 
 	try {
 		$dbh = new Db();
-		$query = "SELECT a.InvoiceItemId,a.AccountingPeriod, a.AccountCode, a.Description,
+		$query = "SELECT a.InvoiceItemId,
+		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+		
+		a.AccountCode, a.Description,
 			DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
 
@@ -209,7 +212,8 @@ function getDataList($data)
 	try {
 		$dbh = new Db();
 
-		$query = "SELECT a.PaymentId AS id,  DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
+		$query = "SELECT a.PaymentId AS id, 
+		 DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
 		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
 		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.CNAmount,a.AitDeduction,a.VatAmount
@@ -254,7 +258,9 @@ function getDataSingle($data)
 
 
 		/**Items Data */
-		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,b.AccountingPeriod, 
+		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,
+		
+		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(b.AccountingPeriod,4), '-',LPAD(LEFT(b.AccountingPeriod, LENGTH(b.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		b.AccountCode, b.Description, 
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
 		b.TransactionAmount, b.ExchangeRate,b.BaseAmount
