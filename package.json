@@ -1,6 +1,6 @@
 {
   "name": "dispensing-tool",
-  "version": "1.0.09",
+  "version": "1.0.10",
   "private": true,
   "homepage": "",
   "dependencies": {
