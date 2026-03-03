@@ -453,7 +453,52 @@ const InvoiceAddModal = (props) => {
             />
           </div>
 
-          <div className="" style={{ padding: "16px" }}>
+          <div style={{ padding: "16px" }}>
+            <div style={{ display: "flex", gap: "20px", marginBottom: "16px", flexWrap: "wrap" }}>
+              {/* Total Section */}
+              <div style={{ display: "flex", gap: "15px", padding: "10px", backgroundColor: "#fafafa", borderRadius: "10px", border: "2px solid #e0e0e0" }}>
+                <div style={{ padding: "12px 20px", backgroundColor: "#f3e5f5", borderRadius: "8px", minWidth: "120px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Invoice</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#7b1fa2" }}>
+                    {invoiceList.length}
+                  </div>
+                </div>
+                <div style={{ padding: "12px 20px", backgroundColor: "#e3f2fd", borderRadius: "8px", minWidth: "180px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Amount (FC)</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1565c0" }}>
+                    {invoiceList.reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div style={{ padding: "12px 20px", backgroundColor: "#e8f5e9", borderRadius: "8px", minWidth: "180px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Amount (BDT)</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#2e7d32" }}>
+                    {invoiceList.reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Selected Section */}
+              <div style={{ display: "flex", gap: "15px", padding: "10px", backgroundColor: "#fff8e1", borderRadius: "10px", border: "2px solid #ffcc80" }}>
+                <div style={{ padding: "12px 20px", backgroundColor: "#ede7f6", borderRadius: "8px", minWidth: "120px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Invoice</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#512da8" }}>
+                    {invoiceList.filter(item => item.IsSelected).length}
+                  </div>
+                </div>
+                <div style={{ padding: "12px 20px", backgroundColor: "#fff3e0", borderRadius: "8px", minWidth: "180px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Amount (FC)</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#e65100" }}>
+                    {invoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div style={{ padding: "12px 20px", backgroundColor: "#fce4ec", borderRadius: "8px", minWidth: "180px" }}>
+                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Amount (BDT)</div>
+                  <div style={{ fontSize: "18px", fontWeight: "bold", color: "#c2185b" }}>
+                    {invoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="" style={{ maxHeight: "350px", overflow: "auto" }}>
               <CustomTable
                 columns={columnList}
