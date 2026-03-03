@@ -31,8 +31,8 @@ const PaymentInvoiceAddModal = (props) => {
 
   useEffect(() => {
     setCurrentRow(props.currentRow);
-    getBuyerList();
-    getMerchantList();
+    // getBuyerList();
+    // getMerchantList();
   }, []);
 
   function getBuyerList() {
