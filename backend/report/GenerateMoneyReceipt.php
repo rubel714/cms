@@ -287,7 +287,7 @@ $valueW = 90;
 $pdf->SetFont('helvetica', 'R', 9);
 $pdf->Cell($labelW, 8, 'In words', 0, 0, 'L');
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $AmountInWords, 0, 1, 'L');
+$pdf->Cell($valueW, 8, ': ' . strtoupper($AmountInWords), 0, 1, 'L');
 
 
 // Column widths
