@@ -95,24 +95,41 @@ function getUnpaidInvoices($data)
 
 	$DateFilter = "";
 	if (isset($data->InvoiceStartDate) && isset($data->InvoiceEndDate)) {
-		if($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
+		if ($data->InvoiceStartDate != "" && $data->InvoiceEndDate != "") {
 
-		$StartDate = trim($data->InvoiceStartDate);
-		$EndDate = trim($data->InvoiceEndDate) . " 23:59:59";
+			$StartDate = trim($data->InvoiceStartDate);
+			$EndDate = trim($data->InvoiceEndDate) . " 23:59:59";
 
-		$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
+			$DateFilter = " AND (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') ";
 		}
 	}
 
+	$BillNumber = isset($data->BillNumber) ? trim($data->BillNumber) : '';
+
+
 	try {
 		$dbh = new Db();
-		$query = "SELECT a.InvoiceItemId,
-		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
-		
-		a.AccountCode, a.Description,
-			DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
-			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
 
+		if ($BillNumber != "") {
+			$query = "SELECT a.InvoiceItemId,
+			DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+			a.AccountCode, a.Description, DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
+			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
+			FROM t_invoiceitems a
+			inner join t_billitems aa on a.InvoiceItemId=aa.InvoiceItemId
+			inner join t_bill aaa on aa.BillId=aaa.BillId and aaa.BillNumber='$BillNumber'
+			inner join t_customer c on a.AccountCode=c.CustomerCode
+			left join t_paymentitems p on a.InvoiceItemId=p.InvoiceItemId
+			where c.CustomerId = $CustomerId
+			and a.IsPaid = 0
+			and p.PaymentItemId is null
+			$DateFilter
+			ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+		} else {
+			$query = "SELECT a.InvoiceItemId,
+			DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+			a.AccountCode, a.Description, DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
+			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
 			FROM t_invoiceitems a
 			inner join t_customer c on a.AccountCode=c.CustomerCode
 			left join t_paymentitems p on a.InvoiceItemId=p.InvoiceItemId
@@ -121,6 +138,7 @@ function getUnpaidInvoices($data)
 			and p.PaymentItemId is null
 			$DateFilter
 			ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+		}
 
 		$resultdata = $dbh->query($query);
 
@@ -160,7 +178,7 @@ function addInvoicesToPayment($data)
 
 		foreach ($invoices as $obj) {
 
-		
+
 			$InvoiceItemId = isset($obj->InvoiceItemId) ? $obj->InvoiceItemId : null;
 			// if ($InvoiceItemId == null) {
 			if (!$InvoiceItemId) {
@@ -346,7 +364,7 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['MRNo','RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId','PaymentReceiveAmount','RebateAmount','CNAmount','AitDeduction','VatAmount'];
+				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount'];
 				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
@@ -356,26 +374,25 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo','PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId','BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId','PaymentReceiveAmount','RebateAmount','CNAmount','AitDeduction','VatAmount'];
+				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount'];
 				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
 				$aQuerys[] = $u;
-
 			}
 
 
-			if($StatusId == 5){
-				
-				if($CNAmount > 0){
+			if ($StatusId == 5) {
+
+				if ($CNAmount > 0) {
 					$PaymentExtendTypeId = 1;
 					$RptPreFix = "CN";
-					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $CNAmount;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
 					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
 					$q->pks = ['PaymentExtendId'];
 					$q->bUseInsetId = true;
@@ -383,14 +400,14 @@ function dataAddEdit($data)
 					$aQuerys[] = $q;
 				}
 
-				if($AitDeduction > 0){
+				if ($AitDeduction > 0) {
 					$PaymentExtendTypeId = 2;
 					$RptPreFix = "AIT";
-					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $AitDeduction;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
 					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
 					$q->pks = ['PaymentExtendId'];
 					$q->bUseInsetId = true;
@@ -398,14 +415,14 @@ function dataAddEdit($data)
 					$aQuerys[] = $q;
 				}
 
-				if($VatAmount > 0){
+				if ($VatAmount > 0) {
 					$PaymentExtendTypeId = 3;
 					$RptPreFix = "VAT";
-					$RptNumber = $RptPreFix."-".$MRNo;// getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $VatAmount;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId','PaymentExtendTypeId','RptNumber', 'Amount'];
+					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
 					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
 					$q->pks = ['PaymentExtendId'];
 					$q->bUseInsetId = true;
@@ -424,10 +441,10 @@ function dataAddEdit($data)
 				//when payment is completed then mark the related invoice items as paid
 				$query1 = "update t_invoiceitems set IsPaid = 1 
 					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId);";
-					$dbh->query($query1);
+				$dbh->query($query1);
 
- 
-					//when payment completed then calculate and update total base amount and total transaction amount in payment table
+
+				//when payment completed then calculate and update total base amount and total transaction amount in payment table
 				$query2 = "UPDATE t_payment a 
 							INNER JOIN (SELECT m.PaymentId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
 								FROM t_paymentitems m
@@ -436,7 +453,7 @@ function dataAddEdit($data)
 								GROUP BY m.PaymentId) b ON a.PaymentId=b.PaymentId
 							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
 							WHERE a.PaymentId = $PaymentId;";
-					$dbh->query($query2);
+				$dbh->query($query2);
 			}
 
 
@@ -447,9 +464,6 @@ function dataAddEdit($data)
 				"UserId" => $UserId,
 				"message" => $res['msg'],
 			];
-
-
-
 		} catch (PDOException $e) {
 			$returnData = msg(0, 500, $e->getMessage());
 		}
@@ -520,7 +534,7 @@ function getNextMRNumber()
 		$query3 = "SELECT CONCAT('MR-',LPAD((IFNULL(MAX(SUBSTRING_INDEX(MRNo, '-', -1)),0) + 1),6,'0')) AS NextMRNo FROM t_payment;";
 		$result3 = $dbh->query($query3);
 		$MRNo = $result3[0]['NextMRNo'];
-		
+
 		$returnData = [
 			"success" => 1,
 			"status" => 200,
@@ -546,7 +560,7 @@ function getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)
 		FROM t_paymentextend where PaymentExtendTypeId = $PaymentExtendTypeId;";
 		$result3 = $dbh->query($query3);
 		$NextRptNumber = $result3[0]['NextRptNumber'];
-		
+
 		$returnData = [
 			"success" => 1,
 			"status" => 200,

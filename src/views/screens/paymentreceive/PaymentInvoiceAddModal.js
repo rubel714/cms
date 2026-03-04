@@ -22,6 +22,7 @@ const PaymentInvoiceAddModal = (props) => {
   // Filter states
   const [invoiceStartDate, setInvoiceStartDate] = useState("");
   const [invoiceEndDate, setInvoiceEndDate] = useState("");
+  const [billNumber, setBillNumber] = useState("");
 
   const [BuyerList, setBuyerList] = useState(null);
   const [currBuyerId, setCurrBuyerId] = useState("");
@@ -85,6 +86,7 @@ const PaymentInvoiceAddModal = (props) => {
       MerchantId: currMerchantId,
       InvoiceStartDate: invoiceStartDate,
       InvoiceEndDate: invoiceEndDate,
+      BillNumber: billNumber,
       PaymentId: props.currentRow.id,
     };
 
@@ -376,6 +378,17 @@ const PaymentInvoiceAddModal = (props) => {
               placeholder="End Date"
               value={invoiceEndDate}
               onChange={(e) => setInvoiceEndDate(e.target.value)}
+            />
+
+            
+            <label>Bill Ref. No</label>
+            <input
+              type="text"
+              id="BillNumber"
+              name="BillNumber"
+              placeholder="Bill Ref. No"
+              value={billNumber}
+              onChange={(e) => setBillNumber(e.target.value)}
             />
           </div>
 
