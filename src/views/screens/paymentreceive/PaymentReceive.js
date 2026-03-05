@@ -671,7 +671,7 @@ const PaymentReceive = (props) => {
     },
     {
       field: "TransactionDate",
-      label: "Transaction Date",
+      label: "Invoice Date",
       width: "8%",
       align: "left",
       visible: true,
@@ -689,7 +689,7 @@ const PaymentReceive = (props) => {
     },
     {
       field: "TransactionReference",
-      label: "Transaction Reference",
+      label: "Invoice Number",
       width: "15%",
       align: "left",
       visible: true,
@@ -699,7 +699,7 @@ const PaymentReceive = (props) => {
 
     {
       field: "TransactionAmount",
-      label: "Amount (USD)",
+      label: "Amount in FC",
       width: "7%",
       align: "right",
       visible: true,
@@ -722,7 +722,7 @@ const PaymentReceive = (props) => {
 
     {
       field: "BaseAmount",
-      label: "Base Amount (BDT)",
+      label: "Amount in BDT",
       width: "10%",
       align: "right",
       visible: true,
