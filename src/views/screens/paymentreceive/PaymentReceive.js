@@ -1128,9 +1128,20 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                {/* </div>
 
-              <div class="contactmodalBody pt-10"> */}
+                <label>Payment Received</label>
+                <input
+                  type="number"
+                  id="PaymentReceiveAmount"
+                  name="PaymentReceiveAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.PaymentReceiveAmount}
+                  placeholder="Enter Payment Received"
+                  value={currentRow.PaymentReceiveAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+
                 <label>Remarks</label>
                 <input
                   type="text"
@@ -1208,7 +1219,8 @@ const PaymentReceive = (props) => {
                   type="number"
                   id="PaymentReceiveAmount"
                   name="PaymentReceiveAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
+                  // disabled={currentRow.StatusId == 5 ? true : false}
                   // class={errorObject.PaymentReceiveAmount}
                   // placeholder="Enter Payment Received"
                   value={currentRow.PaymentReceiveAmount}
