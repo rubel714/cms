@@ -20,7 +20,9 @@ import {
   Input,
   makeStyles,
   CircularProgress,
+  TextField,
 } from "@material-ui/core";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import moment from "moment";
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,6 +68,35 @@ const InvoiceList = (props) => {
   );
   const [EndDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
 
+  // New filter states
+  const [currCustomerFilter, setCurrCustomerFilter] = useState("");
+  const [currAssignedStaffFilter, setCurrAssignedStaffFilter] = useState("");
+  // const [currBusinessLineFilter, setCurrBusinessLineFilter] = useState("");
+
+  // Dropdown data lists
+  const [customerList, setCustomerList] = useState([]);
+  const [assignedStaffList, setAssignedStaffList] = useState([]);
+  // const [businessLineList, setBusinessLineList] = useState([]);
+
+  // Memoize selected values
+  const selectedCustomer = React.useMemo(() => {
+    if (!customerList || customerList.length === 0) return null;
+    if (!currCustomerFilter) return customerList[0]; // Default to "All Customers"
+    return customerList.find((list) => list.id === currCustomerFilter) || customerList[0];
+  }, [customerList, currCustomerFilter]);
+
+  const selectedAssignedStaff = React.useMemo(() => {
+    if (!assignedStaffList || assignedStaffList.length === 0) return null;
+    if (!currAssignedStaffFilter) return assignedStaffList[0]; // Default to "All Staff"
+    return assignedStaffList.find((list) => list.id === currAssignedStaffFilter) || assignedStaffList[0];
+  }, [assignedStaffList, currAssignedStaffFilter]);
+
+  // const selectedBusinessLine = React.useMemo(() => {
+  //   if (!businessLineList || businessLineList.length === 0) return null;
+  //   if (!currBusinessLineFilter) return businessLineList[0]; // Default to "All Business Lines"
+  //   return businessLineList.find((list) => list.id === currBusinessLineFilter) || businessLineList[0];
+  // }, [businessLineList, currBusinessLineFilter]);
+
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
@@ -80,6 +111,12 @@ const InvoiceList = (props) => {
         StartDate +
         "&EndDate=" +
         EndDate +
+        "&CustomerFilter=" +
+        encodeURIComponent(currCustomerFilter) +
+        "&AssignedStaffFilter=" +
+        encodeURIComponent(currAssignedStaffFilter) +
+        // "&BusinessLineFilter=" +
+        // encodeURIComponent(currBusinessLineFilter) +
         "&UserId=" +
         UserInfo.UserId +
         "&RoleId=" +
@@ -455,6 +492,9 @@ const InvoiceList = (props) => {
   if (bFirst) {
     /**First time call for datalist */
     getDataList();
+     getCustomerList();
+     getUserList();
+    //  getBusinessLineList();
     setBFirst(false);
   }
 
@@ -468,11 +508,58 @@ const InvoiceList = (props) => {
       LastInvoiceLimit: lastInvoiceLimit,
       StartDate: StartDate,
       EndDate: EndDate,
+      CustomerFilter: currCustomerFilter,
+      AssignedStaffFilter: currAssignedStaffFilter,
+      // BusinessLineFilter: currBusinessLineFilter,
     };
     // console.log('LoginUserInfo params: ', params);
 
     ExecuteQuery(serverpage, params);
   }
+
+  /**Get filter dropdown options */
+    function getCustomerList() {
+      let params = {
+        action: "CustomerList",
+        lan: language(),
+        UserId: UserInfo.UserId,
+        CustomerGroupId: 0,
+      };
+  
+      apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+        setCustomerList(
+          [{ id: "", name: "All Customers" }].concat(res.data.datalist),
+        );
+  
+      });
+    }
+
+  function getUserList() {
+    let params = {
+      action: "UserList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setAssignedStaffList([{ id: null, name: "All Staff" }].concat(res.data.datalist));
+
+    });
+  }
+
+  // function getBusinessLineList() {
+  //   let params = {
+  //     action: "BusinessLineList",
+  //     lan: language(),
+  //     UserId: UserInfo.UserId,
+  //   };
+
+  //   apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+  //     setBusinessLineList([{ id: null, name: "All Business Lines" }].concat(res.data.datalist));
+
+  //   });
+  // }
+
 
   /** Action from table row buttons*/
   function actioncontrol(rowData) {
@@ -609,9 +696,24 @@ const InvoiceList = (props) => {
     }
   };
 
+ 
+
+  const handleChangeFilterDropDown = (name, value) => {
+    console.log('name, value: ', name, value);
+    if (name === "customerFilter") {
+      setCurrCustomerFilter(value);
+    }
+    if (name === "assignedStaffFilter") {
+      setCurrAssignedStaffFilter(value);
+    }
+    // if (name === "businessLineFilter") {
+    //   setCurrBusinessLineFilter(value);
+    // }
+  };
+
   useEffect(() => {
     getDataList();
-  }, [StartDate, EndDate]);
+  }, [StartDate, EndDate, currCustomerFilter, currAssignedStaffFilter]);
 
   return (
     <>
@@ -650,6 +752,129 @@ const InvoiceList = (props) => {
               />
             </div>
           </div>
+
+          <div>
+            <label>Customer</label>
+            <div class="">
+              <Autocomplete
+                autoHighlight
+                disableClearable
+                className="chosen_dropdown"
+                id="customerFilter"
+                name="customerFilter"
+                autoComplete
+                options={customerList ? customerList : []}
+                getOptionLabel={(option) => option.name}
+                value={selectedCustomer}
+                onChange={(event, valueobj) =>
+                  handleChangeFilterDropDown(
+                    "customerFilter",
+                    valueobj ? valueobj.id : ""
+                  )
+                }
+                filterOptions={(options, state) => {
+                  const inputValue = state.inputValue.toLowerCase();
+                  if (!inputValue) return options.slice(0, 500);
+                  return options
+                    .filter((option) =>
+                      option.name.toLowerCase().includes(inputValue)
+                    )
+                    .slice(0, 500);
+                }}
+                renderOption={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="standard"
+                    fullWidth
+                    placeholder="Type to search..."
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label>Assigned Staff</label>
+            <div class="">
+              <Autocomplete
+                autoHighlight
+                disableClearable
+                className="chosen_dropdown"
+                id="assignedStaffFilter"
+                name="assignedStaffFilter"
+                autoComplete
+                options={assignedStaffList ? assignedStaffList : []}
+                getOptionLabel={(option) => option.name}
+                value={selectedAssignedStaff}
+                onChange={(event, valueobj) =>
+                  handleChangeFilterDropDown(
+                    "assignedStaffFilter",
+                    valueobj ? valueobj.id : ""
+                  )
+                }
+                filterOptions={(options, state) => {
+                  const inputValue = state.inputValue.toLowerCase();
+                  if (!inputValue) return options.slice(0, 500);
+                  return options
+                    .filter((option) =>
+                      option.name.toLowerCase().includes(inputValue)
+                    )
+                    .slice(0, 500);
+                }}
+                renderOption={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="standard"
+                    fullWidth
+                    placeholder="Type to search..."
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          {/* <div>
+            <label>Business Line</label>
+            <div class="">
+              <Autocomplete
+                autoHighlight
+                disableClearable
+                className="chosen_dropdown"
+                id="businessLineFilter"
+                name="businessLineFilter"
+                autoComplete
+                options={businessLineList ? businessLineList : []}
+                getOptionLabel={(option) => option.name}
+                value={selectedBusinessLine}
+                onChange={(event, valueobj) =>
+                  handleChangeFilterDropDown(
+                    "businessLineFilter",
+                    valueobj ? valueobj.id : ""
+                  )
+                }
+                filterOptions={(options, state) => {
+                  const inputValue = state.inputValue.toLowerCase();
+                  if (!inputValue) return options.slice(0, 500);
+                  return options
+                    .filter((option) =>
+                      option.name.toLowerCase().includes(inputValue)
+                    )
+                    .slice(0, 500);
+                }}
+                renderOption={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="standard"
+                    fullWidth
+                    placeholder="Type to search..."
+                  />
+                )}
+              />
+            </div>
+          </div> */}
 
           <Button
             label={"Export"}

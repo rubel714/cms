@@ -10,7 +10,7 @@ switch ($task) {
 	case "getDataList":
 		$returnData = getDataList($data);
 		break;
-
+ 
 	case "dataAddEdit":
 		$returnData = dataAddEdit($data);
 		break;
@@ -30,22 +30,34 @@ function getDataList($data)
 	// $LastInvoiceLimit = trim($data->LastInvoiceLimit); 
 	$StartDate = trim($data->StartDate);
 	$EndDate = trim($data->EndDate) . " 23-59-59";
+	$CustomerFilter = isset($data->CustomerFilter) ? trim($data->CustomerFilter) : '';
+	$AssignedStaffFilter = isset($data->AssignedStaffFilter) ? trim($data->AssignedStaffFilter) : '';
+	// $BusinessLineFilter = isset($data->BusinessLineFilter) ? trim($data->BusinessLineFilter) : '';
 
 	try {
 		$dbh = new Db();
-	 	$query = "SELECT a.*, 
- 
-		 DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		
+		$whereConditions = "(STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')";
+		
+		if (!empty($CustomerFilter)) {
+			$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
+		}
+		if (!empty($AssignedStaffFilter)) {
+			$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
+		}
+
+		
+	 	$query = "SELECT a.*, 
+ 		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
 		b.UserName as CustomerUserName,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName
 		FROM t_invoiceitems a
 		left join t_users b on a.CustomerUserId=b.UserId
 		left join t_customer c on a.AccountCode=c.CustomerCode
 		
-	   where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')
+	   where $whereConditions
 		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
-
+// echo $query;
 		$resultdata = $dbh->query($query);
 
 		$returnData = [
@@ -60,9 +72,7 @@ function getDataList($data)
 
 	return $returnData;
 }
-
-
-
+ 
 function dataAddEdit($data)
 {
 

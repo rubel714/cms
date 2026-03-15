@@ -112,6 +112,17 @@ function InvoiceListExport()
 	$StartDate = $_REQUEST['StartDate'];
 	$EndDate = $_REQUEST['EndDate'] . " 23-59-59"; 
 
+	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
+	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
+
+	$whereConditions = "";
+	if ($CustomerFilter>0) {
+		$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
+	}
+	if ($AssignedStaffFilter>0) {
+		$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
+	}
+	
 	$sql = "SELECT a.AccountCode as CustomerCode,c.CustomerName,
 	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod
 	,a.Description
@@ -122,9 +133,8 @@ function InvoiceListExport()
 	FROM t_invoiceitems a
 	left join t_users b on a.CustomerUserId=b.UserId
 	left join t_customer c on a.AccountCode=c.CustomerCode
-	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')
+	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
 	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
-
 
 	$tableProperties["query_field"] = array("CustomerCode","CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName");
 	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff");
