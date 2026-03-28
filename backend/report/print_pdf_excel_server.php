@@ -114,7 +114,10 @@ function InvoiceListExport()
 
 	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
 	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
-
+	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
+	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
+	$BillStatusFilter = isset($_REQUEST['BillStatusFilter']) ? trim($_REQUEST['BillStatusFilter']) : '';
+	$PaymentStatusFilter = isset($_REQUEST['PaymentStatusFilter']) ? trim($_REQUEST['PaymentStatusFilter']) : '';
 	$whereConditions = "";
 	if ($CustomerFilter>0) {
 		$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
@@ -122,13 +125,21 @@ function InvoiceListExport()
 	if ($AssignedStaffFilter>0) {
 		$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
 	}
+	if ($BillStatusFilter>0) {
+		$whereConditions .= " AND a.IsBilled = $BillStatusFilter ";
+	}
+	if ($PaymentStatusFilter>0) {
+		$whereConditions .= " AND a.IsPaid = $PaymentStatusFilter ";
+	}
 	
 	$sql = "SELECT a.AccountCode as CustomerCode,c.CustomerName,
 	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod
 	,a.Description
 	,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, a.TransactionReference,a.AnalysisCode3
 	,a.TransactionAmount,a.ExchangeRate,a.BaseAmount,a.BaseAmountWithoutVat,a.VatAmount,a.GeneralDescription9,a.GeneralDescription11,
-	a.GeneralDescription14,a.GeneralDescription17,a.GeneralDescription18,a.GeneralDescription20,b.UserName as CustomerUserName
+	a.GeneralDescription14,a.GeneralDescription17,a.GeneralDescription18,a.GeneralDescription20,b.UserName as CustomerUserName,
+	case when a.IsBilled=1 then 'Yes' else 'No' end as IsBilledText,
+	case when a.IsPaid=1 then 'Yes' else 'No' end as IsPaidText
 
 	FROM t_invoiceitems a
 	left join t_users b on a.CustomerUserId=b.UserId
@@ -136,14 +147,14 @@ function InvoiceListExport()
 	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
 	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
-	$tableProperties["query_field"] = array("CustomerCode","CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName");
-	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff");
-	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left");
-	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("18","35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20");
-	$tableProperties["precision"] = array("string","string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
+	$tableProperties["query_field"] = array("CustomerCode","CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName", "IsBilledText", "IsPaidText");
+	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff", "Billed", "Paid");
+	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left", "center", "center");
+	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("18","35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20", "12", "12");
+	$tableProperties["precision"] = array("string","string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
 

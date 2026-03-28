@@ -24,6 +24,12 @@ switch ($task) {
 		$returnData = CustomerGroupList($data);
 		break;
 
+	case "BillStatusList":
+		$returnData = BillStatusList($data);
+		break;
+	case "PaymentStatusList":
+		$returnData = PaymentStatusList($data);
+		break;
 	case "CustomerList":
 		$returnData = CustomerList($data);
 		break;
@@ -412,6 +418,44 @@ function BusinessLineList($data)
 			"status" => 200,
 			"message" => "",
 			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+function BillStatusList($data)
+{
+	try {
+
+ 
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => [['id' => 1,'name' => 'Billed'], ['id' => 2,'name' => 'Not Billed']]
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+function PaymentStatusList($data)
+{
+	try {
+
+ 
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => [['id' => 1,'name' => 'Paid'], ['id' => 2,'name' => 'Not Paid']]
 		];
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());

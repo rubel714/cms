@@ -71,11 +71,15 @@ const InvoiceList = (props) => {
   // New filter states
   const [currCustomerFilter, setCurrCustomerFilter] = useState("");
   const [currAssignedStaffFilter, setCurrAssignedStaffFilter] = useState("");
+  const [currBillStatusFilter, setCurrBillStatusFilter] = useState("");
+  const [currPaymentStatusFilter, setCurrPaymentStatusFilter] = useState("");
   // const [currBusinessLineFilter, setCurrBusinessLineFilter] = useState("");
 
   // Dropdown data lists
   const [customerList, setCustomerList] = useState([]);
   const [assignedStaffList, setAssignedStaffList] = useState([]);
+  const [billStatusList, setBillStatusList] = useState([]);
+  const [paymentStatusList, setPaymentStatusList] = useState([]);
   // const [businessLineList, setBusinessLineList] = useState([]);
 
   // Memoize selected values
@@ -91,11 +95,17 @@ const InvoiceList = (props) => {
     return assignedStaffList.find((list) => list.id === currAssignedStaffFilter) || assignedStaffList[0];
   }, [assignedStaffList, currAssignedStaffFilter]);
 
-  // const selectedBusinessLine = React.useMemo(() => {
-  //   if (!businessLineList || businessLineList.length === 0) return null;
-  //   if (!currBusinessLineFilter) return businessLineList[0]; // Default to "All Business Lines"
-  //   return businessLineList.find((list) => list.id === currBusinessLineFilter) || businessLineList[0];
-  // }, [businessLineList, currBusinessLineFilter]);
+  const selectedBillStatus = React.useMemo(() => {
+    if (!billStatusList || billStatusList.length === 0) return null;
+    if (!currBillStatusFilter) return billStatusList[0]; // Default to "All Bill Status"
+    return billStatusList.find((list) => list.id === currBillStatusFilter) || billStatusList[0];
+  }, [billStatusList, currBillStatusFilter]);
+
+  const selectedPaymentStatus = React.useMemo(() => {
+    if (!paymentStatusList || paymentStatusList.length === 0) return null;
+    if (!currPaymentStatusFilter) return paymentStatusList[0]; // Default to "All Payment Status"
+    return paymentStatusList.find((list) => list.id === currPaymentStatusFilter) || paymentStatusList[0];
+  }, [paymentStatusList, currPaymentStatusFilter]);
 
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
@@ -115,6 +125,10 @@ const InvoiceList = (props) => {
         encodeURIComponent(currCustomerFilter) +
         "&AssignedStaffFilter=" +
         encodeURIComponent(currAssignedStaffFilter) +
+        "&BillStatusFilter=" +
+        encodeURIComponent(currBillStatusFilter) +
+        "&PaymentStatusFilter=" +
+        encodeURIComponent(currPaymentStatusFilter) +
         // "&BusinessLineFilter=" +
         // encodeURIComponent(currBusinessLineFilter) +
         "&UserId=" +
@@ -480,6 +494,22 @@ const InvoiceList = (props) => {
       filter: true,
     },
     {
+      field: "IsBilledText",
+      label: "Billed",
+      align: "center",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+        {
+      field: "IsPaidText",
+      label: "Paid",
+      align: "center",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
       field: "custom",
       label: "Action",
       width: "4%",
@@ -494,6 +524,9 @@ const InvoiceList = (props) => {
     getDataList();
      getCustomerList();
      getUserList();
+     getBillStatusList();
+     getPaymentStatusList();
+
     //  getBusinessLineList();
     setBFirst(false);
   }
@@ -510,6 +543,8 @@ const InvoiceList = (props) => {
       EndDate: EndDate,
       CustomerFilter: currCustomerFilter,
       AssignedStaffFilter: currAssignedStaffFilter,
+      BillStatusFilter: currBillStatusFilter,
+      PaymentStatusFilter: currPaymentStatusFilter,
       // BusinessLineFilter: currBusinessLineFilter,
     };
     // console.log('LoginUserInfo params: ', params);
@@ -543,6 +578,32 @@ const InvoiceList = (props) => {
 
     apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
       setAssignedStaffList([{ id: null, name: "All Staff" }].concat(res.data.datalist));
+
+    });
+  }
+
+    function getBillStatusList() {
+    let params = {
+      action: "BillStatusList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setBillStatusList([{ id: null, name: "All" }].concat(res.data.datalist));
+
+    });
+  }
+
+    function getPaymentStatusList() {
+    let params = {
+      action: "PaymentStatusList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setPaymentStatusList([{ id: null, name: "All" }].concat(res.data.datalist));
 
     });
   }
@@ -706,6 +767,12 @@ const InvoiceList = (props) => {
     if (name === "assignedStaffFilter") {
       setCurrAssignedStaffFilter(value);
     }
+    if (name === "billStatusFilter") {
+      setCurrBillStatusFilter(value);
+    }
+    if (name === "paymentStatusFilter") {
+      setCurrPaymentStatusFilter(value);
+    }
     // if (name === "businessLineFilter") {
     //   setCurrBusinessLineFilter(value);
     // }
@@ -713,7 +780,7 @@ const InvoiceList = (props) => {
 
   useEffect(() => {
     getDataList();
-  }, [StartDate, EndDate, currCustomerFilter, currAssignedStaffFilter]);
+  }, [StartDate, EndDate, currCustomerFilter, currAssignedStaffFilter, currBillStatusFilter, currPaymentStatusFilter]);
 
   return (
     <>
@@ -835,6 +902,89 @@ const InvoiceList = (props) => {
             </div>
           </div>
 
+
+          <div>
+            <label>Bill Status</label>
+            <div class="">
+              <Autocomplete
+                autoHighlight
+                disableClearable
+                className="chosen_dropdown"
+                id="billStatusFilter"
+                name="billStatusFilter"
+                autoComplete
+                options={billStatusList ? billStatusList : []}
+                getOptionLabel={(option) => option.name}
+                value={selectedBillStatus}
+                onChange={(event, valueobj) =>
+                  handleChangeFilterDropDown(
+                    "billStatusFilter",
+                    valueobj ? valueobj.id : ""
+                  )
+                }
+                filterOptions={(options, state) => {
+                  const inputValue = state.inputValue.toLowerCase();
+                  if (!inputValue) return options.slice(0, 500);
+                  return options
+                    .filter((option) =>
+                      option.name.toLowerCase().includes(inputValue)
+                    )
+                    .slice(0, 500);
+                }}
+                renderOption={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="standard"
+                    fullWidth
+                    placeholder="Type to search..."
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          
+          <div>
+            <label>Payment Status</label>
+            <div class="">
+              <Autocomplete
+                autoHighlight
+                disableClearable
+                className="chosen_dropdown"
+                id="paymentStatusFilter"
+                name="paymentStatusFilter"
+                autoComplete
+                options={paymentStatusList ? paymentStatusList : []}
+                getOptionLabel={(option) => option.name}
+                value={selectedPaymentStatus}
+                onChange={(event, valueobj) =>
+                  handleChangeFilterDropDown(
+                    "paymentStatusFilter",
+                    valueobj ? valueobj.id : ""
+                  )
+                }
+                filterOptions={(options, state) => {
+                  const inputValue = state.inputValue.toLowerCase();
+                  if (!inputValue) return options.slice(0, 500);
+                  return options
+                    .filter((option) =>
+                      option.name.toLowerCase().includes(inputValue)
+                    )
+                    .slice(0, 500);
+                }}
+                renderOption={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="standard"
+                    fullWidth
+                    placeholder="Type to search..."
+                  />
+                )}
+              />
+            </div>
+          </div>
           {/* <div>
             <label>Business Line</label>
             <div class="">
