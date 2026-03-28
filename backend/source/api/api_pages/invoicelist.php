@@ -50,10 +50,16 @@ function getDataList($data)
 			$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
 		}
 
-		if (!empty($BillStatusFilter)) {
+		if (!empty($BillStatusFilter)) { // Assuming 2 is for 'Not Billed' and 1 is for 'Billed', and '' is for 'All'
+			if($BillStatusFilter == 2){
+				$BillStatusFilter = 0;
+			}
 			$whereConditions .= " AND a.IsBilled = $BillStatusFilter ";
 		}
-		if (!empty($PaymentStatusFilter)) {
+		if (!empty($PaymentStatusFilter)) { // Assuming 2 is for 'Not Paid' and 1 is for 'Paid', and '' is for 'All'
+			if($PaymentStatusFilter == 2){
+				$PaymentStatusFilter = 0;
+			}
 			$whereConditions .= " AND a.IsPaid = $PaymentStatusFilter ";
 		}
 		
