@@ -385,25 +385,27 @@ function dataAddEdit($data)
 
 			if ($StatusId == 5) {
 
-				if ($CNAmount > 0) {
-					$PaymentExtendTypeId = 1;
-					$RptPreFix = "CN";
-					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $CNAmount;
-					$q = new insertq();
-					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-					$q->pks = ['PaymentExtendId'];
-					$q->bUseInsetId = true;
-					$q->build_query();
-					$aQuerys[] = $q;
-				}
+				// if ($CNAmount > 0) {
+				// 	$PaymentExtendTypeId = 2; //t_payment_extend_type
+				// 	$RptPreFix = "CN";
+				//// 	$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+				// 	$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+				// 	$Amount = $CNAmount;
+				// 	$q = new insertq();
+				// 	$q->table = 't_paymentextend';
+				// 	$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
+				// 	$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
+				// 	$q->pks = ['PaymentExtendId'];
+				// 	$q->bUseInsetId = true;
+				// 	$q->build_query();
+				// 	$aQuerys[] = $q;
+				// }
 
 				if ($AitDeduction > 0) {
-					$PaymentExtendTypeId = 2;
-					$RptPreFix = "AIT";
-					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$PaymentExtendTypeId = 3; //t_payment_extend_type
+					// $RptPreFix = "AIT";
+					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $AitDeduction;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
@@ -416,9 +418,10 @@ function dataAddEdit($data)
 				}
 
 				if ($VatAmount > 0) {
-					$PaymentExtendTypeId = 3;
-					$RptPreFix = "VAT";
-					$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$PaymentExtendTypeId = 4; //t_payment_extend_type
+					// $RptPreFix = "VAT";
+					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
 					$Amount = $VatAmount;
 					$q = new insertq();
 					$q->table = 't_paymentextend';
