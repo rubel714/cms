@@ -108,9 +108,12 @@ const PaymentInvoiceAddModal = (props) => {
       });
   }
 
-  const getRowKey = (item) =>
-    item.InvoiceItemId ?? item.TransactionId ?? item.id;
+  // const getRowKey = (item) =>
+  //   item.InvoiceItemId ?? item.TransactionId ?? item.id;
 
+    const getRowKey = (item) => item.AutoNumber;
+
+    
   const handleChangeCheck = (e, row) => {
     const checked = e.target.checked;
     const rowKey = getRowKey(row);

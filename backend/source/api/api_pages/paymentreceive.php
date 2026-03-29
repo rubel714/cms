@@ -126,27 +126,59 @@ function getUnpaidInvoices($data)
 			$DateFilter
 			ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 		} else {
-			$query = "SELECT a.InvoiceItemId,
-			DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
-			a.AccountCode, a.Description, DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
-			a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
-			FROM t_invoiceitems a
-			inner join t_customer c on a.AccountCode=c.CustomerCode
-			left join t_paymentitems p on a.InvoiceItemId=p.InvoiceItemId
-			where c.CustomerId = $CustomerId
-			and a.IsPaid = 0
-			and p.PaymentItemId is null
-			$DateFilter
-			ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+			// $query = "SELECT a.InvoiceItemId,
+			// DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+			// a.AccountCode, a.Description, DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
+			// a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount
+			// FROM t_invoiceitems a
+			// inner join t_customer c on a.AccountCode=c.CustomerCode
+			// left join t_paymentitems p on a.InvoiceItemId=p.InvoiceItemId
+			// where c.CustomerId = $CustomerId
+			// and a.IsPaid = 0
+			// and p.PaymentItemId is null
+			// $DateFilter
+			// ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+
+			$query = "SELECT 0 AutoNumber, 0 InvoiceItemId, m.PaymentExtendId,'' AccountingPeriod, '' AccountCode, '' `Description`, DATE_FORMAT(n.PaymentDate, '%d/%m/%Y') AS TransactionDate,
+					CONCAT(m.RptNumber,' - ',o.RptPreFix) AS TransactionReference,0 AS TransactionAmount, 0 ExchangeRate, m.Amount AS BaseAmount, 0 InvType
+					FROM t_paymentextend m
+					INNER JOIN t_payment n ON m.PaymentId=n.PaymentId
+					INNER JOIN t_payment_extend_type o ON m.PaymentExtendTypeId=o.PaymentExtendTypeId
+					LEFT JOIN t_paymentitems p ON m.PaymentExtendId=p.PaymentExtendId
+					WHERE n.CustomerId = $CustomerId
+					AND m.IsFinished = 0
+					AND p.PaymentExtendId IS NULL
+
+					UNION ALL
+
+					SELECT 0 AutoNumber,a.InvoiceItemId, 0 PaymentExtendId,
+					DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+					a.AccountCode, a.Description, DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') AS TransactionDate,
+					a.TransactionReference,	a.TransactionAmount, a.ExchangeRate, a.BaseAmount, 1 InvType
+					FROM t_invoiceitems a
+					INNER JOIN t_customer c ON a.AccountCode=c.CustomerCode
+					LEFT JOIN t_paymentitems p ON a.InvoiceItemId=p.InvoiceItemId
+					WHERE c.CustomerId = $CustomerId
+					AND a.IsPaid = 0
+					AND p.PaymentItemId IS NULL
+					$DateFilter
+					
+					ORDER BY InvType ASC, TransactionDate DESC;";
 		}
 
 		$resultdata = $dbh->query($query);
+
+		$dataList = array();
+		foreach ($resultdata as $key => $obj) {
+			$obj['AutoNumber'] = $key+1;
+			$dataList[] = $obj;
+		}
 
 		$returnData = [
 			"success" => 1,
 			"status" => 200,
 			"message" => "",
-			"datalist" => $resultdata
+			"datalist" => $dataList
 		];
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());
@@ -180,27 +212,50 @@ function addInvoicesToPayment($data)
 
 
 			$InvoiceItemId = isset($obj->InvoiceItemId) ? $obj->InvoiceItemId : null;
-			// if ($InvoiceItemId == null) {
-			if (!$InvoiceItemId) {
+			$PaymentExtendId = isset($obj->PaymentExtendId) ? $obj->PaymentExtendId : null;
+			if (!$InvoiceItemId && !$PaymentExtendId) {
 				continue;
 			}
 
+			if($InvoiceItemId > 0){
+				//if already added to payment items, skip to avoid duplicate entry
+				$chk = "SELECT count(1) as Cnt FROM t_paymentitems WHERE InvoiceItemId=$InvoiceItemId;";
+				$chkRes = $dbh->query($chk);
+				if (!empty($chkRes) && $chkRes[0]['Cnt'] > 0) {
+					continue;
+				}
 
-			//if already added to payment items, skip to avoid duplicate entry
-			$chk = "SELECT count(1) as Cnt FROM t_paymentitems WHERE InvoiceItemId=$InvoiceItemId;";
-			$chkRes = $dbh->query($chk);
-			if (!empty($chkRes) && $chkRes[0]['Cnt'] > 0) {
-				continue;
+				$q = new insertq();
+				$q->table = 't_paymentitems';
+				$q->columns = ['PaymentId', 'InvoiceItemId'];
+				$q->values = [$PaymentId, $InvoiceItemId];
+				$q->pks = ['PaymentItemId'];
+				$q->bUseInsetId = true;
+				$q->build_query();
+				$aQuerys[] = $q;
 			}
 
-			$q = new insertq();
-			$q->table = 't_paymentitems';
-			$q->columns = ['PaymentId', 'InvoiceItemId'];
-			$q->values = [$PaymentId, $InvoiceItemId];
-			$q->pks = ['PaymentItemId'];
-			$q->bUseInsetId = true;
-			$q->build_query();
-			$aQuerys[] = $q;
+
+
+			if($PaymentExtendId > 0){
+				//if already added to payment items, skip to avoid duplicate entry
+				$chk = "SELECT count(1) as Cnt FROM t_paymentitems WHERE PaymentExtendId=$PaymentExtendId;";
+				$chkRes = $dbh->query($chk);
+				if (!empty($chkRes) && $chkRes[0]['Cnt'] > 0) {
+					continue;
+				}
+
+				$q = new insertq();
+				$q->table = 't_paymentitems';
+				$q->columns = ['PaymentId', 'PaymentExtendId'];
+				$q->values = [$PaymentId, $PaymentExtendId];
+				$q->pks = ['PaymentItemId'];
+				$q->bUseInsetId = true;
+				$q->build_query();
+				$aQuerys[] = $q;
+			}
+
+
 		}
 
 		if (count($aQuerys) === 0) {
@@ -276,8 +331,31 @@ function getDataSingle($data)
 
 
 		/**Items Data */
-		$query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,
-		
+		// $query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,
+		// DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(b.AccountingPeriod,4), '-',LPAD(LEFT(b.AccountingPeriod, LENGTH(b.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+		// b.AccountCode, b.Description, 
+		// DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
+		// b.TransactionAmount, b.ExchangeRate,b.BaseAmount
+		// FROM t_paymentitems a 
+		// left join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
+		// where a.PaymentId=$PaymentId
+		// order by a.PaymentItemId ASC;";
+
+		$query = "
+		SELECT m.PaymentItemId as autoId, m.`PaymentItemId`, m.`PaymentId`, m.`InvoiceItemId`,m.PaymentExtendId,
+		'' as AccountingPeriod, '' as AccountCode, '' as `Description`, 
+		DATE_FORMAT(p.PaymentDate, '%d/%m/%Y') AS TransactionDate,
+		CONCAT(n.RptNumber,' - ',o.RptPreFix) AS TransactionReference, 
+		0 as TransactionAmount, 0 as ExchangeRate,n.Amount AS BaseAmount
+		FROM t_paymentitems m
+		inner join t_paymentextend n on m.PaymentExtendId=n.PaymentExtendId
+		INNER JOIN t_payment_extend_type o ON n.PaymentExtendTypeId=o.PaymentExtendTypeId
+		INNER JOIN t_payment p ON n.PaymentId=p.PaymentId
+		WHERE m.PaymentId=$PaymentId
+
+		UNION ALL
+
+		SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,a.PaymentExtendId,
 		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(b.AccountingPeriod,4), '-',LPAD(LEFT(b.AccountingPeriod, LENGTH(b.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		b.AccountCode, b.Description, 
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
@@ -285,7 +363,8 @@ function getDataSingle($data)
 		FROM t_paymentitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.PaymentId=$PaymentId
-		order by a.PaymentItemId ASC;";
+
+		order by PaymentItemId ASC;";
 		$resultdataItems = $dbh->query($query);
 
 
