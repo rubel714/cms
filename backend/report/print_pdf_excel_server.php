@@ -126,13 +126,13 @@ function InvoiceListExport()
 		$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
 	}
 
-	if ($BillStatusFilter>0) {
+	if ($BillStatusFilter !== 'null' && !empty($BillStatusFilter) && $BillStatusFilter>0) {
 		if($BillStatusFilter == 2){
 			$BillStatusFilter = 0;
 		}
 		$whereConditions .= " AND a.IsBilled = $BillStatusFilter ";
 	}
-	if ($PaymentStatusFilter>0) {
+	if ($PaymentStatusFilter !== 'null' && !empty($PaymentStatusFilter) && $PaymentStatusFilter>0) {
 		if($PaymentStatusFilter == 2){
 			$PaymentStatusFilter = 0;
 		}

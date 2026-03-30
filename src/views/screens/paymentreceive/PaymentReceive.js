@@ -106,6 +106,15 @@ const PaymentReceive = (props) => {
       filter: true,
     },
     {
+      field: "CustomerCode",
+      label: "Customer Code",
+      width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
+    {
       field: "CustomerName",
       label: "Customer Name",
       // width: "9%",

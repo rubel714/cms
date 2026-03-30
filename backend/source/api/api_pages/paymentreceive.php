@@ -287,7 +287,7 @@ function getDataList($data)
 
 		$query = "SELECT a.PaymentId AS id, 
 		 DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
-		a.CustomerId,b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
+		a.CustomerId,b.CustomerCode, b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
 		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
 		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.CNAmount,a.AitDeduction,a.VatAmount
 
@@ -522,7 +522,7 @@ function dataAddEdit($data)
 			if ($success == 1 && $PaymentId != "" && $StatusId == 5) {
 				//when payment is completed then mark the related invoice items as paid
 				$query1 = "update t_invoiceitems set IsPaid = 1 
-					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId);";
+					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId and InvoiceItemId is not null);";
 				$dbh->query($query1);
 
 
@@ -536,6 +536,15 @@ function dataAddEdit($data)
 							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
 							WHERE a.PaymentId = $PaymentId;";
 				$dbh->query($query2);
+
+
+				
+				//when payment is completed then mark the related t_paymentextend items as finished - challan received
+				$query3 = "update t_paymentextend set IsFinished = 1 
+					where PaymentExtendId in (select PaymentExtendId from t_paymentitems where PaymentId = $PaymentId and PaymentExtendId is not null);";
+				$dbh->query($query3);
+
+
 			}
 
 
