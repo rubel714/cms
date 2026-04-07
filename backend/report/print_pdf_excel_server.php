@@ -6,11 +6,6 @@ include_once('../env.php');
 include_once('../source/api/pdolibs/pdo_lib.php');
 
 $tableProperties = array("header_list" => array(), "query_field" => array(), "table_header" => array(), "align" => array(), "width_print_pdf" => array(), "width_excel" => array(), "precision" => array(), "total" => array(), "report_save_name" => "");
-
-// $menukey = $_REQUEST['menukey'];
-// $lan = $_REQUEST['lan'];
-// include_once ('../source/api/languages/lang_switcher_custom.php');
-
 $siteTitle = reportsitetitleeng;
 
 $task = '';
@@ -1031,7 +1026,8 @@ if ($reportType == 'print' || $reportType == 'pdf') {
 } else if ($reportType == 'csv') {
 
 	$writer = WriterFactory::create(Type::CSV);
-	$writer->openToFile("media/$reportSaveName.csv");
+	// $writer->openToFile("media/$reportSaveName.csv");
+	$writer->openToFile(STORAGE_PATH . "media/files/$reportSaveName.csv");
 
 	//Report Header start
 	foreach ($reportHeaderList as $val) {
@@ -1324,10 +1320,16 @@ if ($reportType == 'print' || $reportType == 'pdf') {
 	$writer->close();
 	// header('Location:../media/' . $reportSaveName . ".csv"); //File open location
 
+	// $exportTime = date("Y_m_d_H_i_s", time());
+	// $exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
+	// $writer->writeToFile("media/$exportFilePath");
+	// header('Location:media/' . $exportFilePath); //File open location	
+	
 	$exportTime = date("Y_m_d_H_i_s", time());
 	$exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
-	$writer->writeToFile("media/$exportFilePath");
-	header('Location:media/' . $exportFilePath); //File open location			
+	$writer->writeToFile(STORAGE_PATH . "media/files/$exportFilePath");
+	header('Location:'.STORAGE_PATH_URL.'media/files/' . $exportFilePath); //File open location	
+
 }
 
 

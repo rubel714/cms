@@ -13,6 +13,7 @@ CHOKIDAR_USEPOLLING=true
 REACT_APP_BASE_NAME=/cms
 REACT_APP_API_URL=http://localhost/cms/backend/
 REACT_APP_FRONT_URL= http://localhost/cms/
+REACT_APP_STORAGE_URL= http://localhost/storage/cms/
 
 
 =================Local env.php================================================
@@ -33,6 +34,7 @@ CHOKIDAR_USEPOLLING=true
 REACT_APP_BASE_NAME=
 REACT_APP_API_URL=https://cms.ng-pl.com/backend/
 REACT_APP_FRONT_URL=https://cms.ng-pl.com/
+REACT_APP_STORAGE_URL= https://cms.ng-pl.com/storage/cms/
 
 =================Web env.php================================================
 define("DB_NAME", "ngplcom_cms_db");

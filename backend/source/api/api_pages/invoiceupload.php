@@ -27,8 +27,6 @@ switch ($task) {
 function getDataList($data)
 {
 
-
-	// $ClientId = trim($data->ClientId);
 	$InvoiceId = trim($data->InvoiceId); 
 
 	try {
@@ -53,8 +51,6 @@ function getDataList($data)
 
 	return $returnData;
 }
-
-
 
 function dataAddEdit($data)
 {
@@ -117,12 +113,8 @@ function dataAddEdit($data)
 
 
 
-
-
-
-
-			// $datalogfile = "./datatransferlogfile/DxDuYrrZSa7_2020_10_08_02_01_01.csv";  //this is for test
-			$fileDir = '../../../media/invoicefiles/' . $FileName;
+			// $fileDir = '../../../media/invoicefiles/' . $FileName;
+			$fileDir = STORAGE_PATH . "media/invoicefiles/" . $FileName;
 			$rowcounter = 0;
 			$csvFileContext = fopen($fileDir, "r");
 
@@ -304,74 +296,19 @@ function dataAddEdit($data)
 
 function ConvertFile($base64_string, $prefix)
 {
-	// $path = "../../../media/invoicefiles/".$prefix;
-	$path = "../../../media/invoicefiles";
+	// $path = "../../../media/invoicefiles";
+	$path = STORAGE_PATH . "media/invoicefiles";
 
 	if (!file_exists($path)) {
 		mkdir($path, 0777, true);
 	}
 
-	// $targetDir = '../../../media/invoicefiles/'.$prefix;
-	$targetDir = '../../../media/invoicefiles';
+	// $targetDir = '../../../media/invoicefiles';
+	$targetDir = STORAGE_PATH . "media/invoicefiles";
 	$exploded = explode(',', $base64_string, 2);
-	// echo "<pre>";
-	// print_r($exploded);
 	$extention = "csv"; // explode(';', explode('/', $exploded[0])[1])[0];
 	$decoded = base64_decode($exploded[1]);
-	// $output_file = $prefix . "_cover_" . date("Y_m_d_H_i_s") . "_" . rand(1, 9999) . "." . $extention;
 	$output_file = date("Y_m_d_H_i_s") . "_" . rand(1, 9999) . "." . $extention;
 	file_put_contents($targetDir . "/" . $output_file, $decoded);
 	return $output_file;
 }
-
-
-
-
-
-
-
-
-// function deleteData($data) {
-
-// 	if($_SERVER["REQUEST_METHOD"] != "POST"){
-// 		return $returnData = msg(0,404,'Page Not Found!');
-// 	}
-// 	// CHECKING EMPTY FIELDS
-// 	elseif(!isset($data->rowData->id)){
-// 		$fields = ['fields' => ['id']];
-// 		return $returnData = msg(0,422,'Please Fill in all Required Fields!',$fields);
-// 	}else{
-
-// 		$CheckId = $data->rowData->id;
-// 		$lan = trim($data->lan); 
-// 		$UserId = trim($data->UserId); 
-
-// 		try{
-
-// 			$dbh = new Db();
-
-//             $d = new deleteq();
-//             $d->table = 't_checklist';
-//             $d->pks = ['CheckId'];
-//             $d->pk_values = [$CheckId];
-//             $d->build_query();
-//             $aQuerys = array($d);
-
-// 			$res = exec_query($aQuerys, $UserId, $lan);  
-// 			$success=($res['msgType']=='success')?1:0;
-// 			$status=($res['msgType']=='success')?200:500;
-
-// 			$returnData = [
-// 				"success" => $success ,
-// 				"status" => $status,
-// 				"UserId"=> $UserId,
-// 				"message" => $res['msg']
-// 			];
-
-// 		}catch(PDOException $e){
-// 			$returnData = msg(0,500,$e->getMessage());
-// 		}
-
-// 		return $returnData;
-// 	}
-// }
