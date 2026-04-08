@@ -1297,10 +1297,17 @@ if ($reportType == 'print' || $reportType == 'pdf') {
 
 
 
+	// $exportTime = date("Y_m_d_H_i_s", time());
+	// $exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
+	// $writer->writeToFile("media/$exportFilePath");
+	// header('Location:media/' . $exportFilePath); //File open location	
+
+
 	$exportTime = date("Y_m_d_H_i_s", time());
 	$exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
-	$writer->writeToFile("media/$exportFilePath");
-	header('Location:media/' . $exportFilePath); //File open location	
+	$writer->writeToFile(STORAGE_PATH . "media/files/$exportFilePath");
+	header('Location:'.STORAGE_PATH_URL.'media/files/' . $exportFilePath); //File open location	
+
 
 } else if ($reportType == 'csv') {
 

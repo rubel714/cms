@@ -36,6 +36,15 @@ REACT_APP_API_URL=https://cms.ng-pl.com/backend/
 REACT_APP_FRONT_URL=https://cms.ng-pl.com/
 REACT_APP_STORAGE_URL= https://cms.ng-pl.com/storage/cms/
 
+=================Web .env========175.29.124.231======================================
+FAST_REFRESH = false
+CHOKIDAR_USEPOLLING=true
+REACT_APP_BASE_NAME=/cms
+REACT_APP_API_URL=http://175.29.124.231/cms/backend/
+REACT_APP_FRONT_URL=http://175.29.124.231/cms/
+REACT_APP_STORAGE_URL=http://175.29.124.231/storage/cms/
+
+
 =================Web env.php================================================
 define("DB_NAME", "ngplcom_cms_db");
 define("DB_USER", "ngplcom_ngplcom");
@@ -45,3 +54,18 @@ define("sitetitleeng", "Inspection");
 define("domainurl", "http://localhost");
 define("reportsitetitleeng", "Inspection");
 define("loginonlyadmin", "0");  /*0=production mode, 1=maintanance mode*/
+
+
+=================Web env.php=========IP=======================================
+<?php
+define("DB_NAME", "inspection_db");
+define("DB_USER", "root");
+define("DB_PASSWORD", "P@ss!w0rId2N$5T@r");
+define("DB_SERVER", "localhost");
+define("sitetitleeng", "Inspection Management System");
+define("reportsitetitleeng", "Inspection Management System");
+define("LOGIN_ONLY_ADMIN", "0");  /*0=production mode, 1=maintanance mode*/
+define("STORAGE_PATH", $_SERVER['DOCUMENT_ROOT'] . '/storage/inspection/');
+define("STORAGE_PATH_URL", "http://175.29.124.231/storage/inspection/");
+define("DOMAIN_URL", "http://175.29.124.231/inspection/");
+?>
