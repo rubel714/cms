@@ -325,6 +325,7 @@ const PaymentReceive = (props) => {
         CNAmount: 0,
         AitDeduction: 0,
         VatAmount: 0,
+        AdvanceAmount: 0,
         StatusId: 1,
         Items: [],
       });
@@ -489,7 +490,8 @@ const PaymentReceive = (props) => {
   }
 
   function postInvoice() {
-    if (editableItems.length == 0) {
+
+    if (editableItems.length == 0 && !currentRow.AdvanceAmount) {
       props.openNoticeModal({
         isOpen: true,
         msg: "No invoice to post.",
@@ -1306,6 +1308,24 @@ const PaymentReceive = (props) => {
                   // class={errorObject.VatAmount}
                   // placeholder="Enter VAT Amount"
                   value={currentRow.VatAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label>Advance/ Rem Advance Amount</label>
+                <input
+                  type="number"
+                  id="AdvanceAmount"
+                  name="AdvanceAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.AdvanceAmount}
+                  // placeholder="Enter Advance Amount"
+                  value={currentRow.AdvanceAmount}
                   onChange={(e) => handleChange(e)}
                 />
 

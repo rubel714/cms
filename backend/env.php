@@ -1,5 +1,5 @@
 <?php
-define("DB_NAME", "cms_db");
+define("DB_NAME", "cms_db1");
 define("DB_USER", "root");
 define("DB_PASSWORD", "");
 define("DB_SERVER", "localhost");
