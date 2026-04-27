@@ -848,8 +848,9 @@ const PaymentReceive = (props) => {
     const CNAmount = parseFloat(currentRow.CNAmount) || 0;
     const aitDeduction = parseFloat(currentRow.AitDeduction) || 0;
     const VatAmount = parseFloat(currentRow.VatAmount) || 0;
+    const advanceAmount = parseFloat(currentRow.AdvanceAmount) || 0;
     
-    return (paymentReceiveAmount + rebateAmount + CNAmount + aitDeduction + VatAmount).toFixed(2);
+    return (paymentReceiveAmount + rebateAmount + CNAmount + aitDeduction + VatAmount - advanceAmount).toFixed(2);
   };
 
 
