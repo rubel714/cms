@@ -276,7 +276,8 @@ function getDataList($data)
 		 DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerCode, b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
 		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
-		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,a.RebateAmount,a.CNAmount,a.AitDeduction,a.VatAmount,a.AdvanceAmount
+		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,
+		a.RebatePercent,a.RebateAmount,a.CNPercent,a.CNAmount,a.AitPercent,a.AitDeduction,a.VatPercent,a.VatAmount,a.DueAmount,a.AdvanceAmount
 
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
@@ -402,6 +403,15 @@ function dataAddEdit($data)
 		$VatAmount = $data->rowData->VatAmount ? $data->rowData->VatAmount : 0;
 		$AdvanceAmount = $data->rowData->AdvanceAmount ? $data->rowData->AdvanceAmount : 0;
 
+		$RebatePercent = $data->rowData->RebatePercent ? $data->rowData->RebatePercent : 0;
+		$CNPercent = $data->rowData->CNPercent ? $data->rowData->CNPercent : 0;
+		$AitPercent = $data->rowData->AitPercent ? $data->rowData->AitPercent : 0;
+		$VatPercent = $data->rowData->VatPercent ? $data->rowData->VatPercent : 0;
+		$DueAmount = $data->rowData->DueAmount ? $data->rowData->DueAmount : 0;
+
+		
+
+
 		// $items = isset($data->items) ? $data->items : [];
 
 		// $query = "SELECT count(a.PaymentId) DraftCount
@@ -431,8 +441,9 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_payment';
-				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount];
+
+				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -441,8 +452,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount];
+				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();
@@ -515,6 +526,24 @@ function dataAddEdit($data)
 					$q->build_query();
 					$aQuerys[] = $q;
 				}
+
+				
+				if ($DueAmount > 0) {
+					$PaymentExtendTypeId = 6; //t_payment_extend_type
+					// $RptPreFix = "DUE";
+					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
+					$Amount = $DueAmount;
+					$q = new insertq();
+					$q->table = 't_paymentextend';
+					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
+					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
+					$q->pks = ['PaymentExtendId'];
+					$q->bUseInsetId = true;
+					$q->build_query();
+					$aQuerys[] = $q;
+				}
+
 			}
 
 
