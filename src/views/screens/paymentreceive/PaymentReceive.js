@@ -199,6 +199,57 @@ const PaymentReceive = (props) => {
     }
   }, [manyDataList]);
 
+  // Recalculate amounts when editableItems changes
+  React.useEffect(() => {
+    // Calculate total base amount from editableItems (works even if empty)
+    const totalBase = editableItems.reduce((sum, item) => {
+      return sum + (parseFloat(item.BaseAmount) || 0);
+    }, 0);
+
+    setCurrentRow(prevRow => {
+      let data = { ...prevRow };
+
+      // STEP 1: Get all percentages from current row
+      const rebatePercent = parseFloat(data.RebatePercent) || 0;
+      const cnPercent = parseFloat(data.CNPercent) || 0;
+      const aitPercent = parseFloat(data.AitPercent) || 0;
+      const vatPercent = parseFloat(data.VatPercent) || 0;
+
+      // STEP 2: Calculate amounts based on percentages
+      // Rebate Amount = totalBase × RebatePercent / 100
+      data.RebateAmount = ((totalBase * rebatePercent) / 100).toFixed(2);
+      
+      // CN Amount = totalBase × CNPercent / 100
+      data.CNAmount = ((totalBase * cnPercent) / 100).toFixed(2);
+      
+      // AIT Deduction = totalBase × AitPercent / 100
+      data.AitDeduction = ((totalBase * aitPercent) / 100).toFixed(2);
+      
+      // VAT Amount = totalBase × VatPercent / 100
+      data.VatAmount = ((totalBase * vatPercent) / 100).toFixed(2);
+
+      // STEP 3: Calculate AdvanceAmount and DueAmount using the calculated amounts
+      const paymentReceiveAmount = parseFloat(data.PaymentReceiveAmount) || 0;
+      const rebateAmount = parseFloat(data.RebateAmount) || 0;
+      const cnAmount = parseFloat(data.CNAmount) || 0;
+      const aitDeduction = parseFloat(data.AitDeduction) || 0;
+      const vatAmount = parseFloat(data.VatAmount) || 0;
+
+      const netInvoiceAmount = totalBase - rebateAmount - cnAmount - aitDeduction - vatAmount;
+      const difference = paymentReceiveAmount - netInvoiceAmount;
+
+      if (difference > 0) {
+        data.AdvanceAmount = difference.toFixed(2);
+        data.DueAmount = 0;
+      } else {
+        data.AdvanceAmount = 0;
+        data.DueAmount = ((-1) * difference).toFixed(2);
+      }
+
+      return data;
+    });
+  }, [editableItems]);
+
   // Memoize selected customer to avoid expensive findIndex on every render
   const selectedCustomer = React.useMemo(() => {
     if (!CustomerList || !currCustomerId) return null;
@@ -627,6 +678,48 @@ const PaymentReceive = (props) => {
     const { name, value } = e.target;
     let data = { ...currentRow };
     data[name] = value;
+
+    // Calculate total base amount from editableItems
+    const totalBase = editableItems.reduce((sum, item) => {
+      return sum + (parseFloat(item.BaseAmount) || 0);
+    }, 0);
+
+    // ALWAYS calculate amounts from percentages first
+    const rebatePercent = parseFloat(data.RebatePercent) || 0;
+    const cnPercent = parseFloat(data.CNPercent) || 0;
+    const aitPercent = parseFloat(data.AitPercent) || 0;
+    const vatPercent = parseFloat(data.VatPercent) || 0;
+
+    // Calculate Rebate Amount from RebatePercent
+    data.RebateAmount = ((totalBase * rebatePercent) / 100).toFixed(2);
+    
+    // Calculate CN Amount from CNPercent
+    data.CNAmount = ((totalBase * cnPercent) / 100).toFixed(2);
+    
+    // Calculate AIT Deduction from AitPercent
+    data.AitDeduction = ((totalBase * aitPercent) / 100).toFixed(2);
+    
+    // Calculate VAT Amount from VatPercent
+    data.VatAmount = ((totalBase * vatPercent) / 100).toFixed(2);
+
+    // Calculate AdvanceAmount and DueAmount using the calculated amounts
+    const paymentReceiveAmount = parseFloat(data.PaymentReceiveAmount) || 0;
+    const rebateAmount = parseFloat(data.RebateAmount) || 0;
+    const cnAmount = parseFloat(data.CNAmount) || 0;
+    const aitDeduction = parseFloat(data.AitDeduction) || 0;
+    const vatAmount = parseFloat(data.VatAmount) || 0;
+
+    const netInvoiceAmount = totalBase - rebateAmount - cnAmount - aitDeduction - vatAmount;
+    const difference = paymentReceiveAmount - netInvoiceAmount;
+
+    if (difference > 0) {
+      data.AdvanceAmount = difference.toFixed(2);
+      data.DueAmount = 0;
+    } else {
+      data.AdvanceAmount = 0;
+      data.DueAmount = ((-1) * difference).toFixed(2);
+    }
+
     setCurrentRow(data);
 
     setErrorObject({ ...errorObject, [name]: null });
@@ -843,14 +936,20 @@ const PaymentReceive = (props) => {
   };
 
  const calTotal = () => {
-    const paymentReceiveAmount = parseFloat(currentRow.PaymentReceiveAmount) || 0;
+    // Calculate total base amount from editableItems
+    const totalBase = editableItems.reduce((sum, item) => {
+      return sum + (parseFloat(item.BaseAmount) || 0);
+    }, 0);
+
     const rebateAmount = parseFloat(currentRow.RebateAmount) || 0;
     const CNAmount = parseFloat(currentRow.CNAmount) || 0;
     const aitDeduction = parseFloat(currentRow.AitDeduction) || 0;
     const VatAmount = parseFloat(currentRow.VatAmount) || 0;
-    const advanceAmount = parseFloat(currentRow.AdvanceAmount) || 0;
     
-    return (paymentReceiveAmount + rebateAmount + CNAmount + aitDeduction + VatAmount - advanceAmount).toFixed(2);
+    // Net Invoice Amount = Total Base - Rebate - CN - AIT - VAT
+    const netInvoiceAmount = totalBase - rebateAmount - CNAmount - aitDeduction - VatAmount;
+    
+    return netInvoiceAmount.toFixed(2);
   };
 
 
@@ -1244,16 +1343,27 @@ const PaymentReceive = (props) => {
                 <div></div>
                 <label></label>
                 <div></div>
-                <label></label>
-                <div></div>
+
+                <label>Rebate %</label>
+                <input
+                  type="number"
+                  id="RebatePercent"
+                  name="RebatePercent"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.RebatePercent}
+                  placeholder="Enter Rebate %"
+                  value={currentRow.RebatePercent}
+                  onChange={(e) => handleChange(e)}
+                />
+
                 <label>Rebate Amount</label>
                 <input
                   type="number"
                   id="RebateAmount"
                   name="RebateAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
                   // class={errorObject.RebateAmount}
-                  // placeholder="Enter Rebate Amount"
+                  placeholder="Rebate Amount"
                   value={currentRow.RebateAmount}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1261,16 +1371,27 @@ const PaymentReceive = (props) => {
                 <div></div>
                 <label></label>
                 <div></div>
-                <label></label>
-                <div></div>
+
+                <label>CN %</label>
+                <input
+                  type="number"
+                  id="CNPercent"
+                  name="CNPercent"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.CNPercent}
+                  placeholder="Enter CN %"
+                  value={currentRow.CNPercent}
+                  onChange={(e) => handleChange(e)}
+                />
+
                 <label>CN Amount</label>
                 <input
                   type="number"
                   id="CNAmount"
                   name="CNAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
                   // class={errorObject.CNAmount}
-                  // placeholder="Enter CN Amount"
+                  placeholder="CN Amount"
                   value={currentRow.CNAmount}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1280,16 +1401,27 @@ const PaymentReceive = (props) => {
                 <div></div>
                 <label></label>
                 <div></div>
-                <label></label>
-                <div></div>
+
+                <label>AIT %</label>
+                <input
+                  type="number"
+                  id="AitPercent"
+                  name="AitPercent"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.AitPercent}
+                  placeholder="Enter AIT %"
+                  value={currentRow.AitPercent}
+                  onChange={(e) => handleChange(e)}
+                />
+
                 <label>AIT Deduction</label>
                 <input
                   type="number"
                   id="AitDeduction"
                   name="AitDeduction"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
                   // class={errorObject.AitDeduction}
-                  // placeholder="Enter AIT Deduction"
+                  placeholder="AIT Deduction"
                   value={currentRow.AitDeduction}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1298,16 +1430,27 @@ const PaymentReceive = (props) => {
                 <div></div>
                 <label></label>
                 <div></div>
-                <label></label>
-                <div></div>
+
+                <label>VAT %</label>
+                <input
+                  type="number"
+                  id="VatPercent"
+                  name="VatPercent"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  // class={errorObject.VatPercent}
+                  placeholder="Enter VAT %"
+                  value={currentRow.VatPercent}
+                  onChange={(e) => handleChange(e)}
+                />
+
                 <label>VAT Amount</label>
                 <input
                   type="number"
                   id="VatAmount"
                   name="VatAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
                   // class={errorObject.VatAmount}
-                  // placeholder="Enter VAT Amount"
+                  placeholder="VAT Amount"
                   value={currentRow.VatAmount}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1323,9 +1466,9 @@ const PaymentReceive = (props) => {
                   type="number"
                   id="AdvanceAmount"
                   name="AdvanceAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
+                  disabled={true}
                   // class={errorObject.AdvanceAmount}
-                  // placeholder="Enter Advance Amount"
+                  placeholder="Advance Amount"
                   value={currentRow.AdvanceAmount}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1336,7 +1479,25 @@ const PaymentReceive = (props) => {
                 <div></div>
                 <label></label>
                 <div></div>
-                <label><strong>Total</strong></label>
+                <label>Due Amount</label>
+                <input
+                  type="number"
+                  id="DueAmount"
+                  name="DueAmount"
+                  disabled={true}
+                  // class={errorObject.DueAmount}
+                  placeholder="Due Amount"
+                  value={currentRow.DueAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                {/* <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label></label>
+                <div></div>
+                <label><strong>Net Invoice Amount</strong></label>
                 <input
                   type="number"
                   id="Total"
@@ -1347,7 +1508,7 @@ const PaymentReceive = (props) => {
                   // placeholder="Enter Rebate Amount"
                   value={calTotal()}
                   // onChange={(e) => handleChange(e)}
-                />
+                /> */}
               </div>
 
 
