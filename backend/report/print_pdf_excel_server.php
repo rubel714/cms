@@ -17,7 +17,7 @@ if (isset($_POST['action'])) {
 }
 
 switch ($task) {
-		case "InvoiceListExport":
+	case "InvoiceListExport":
 		InvoiceListExport();
 		break;
 
@@ -105,7 +105,7 @@ function InvoiceListExport()
 	global $sql, $tableProperties, $TEXT, $siteTitle;
 
 	$StartDate = $_REQUEST['StartDate'];
-	$EndDate = $_REQUEST['EndDate'] . " 23-59-59"; 
+	$EndDate = $_REQUEST['EndDate'] . " 23-59-59";
 
 	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
 	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
@@ -114,26 +114,29 @@ function InvoiceListExport()
 	$BillStatusFilter = isset($_REQUEST['BillStatusFilter']) ? trim($_REQUEST['BillStatusFilter']) : '';
 	$PaymentStatusFilter = isset($_REQUEST['PaymentStatusFilter']) ? trim($_REQUEST['PaymentStatusFilter']) : '';
 	$whereConditions = "";
-	if ($CustomerFilter>0) {
+	if ($CustomerFilter > 0) {
 		$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
 	}
-	if ($AssignedStaffFilter>0) {
+
+	if ($AssignedStaffFilter > 0) {
 		$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
+	} else if ($AssignedStaffFilter == -1) {
+		$whereConditions .= " AND a.CustomerUserId is null ";
 	}
 
-	if ($BillStatusFilter !== 'null' && !empty($BillStatusFilter) && $BillStatusFilter>0) {
-		if($BillStatusFilter == 2){
+	if ($BillStatusFilter !== 'null' && !empty($BillStatusFilter) && $BillStatusFilter > 0) {
+		if ($BillStatusFilter == 2) {
 			$BillStatusFilter = 0;
 		}
 		$whereConditions .= " AND a.IsBilled = $BillStatusFilter ";
 	}
-	if ($PaymentStatusFilter !== 'null' && !empty($PaymentStatusFilter) && $PaymentStatusFilter>0) {
-		if($PaymentStatusFilter == 2){
+	if ($PaymentStatusFilter !== 'null' && !empty($PaymentStatusFilter) && $PaymentStatusFilter > 0) {
+		if ($PaymentStatusFilter == 2) {
 			$PaymentStatusFilter = 0;
 		}
 		$whereConditions .= " AND a.IsPaid = $PaymentStatusFilter ";
 	}
-	
+
 	$sql = "SELECT a.AccountCode as CustomerCode,c.CustomerName,
 	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod
 	,a.Description
@@ -149,14 +152,14 @@ function InvoiceListExport()
 	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
 	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
-	$tableProperties["query_field"] = array("CustomerCode","CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName", "IsBilledText", "IsPaidText");
+	$tableProperties["query_field"] = array("CustomerCode", "CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName", "IsBilledText", "IsPaidText");
 	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff", "Billed", "Paid");
 	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left", "center", "center");
 	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "5%", "5%", "5%", "5%", "5%", "5%", "5%", "5%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("18","35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20", "12", "12");
-	$tableProperties["precision"] = array("string","string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
+	$tableProperties["width_excel"] = array("18", "35", "15", "30", "15", "20", "15", "15", "15", "20", "15", "15", "16", "20", "20", "12", "20", "20", "20", "12", "12");
+	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, "string", "string", "string", "string", "string", "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
 
@@ -348,14 +351,14 @@ function BusinessLinetExport()
 	FROM t_businessline 
 	ORDER BY `BusinessLineCode`;";
 
-	$tableProperties["query_field"] = array("BusinessLineCode","BusinessLineName");
-	$tableProperties["table_header"] = array('Business Line Code','Business Line Name');
-	$tableProperties["align"] = array("left","left");
-	$tableProperties["width_print_pdf"] = array("40%","60%"); //when exist serial then here total 95% and 5% use for serial
-	$tableProperties["width_excel"] = array("30","40");
-	$tableProperties["precision"] = array("string","string"); //string,date,datetime,0,1,2,3,4
-	$tableProperties["total"] = array(0,0); //not total=0, total=1
-	$tableProperties["color_code"] = array(0,0); //colorcode field = 1 not color code field = 0
+	$tableProperties["query_field"] = array("BusinessLineCode", "BusinessLineName");
+	$tableProperties["table_header"] = array('Business Line Code', 'Business Line Name');
+	$tableProperties["align"] = array("left", "left");
+	$tableProperties["width_print_pdf"] = array("40%", "60%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("30", "40");
+	$tableProperties["precision"] = array("string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0); //colorcode field = 1 not color code field = 0
 	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
 	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
 
@@ -555,8 +558,8 @@ function ClientExport()
 		inner join t_customergroup b on a.CustomerGroupId=b.CustomerGroupId
 		ORDER BY a.CustomerName ASC;";
 
-	$tableProperties["query_field"] = array("CustomerCode", "CustomerName","CustomerGroupName",  "CompanyAddress", "CompanyName", "Designation",  "ContactPhone", "CompanyEmail");
-	$tableProperties["table_header"] = array('Code', 'Client Name','Customer Group', 'Address', 'Contact Person', 'Designation', 'Phone', 'Email');
+	$tableProperties["query_field"] = array("CustomerCode", "CustomerName", "CustomerGroupName",  "CompanyAddress", "CompanyName", "Designation",  "ContactPhone", "CompanyEmail");
+	$tableProperties["table_header"] = array('Code', 'Client Name', 'Customer Group', 'Address', 'Contact Person', 'Designation', 'Phone', 'Email');
 	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "left");
 	$tableProperties["width_print_pdf"] = array("10%", "10%", "10%", "10%",  "10%", "10%", "10%", "10%"); //when exist serial then here total 95% and 5% use for serial
 	$tableProperties["width_excel"] = array("18", "30", "30", "20",  "20", "20", "20", "20");
@@ -1306,7 +1309,7 @@ if ($reportType == 'print' || $reportType == 'pdf') {
 	$exportTime = date("Y_m_d_H_i_s", time());
 	$exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
 	$writer->writeToFile(STORAGE_PATH . "media/files/$exportFilePath");
-	header('Location:'.STORAGE_PATH_URL.'media/files/' . $exportFilePath); //File open location	
+	header('Location:' . STORAGE_PATH_URL . 'media/files/' . $exportFilePath); //File open location	
 
 
 } else if ($reportType == 'csv') {
@@ -1331,11 +1334,11 @@ if ($reportType == 'print' || $reportType == 'pdf') {
 	// $exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
 	// $writer->writeToFile("media/$exportFilePath");
 	// header('Location:media/' . $exportFilePath); //File open location	
-	
+
 	$exportTime = date("Y_m_d_H_i_s", time());
 	$exportFilePath = $reportSaveName . '_' . $exportTime . ".xlsx";
 	$writer->writeToFile(STORAGE_PATH . "media/files/$exportFilePath");
-	header('Location:'.STORAGE_PATH_URL.'media/files/' . $exportFilePath); //File open location	
+	header('Location:' . STORAGE_PATH_URL . 'media/files/' . $exportFilePath); //File open location	
 
 }
 

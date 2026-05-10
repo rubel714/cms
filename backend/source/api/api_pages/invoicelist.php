@@ -47,8 +47,13 @@ function getDataList($data)
 			$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
 		}
 		if (!empty($AssignedStaffFilter)) {
-			$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
+			if ($AssignedStaffFilter == -1) {
+				$whereConditions .= " AND a.CustomerUserId is null ";
+			}else{
+				$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
+			}
 		}
+		
 
 		if (!empty($BillStatusFilter)) { // Assuming 2 is for 'Not Billed' and 1 is for 'Billed', and '' is for 'All'
 			if($BillStatusFilter == 2){
@@ -73,7 +78,7 @@ function getDataList($data)
 		left join t_users b on a.CustomerUserId=b.UserId
 		left join t_customer c on a.AccountCode=c.CustomerCode
 		
-	   where $whereConditions
+	    where $whereConditions
 		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 // echo $query;
 		$resultdata = $dbh->query($query);
