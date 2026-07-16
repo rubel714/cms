@@ -41,7 +41,7 @@ function getDataList($data)
 	try {
 		$dbh = new Db();
 		
-		$whereConditions = "(STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate')";
+		$whereConditions = "(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') between '$StartDate' and '$EndDate')";
 		
 		if (!empty($CustomerFilter)) {
 			$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
@@ -70,7 +70,7 @@ function getDataList($data)
 		
 	 	$query = "SELECT a.*, 
  		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
-		DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
+		DATE_FORMAT(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
 		b.UserName as CustomerUserName,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,
 		case when a.IsBilled=1 then 'Yes' else 'No' end as IsBilledText,
 		case when a.IsPaid=1 then 'Yes' else 'No' end as IsPaidText
@@ -79,8 +79,8 @@ function getDataList($data)
 		left join t_customer c on a.AccountCode=c.CustomerCode
 		
 	    where $whereConditions
-		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
-// echo $query;
+		ORDER BY STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') DESC;";
+
 		$resultdata = $dbh->query($query);
 
 		$returnData = [

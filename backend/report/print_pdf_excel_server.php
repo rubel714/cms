@@ -140,7 +140,7 @@ function InvoiceListExport()
 	$sql = "SELECT a.AccountCode as CustomerCode,c.CustomerName,
 	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod
 	,a.Description
-	,DATE_FORMAT(STR_TO_DATE(a.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, a.TransactionReference,a.AnalysisCode3
+	,DATE_FORMAT(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y'), '%d/%m/%Y') as TransactionDate, a.TransactionReference,a.AnalysisCode3
 	,a.TransactionAmount,a.ExchangeRate,a.BaseAmount,a.BaseAmountWithoutVat,a.VatAmount,a.GeneralDescription9,a.GeneralDescription11,
 	a.GeneralDescription14,a.GeneralDescription17,a.GeneralDescription18,a.GeneralDescription20,b.UserName as CustomerUserName,
 	case when a.IsBilled=1 then 'Yes' else 'No' end as IsBilledText,
@@ -149,8 +149,8 @@ function InvoiceListExport()
 	FROM t_invoiceitems a
 	left join t_users b on a.CustomerUserId=b.UserId
 	left join t_customer c on a.AccountCode=c.CustomerCode
-	where (STR_TO_DATE(a.TransactionDate, '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
-	ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
+	where (STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
+	ORDER BY STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') DESC;";
 
 	$tableProperties["query_field"] = array("CustomerCode", "CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName", "IsBilledText", "IsPaidText");
 	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff", "Billed", "Paid");
