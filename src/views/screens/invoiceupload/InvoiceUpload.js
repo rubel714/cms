@@ -641,12 +641,12 @@ const InvoiceUpload = (props) => {
           <div className={classes.root}>
             <Paper className={classes.paper} elevation={3}>
               <Typography variant="h5" align="center" gutterBottom>
-                Upload a File (.csv)
+                Upload a File (.xlsx, .xls)
               </Typography>
 
               <Input
                 type="file"
-                // accept=".csv,text/csv"
+                accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 onChange={(e) => handleFileChange(e)}
                 fullWidth
                 className={classes.input}
