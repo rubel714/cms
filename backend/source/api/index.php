@@ -1,4 +1,5 @@
 <?php
+ini_set('memory_limit', '512M');   // or 1G for very large files
 
 if(isset($_SERVER["HTTP_ORIGIN"])){
     // You can decide if the origin in $_SERVER['HTTP_ORIGIN'] is something you want to allow, or as we do here, just allow all

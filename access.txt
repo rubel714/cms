@@ -44,6 +44,14 @@ REACT_APP_API_URL=http://175.29.124.231/cms/backend/
 REACT_APP_FRONT_URL=http://175.29.124.231/cms/
 REACT_APP_STORAGE_URL=http://175.29.124.231/storage/cms/
 
+=================Web .env========175.29.124.231 UAT======================================
+FAST_REFRESH = false
+CHOKIDAR_USEPOLLING=true
+REACT_APP_BASE_NAME=/uatcms
+REACT_APP_API_URL=http://175.29.124.231/uatcms/backend/
+REACT_APP_FRONT_URL=http://175.29.124.231/uatcms/
+REACT_APP_STORAGE_URL=http://175.29.124.231/storage/uatcms/
+
 
 =================Web env.php================================================
 define("DB_NAME", "ngplcom_cms_db");

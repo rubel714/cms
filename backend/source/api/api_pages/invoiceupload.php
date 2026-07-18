@@ -1,4 +1,9 @@
 <?php
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+error_reporting(error_reporting() & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 
 $task = '';
 if (isset($data->action)) {
@@ -96,7 +101,6 @@ function dataAddEdit($data)
 			foreach ($resultdata as $row) {
 				$VatRoleList[$row['VatRoleCode']] = $row["VatRate"];
 			}
- 
 
 			//Insert Master
 			$q = new insertq();
@@ -110,8 +114,7 @@ function dataAddEdit($data)
 
 
 
-
-
+			
 
 			// $fileDir = '../../../media/invoicefiles/' . $FileName;
 			$fileDir = STORAGE_PATH . "media/invoicefiles/" . $FileName;
@@ -119,6 +122,7 @@ function dataAddEdit($data)
 
 			//Load the uploaded spreadsheet (supports .xlsx, .xls and .csv) using PhpSpreadsheet
 			require_once __DIR__ . '/../../../report/PhpSpreadsheet/vendor/autoload.php';
+			
 			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($fileDir);
 
 			//Only read the "JrnalExtract" sheet
