@@ -317,12 +317,29 @@ function dataAddEdit($data)
 				$CustomerName = $data[$CustomerNameIdx];
 				$SunAccount = $data[$SunAccountIdx];
 				$AnalysisCode9 = $data[$AnalysisCode9Idx];
-				$GeneralDescription11 = $data[$GeneralDescription11Idx];
+				$GeneralDescription11 = $data[$GeneralDescription11Idx]; //Buyer name
+
+
 				$Agent = $data[$AgentIdx];
 				$GeneralDescription14 = $data[$GeneralDescription14Idx];
 				$GeneralDescription17 = $data[$GeneralDescription17Idx];
 				$GeneralDescription20 = $data[$GeneralDescription20Idx];
 
+
+
+				/////////////////////////////////Buyer name override for specific buyer list, 
+				//if TransactionReference starts with any of the prefix in the list then use SunAccount as Buyer name
+					$checkBuyerList = ["BGD/SFT", "BGD/GTS", "BGD/BAS"];
+					$matched = false;
+					foreach ($checkBuyerList as $prefix) {
+						if (str_starts_with($TransactionReference, $prefix)) {
+							$matched = true;
+						}
+					}
+					if($matched){
+						$GeneralDescription11 = $SunAccount;
+					}
+				//////////////////////////////////////////////////////////////////////////////////
 
 				// $Name = $data[$NameIdx];
 				// $BusinessUnit = $data[$BusinessUnitIdx];
