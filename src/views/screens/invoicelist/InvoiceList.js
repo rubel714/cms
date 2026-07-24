@@ -107,6 +107,13 @@ const InvoiceList = (props) => {
     return paymentStatusList.find((list) => list.id === currPaymentStatusFilter) || paymentStatusList[0];
   }, [paymentStatusList, currPaymentStatusFilter]);
 
+  const notAssignCustomerCount = React.useMemo(() => {
+    if (!dataList || !Array.isArray(dataList)) return 0;
+    return dataList.filter(
+      (row) => !row.CustomerId || Number(row.CustomerId) <= 0
+    ).length;
+  }, [dataList]);
+
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
@@ -563,7 +570,7 @@ const InvoiceList = (props) => {
   
       apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
         setCustomerList(
-          [{ id: "", name: "All Customers" }].concat(res.data.datalist),
+          [{ id: "", name: "All Customers" },{ id: "-1", name: "[Not Assign Customer]" }].concat(res.data.datalist),
         );
   
       });
@@ -1025,6 +1032,15 @@ const InvoiceList = (props) => {
               />
             </div>
           </div> */}
+
+          <div>
+            <label>Customer Not Assign</label>
+            <div class="">
+              <span style={{ fontWeight: "bold", color: "#d32f2f" }}>
+                {notAssignCustomerCount}
+              </span>
+            </div>
+          </div>
 
           <Button
             label={"Export"}

@@ -19,11 +19,35 @@ const InvoiceEditModal = (props) => {
   const UserInfo = LoginUserInfo();
   const [UserList, setUserList] = useState(null);
   const [currUserId, setCurrUserId] = useState(null);
+  const [CustomerList, setCustomerList] = useState(null);
+  const [currCustomerId, setCurrCustomerId] = useState("");
   React.useEffect(() => {
     getUserList(props.currentRow.CustomerUserId);
+    getCustomerList();
+    setCurrCustomerId(props.currentRow.CustomerId);
     setCurrentRow(props.currentRow);
   }, []);
- 
+
+  const selectedCustomer = React.useMemo(() => {
+    if (!CustomerList || !currCustomerId) return null;
+    return CustomerList.find((list) => list.id === currCustomerId) || null;
+  }, [CustomerList, currCustomerId]);
+
+  function getCustomerList() {
+    let params = {
+      action: "CustomerList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+      CustomerGroupId: 0,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setCustomerList(
+        [{ id: "", name: "Select Customer" }].concat(res.data.datalist)
+      );
+    });
+  }
+
   function getUserList(selectUserId) {
     let params = {
       action: "UserList",
@@ -44,6 +68,10 @@ const InvoiceEditModal = (props) => {
     if (name === "CustomerUserId") {
       data["CustomerUserId"] = value;
       setCurrUserId(value);
+    }
+    if (name === "CustomerId") {
+      data["CustomerId"] = value;
+      setCurrCustomerId(value);
     }
 
     setErrorObject({ ...errorObject, [name]: null });
@@ -138,6 +166,49 @@ const InvoiceEditModal = (props) => {
               onChange={(e) => handleChange(e)}
             />
           </div> */}
+
+          <div class="contactmodalBody pt-10">
+            <label>Customer</label>
+            <Autocomplete
+              autoHighlight
+              disableClearable
+              className="chosen_dropdown"
+              id="CustomerId"
+              name="CustomerId"
+              autoComplete
+              options={CustomerList ? CustomerList : []}
+              getOptionLabel={(option) => option.name}
+              value={selectedCustomer}
+              onChange={(event, valueobj) =>
+                handleChangeFilterDropDown(
+                  "CustomerId",
+                  valueobj ? valueobj.id : ""
+                )
+              }
+              filterOptions={(options, state) => {
+                const inputValue = state.inputValue.toLowerCase();
+                if (!inputValue) return options.slice(0, 500);
+                return options
+                  .filter((option) =>
+                    option.name.toLowerCase().includes(inputValue)
+                  )
+                  .slice(0, 500);
+              }}
+              renderOption={(option) => (
+                <Typography className="chosen_dropdown_font">
+                  {option.name}
+                </Typography>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="standard"
+                  fullWidth
+                  placeholder="Type to search..."
+                />
+              )}
+            />
+          </div>
 
           <div class="contactmodalBody pt-10">
             <label>Invoice Amount (BDT)</label>

@@ -46,7 +46,11 @@ function getDataList($data)
 		$whereConditions = "(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') between '$StartDate' and '$EndDate')";
 		
 		if (!empty($CustomerFilter)) {
-			$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
+			if ($CustomerFilter == -1) {
+				$whereConditions .= " AND c.CustomerId is null ";
+			}else{
+				$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
+			}
 		}
 		if (!empty($AssignedStaffFilter)) {
 			if ($AssignedStaffFilter == -1) {
@@ -73,7 +77,7 @@ function getDataList($data)
 	 	$query = "SELECT a.*, 
  		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		DATE_FORMAT(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
-		b.UserName as CustomerUserName,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,
+		b.UserName as CustomerUserName,c.CustomerId as CustomerId,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,
 		case when a.IsBilled=1 then 'Yes' else 'No' end as IsBilledText,
 		case when a.IsPaid=1 then 'Yes' else 'No' end as IsPaidText
 		FROM t_invoiceitems a
@@ -111,16 +115,30 @@ function dataAddEdit($data)
 		$CustomerUserId = $data->rowData->CustomerUserId?$data->rowData->CustomerUserId:null;
 		$BaseAmountWithoutVat = $data->rowData->BaseAmountWithoutVat?$data->rowData->BaseAmountWithoutVat:null;
 		$VatAmount = $data->rowData->VatAmount?$data->rowData->VatAmount:null;
+		$CustomerId = isset($data->rowData->CustomerId) ? intval($data->rowData->CustomerId) : 0;
 
 		try {
 
 			$dbh = new Db();
 			$aQuerys = array();
- 
+
+			$columns = ['CustomerUserId','BaseAmountWithoutVat','VatAmount'];
+			$values = [$CustomerUserId, $BaseAmountWithoutVat, $VatAmount];
+
+			if ($CustomerId > 0) {
+				$customer = $dbh->query("SELECT CustomerCode, CustomerName FROM t_customer WHERE CustomerId = $CustomerId;");
+				if (!empty($customer)) {
+					$columns[] = 'AccountCode';
+					$values[] = $customer[0]['CustomerCode'];
+					$columns[] = 'CustomerName';
+					$values[] = $customer[0]['CustomerName'];
+				}
+			}
+
 			$u = new updateq();
 			$u->table = 't_invoiceitems';
-			$u->columns = ['CustomerUserId','BaseAmountWithoutVat','VatAmount'];
-			$u->values = [$CustomerUserId, $BaseAmountWithoutVat, $VatAmount];
+			$u->columns = $columns;
+			$u->values = $values;
 			$u->pks = ['InvoiceItemId'];
 			$u->pk_values = [$InvoiceItemId];
 			$u->build_query();
