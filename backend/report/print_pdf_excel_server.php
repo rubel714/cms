@@ -109,16 +109,16 @@ function InvoiceListExport()
 
 	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
 	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
-	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
-	$AssignedStaffFilter = isset($_REQUEST['AssignedStaffFilter']) ? trim($_REQUEST['AssignedStaffFilter']) : '';
 	$BillStatusFilter = isset($_REQUEST['BillStatusFilter']) ? trim($_REQUEST['BillStatusFilter']) : '';
 	$PaymentStatusFilter = isset($_REQUEST['PaymentStatusFilter']) ? trim($_REQUEST['PaymentStatusFilter']) : '';
 	$whereConditions = "";
-	if ($CustomerFilter > 0) {
+	if ($CustomerFilter > 0 && $CustomerFilter !== 'null' && $CustomerFilter !== '') {
 		$whereConditions .= " AND c.CustomerId = $CustomerFilter ";
+	}else if ($CustomerFilter == -1) {
+		$whereConditions .= " AND c.CustomerId is null ";
 	}
 
-	if ($AssignedStaffFilter > 0) {
+	if ($AssignedStaffFilter > 0 && $AssignedStaffFilter !== 'null' && $AssignedStaffFilter !== '') {
 		$whereConditions .= " AND a.CustomerUserId = $AssignedStaffFilter ";
 	} else if ($AssignedStaffFilter == -1) {
 		$whereConditions .= " AND a.CustomerUserId is null ";
@@ -151,7 +151,8 @@ function InvoiceListExport()
 	left join t_customer c on a.AccountCode=c.CustomerCode
 	where (STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') between '$StartDate' and '$EndDate') $whereConditions
 	ORDER BY STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') DESC;";
-
+// echo $sql;
+// exit;
 	$tableProperties["query_field"] = array("CustomerCode", "CustomerName", "AccountingPeriod", "Description", "TransactionDate", "TransactionReference", "AnalysisCode3", "TransactionAmount", "ExchangeRate", "BaseAmount", "BaseAmountWithoutVat", "VatAmount", "GeneralDescription9", "GeneralDescription11", "GeneralDescription14", "GeneralDescription17", "GeneralDescription18", "GeneralDescription20", "CustomerUserName", "IsBilledText", "IsPaidText");
 	$tableProperties["table_header"] = array("Customer Code", "Customer Name", "Invoice Month", "Description", "Invoice Date", "Invoice No", "Business Line", "Amount (USD)", "Exchange Rate", "Invoice Amount (BDT)", "Amount (BDT)", "VAT (BDT)", "Report No", "Buyer Name", "Merchant Name", "Style Name", "PI No", "Service", "Assigned Staff", "Billed", "Paid");
 	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "left", "left", "left", "left", "right", "left", "left", "center", "center");

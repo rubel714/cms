@@ -1,6 +1,6 @@
 {
   "name": "dispensing-tool",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "private": true,
   "homepage": "/uatcms",
   "dependencies": {

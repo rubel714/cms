@@ -260,7 +260,6 @@ function dataAddEdit($data)
 			// $GeneralDescription19Idx = 36;
 
 			$TotalInvoice = 0;
-			$mergedRows = array(); //rows grouped by TransactionReference
 			foreach ($rows as $data) {
 				$rowcounter++;
 
@@ -391,45 +390,20 @@ function dataAddEdit($data)
 					}
 				}
 
-				//Merge duplicate rows of the same invoice no: amounts are summed,
-				//every other column keeps the value of the first row of that invoice no.
-				$mergeKey = trim((string) $TransactionReference);
-				if ($mergeKey === '') {
-					$mergeKey = '[NoRef]' . $rowcounter; //keep rows without invoice no separate
+				$ExchangeRate = 1; //hard code for now
+				if($BaseAmount>0 && $TransactionAmount>0){
+					$ExchangeRate = $BaseAmount / $TransactionAmount;
 				}
 
-				if (array_key_exists($mergeKey, $mergedRows)) {
-					$mergedRows[$mergeKey]['BaseAmountWithoutVat'] += $BaseAmountWithoutVat;
-					$mergedRows[$mergeKey]['VatAmount'] += $VatAmount;
-					$mergedRows[$mergeKey]['BaseAmount'] += $BaseAmount;
-					$mergedRows[$mergeKey]['TransactionAmount'] += $TransactionAmount;
-				} else {
-					$mergedRows[$mergeKey] = [
-						'AccountCode' => $AccountCode,
-						'CustomerName' => $CustomerName,
-						'AccountingPeriod' => $AccountingPeriod,
-						'DebitCredit' => $DebitCredit,
-						'Description' => $Description,
-						'JournalType' => $JournalType,
-						'BaseAmountWithoutVat' => $BaseAmountWithoutVat,
-						'VatAmount' => $VatAmount,
-						'BaseAmount' => $BaseAmount,
-						'TransactionDate' => $TransactionDate,
-						'TransactionReference' => $TransactionReference,
-						'AnalysisCode1' => $AnalysisCode1,
-						'AnalysisCode3' => $AnalysisCode3,
-						'AnalysisCode9' => $AnalysisCode9,
-						'TransactionAmount' => $TransactionAmount,
-						'CurrencyCode' => $CurrencyCode,
-						'GeneralDescription11' => $GeneralDescription11,
-						'GeneralDescription14' => $GeneralDescription14,
-						'GeneralDescription17' => $GeneralDescription17,
-						'GeneralDescription20' => $GeneralDescription20,
-						'SunAccount' => $SunAccount,
-						'Agent' => $Agent,
-						'CustomerUserId' => $CustomerUserId
-					];
-				}
+				$q = new insertq();
+				$q->table = 't_invoiceitems';
+				$q->columns = ['InvoiceId', 'AccountCode','CustomerName', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode3', 'AnalysisCode9', 'TransactionAmount','ExchangeRate', 'CurrencyCode', 'GeneralDescription11', 'GeneralDescription14', 'GeneralDescription17', 'GeneralDescription20','SunAccount','Agent','CustomerUserId'];
+				$q->values = ['[LastInsertedId]', $AccountCode, $CustomerName, $AccountingPeriod, $DebitCredit, $Description, $JournalType, $BaseAmountWithoutVat, $VatAmount, $BaseAmount, $TransactionDate, $TransactionReference, $AnalysisCode1, $AnalysisCode3, $AnalysisCode9, $TransactionAmount, $ExchangeRate, $CurrencyCode, $GeneralDescription11, $GeneralDescription14, $GeneralDescription17, $GeneralDescription20, $SunAccount, $Agent, $CustomerUserId];
+				$q->pks = ['InvoiceItemId'];
+				$q->bUseInsetId = false;
+				$q->build_query();
+				$aQuerys[] = $q;
+				$TotalInvoice++;
 
 				// $q = new insertq();
 				// $q->table = 't_invoiceitems';
@@ -440,24 +414,6 @@ function dataAddEdit($data)
 				// $q->build_query();
 				// $aQuerys[] = $q;
 				// $TotalInvoice++;
-			}
-
-			foreach ($mergedRows as $mRow) {
-
-				$ExchangeRate = 1; //hard code for now
-				if($mRow['BaseAmount']>0 && $mRow['TransactionAmount']>0){
-					$ExchangeRate = $mRow['BaseAmount'] / $mRow['TransactionAmount'];
-				}
-
-				$q = new insertq();
-				$q->table = 't_invoiceitems';
-				$q->columns = ['InvoiceId', 'AccountCode','CustomerName', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode3', 'AnalysisCode9', 'TransactionAmount','ExchangeRate', 'CurrencyCode', 'GeneralDescription11', 'GeneralDescription14', 'GeneralDescription17', 'GeneralDescription20','SunAccount','Agent','CustomerUserId'];
-				$q->values = ['[LastInsertedId]', $mRow['AccountCode'], $mRow['CustomerName'], $mRow['AccountingPeriod'], $mRow['DebitCredit'], $mRow['Description'], $mRow['JournalType'], $mRow['BaseAmountWithoutVat'], $mRow['VatAmount'], $mRow['BaseAmount'], $mRow['TransactionDate'], $mRow['TransactionReference'], $mRow['AnalysisCode1'], $mRow['AnalysisCode3'], $mRow['AnalysisCode9'], $mRow['TransactionAmount'], $ExchangeRate, $mRow['CurrencyCode'], $mRow['GeneralDescription11'], $mRow['GeneralDescription14'], $mRow['GeneralDescription17'], $mRow['GeneralDescription20'], $mRow['SunAccount'], $mRow['Agent'], $mRow['CustomerUserId']];
-				$q->pks = ['InvoiceItemId'];
-				$q->bUseInsetId = false;
-				$q->build_query();
-				$aQuerys[] = $q;
-				$TotalInvoice++;
 			}
 
 			$res = exec_query($aQuerys, $UserId, $lan);
