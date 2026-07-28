@@ -78,6 +78,13 @@ function dataAddEdit($data)
 			$FileName = $FileNameString ? ConvertFile($FileNameString, $prefix) : null;
 			$TransactionDate = date("Y-m-d H:i:s");
 
+			$query = "SELECT SettingValue FROM t_settings where SettingCode='MAXINVUPDATE';";
+			$resultdata = $dbh->query($query);
+			$OldMaxInvUpdateDate = "";
+			foreach ($resultdata as $row) {
+				$OldMaxInvUpdateDate = $row["SettingValue"];
+			}
+
 
 			$query = "SELECT a.CustomerId, b.CustomerCode, c.BusinessLineCode, a.UserId 
 			FROM t_customer_map a 
@@ -442,7 +449,24 @@ function dataAddEdit($data)
 				// $TotalInvoice++;
 			}
 
+			$MaxTransactionDateSort = ""; //Ymd, used only for comparing
+
 			foreach ($mergedRows as $mRow) {
+
+				//TransactionDate is a dmY string, so compare on a sortable Ymd form
+				$dt = DateTime::createFromFormat('dmY', (string) $mRow['TransactionDate']);
+				if ($dt !== false) {
+					$sortDate = $dt->format('Y-m-d');
+
+					if($sortDate <= $OldMaxInvUpdateDate){
+						continue;
+					}
+
+
+					if ($MaxTransactionDateSort === "" || $sortDate > $MaxTransactionDateSort) {
+						$MaxTransactionDateSort = $sortDate;
+					}
+				}
 
 				$ExchangeRate = 1; //hard code for now
 				if($mRow['BaseAmount']>0 && $mRow['TransactionAmount']>0){
@@ -459,6 +483,21 @@ function dataAddEdit($data)
 				$aQuerys[] = $q;
 				$TotalInvoice++;
 			}
+
+
+		
+
+			if ($MaxTransactionDateSort !== "" && $OldMaxInvUpdateDate < $MaxTransactionDateSort) {
+				$u = new updateq();
+				$u->table = 't_settings';
+				$u->columns = ['SettingValue'];
+				$u->values = [$MaxTransactionDateSort];
+				$u->pks = ['SettingCode'];
+				$u->pk_values = ['MAXINVUPDATE'];
+				$u->build_query();
+				$aQuerys[] = $u;
+			}
+	
 
 			$res = exec_query($aQuerys, $UserId, $lan);
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
