@@ -57,14 +57,14 @@ const BillGenerate = (props) => {
   const PDFGenerate = () => {
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBill.php";
     window.open(
-      finalUrl + "?BillId=" + currentRow.id + "&TimeStamp=" + Date.now(),
+      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + "&TimeStamp=" + Date.now(),
     );
   };
 
   const ExcelGenerate = () => {
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBillExcel.php";
     window.open(
-      finalUrl + "?BillId=" + currentRow.id + "&TimeStamp=" + Date.now(),
+      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + "&TimeStamp=" + Date.now(),
     );
   };
 
@@ -693,6 +693,15 @@ const BillGenerate = (props) => {
     //   sort: true,
     //   filter: true,
     // },
+    {
+      field: "AnalysisCode3",
+      label: "Business Line",
+      width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "GeneralDescription11",
       label: "Buyer Name",

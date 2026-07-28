@@ -15,7 +15,6 @@ const InvoiceAddModal = (props) => {
 
   const [currentRow, setCurrentRow] = useState({});
   const [invoiceList, setInvoiceList] = useState([]);
-  const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [errorObject, setErrorObject] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const UserInfo = LoginUserInfo();
@@ -24,46 +23,70 @@ const InvoiceAddModal = (props) => {
   const [invoiceStartDate, setInvoiceStartDate] = useState("");
   const [invoiceEndDate, setInvoiceEndDate] = useState("");
 
-  const [BuyerList, setBuyerList] = useState(null);
   const [currBuyerId, setCurrBuyerId] = useState("");
-
-  const [MerchantList, setMerchantList] = useState(null);
   const [currMerchantId, setCurrMerchantId] = useState("");
+  const [currBusinessLineId, setCurrBusinessLineId] = useState("");
 
   useEffect(() => {
     setCurrentRow(props.currentRow);
-    getBuyerList();
-    getMerchantList();
   }, []);
 
-  function getBuyerList() {
-    let params = {
-      action: "BuyerList",
-      lan: language(),
-      UserId: UserInfo.UserId,
-      CustomerId: props.currentRow.CustomerId,
-    };
+  /** Unique option list built from a column of the searched invoices */
+  function uniqueOptionList(field, blankLabel) {
+    const names = invoiceList
+      .map((item) => (item[field] === null || item[field] === undefined ? "" : String(item[field]).trim()))
+      .filter((name) => name !== "");
 
-    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-      setBuyerList(
-        [{ id: "", name: "Select Buyer" }].concat(res.data.datalist)
-      );
-    });
+    const uniqueNames = Array.from(new Set(names)).sort((a, b) =>
+      a.localeCompare(b)
+    );
+
+    return [{ id: "", name: blankLabel }].concat(
+      uniqueNames.map((name) => ({ id: name, name: name }))
+    );
   }
 
-  function getMerchantList() {
-    let params = {
-      action: "MerchantList",
-      lan: language(),
-      UserId: UserInfo.UserId,
-      CustomerId: props.currentRow.CustomerId,
-    };
+  const BuyerList = React.useMemo(
+    () => uniqueOptionList("GeneralDescription11", "Select Buyer"),
+    [invoiceList]
+  );
 
-    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
-      setMerchantList(
-        [{ id: "", name: "Select Merchant" }].concat(res.data.datalist)
+  const MerchantList = React.useMemo(
+    () => uniqueOptionList("GeneralDescription14", "Select Merchant"),
+    [invoiceList]
+  );
+
+  const BusinessLineList = React.useMemo(
+    () => uniqueOptionList("AnalysisCode3", "Select Business Line"),
+    [invoiceList]
+  );
+
+  /** Rows shown in the table after applying the Buyer/Merchant/Business Line filter */
+  const filteredInvoiceList = React.useMemo(() => {
+    return invoiceList.filter((item) => {
+      const buyer = item.GeneralDescription11
+        ? String(item.GeneralDescription11).trim()
+        : "";
+      const merchant = item.GeneralDescription14
+        ? String(item.GeneralDescription14).trim()
+        : "";
+      const businessLine = item.AnalysisCode3
+        ? String(item.AnalysisCode3).trim()
+        : "";
+
+      return (
+        (currBuyerId === "" || buyer === currBuyerId) &&
+        (currMerchantId === "" || merchant === currMerchantId) &&
+        (currBusinessLineId === "" || businessLine === currBusinessLineId)
       );
     });
+  }, [invoiceList, currBuyerId, currMerchantId, currBusinessLineId]);
+
+  /** Changing a dropdown clears selection so hidden rows can not stay selected */
+  function clearSelection() {
+    setInvoiceList((prev) =>
+      prev.map((item) => ({ ...item, IsSelected: false }))
+    );
   }
 
   function searchInvoices() {
@@ -82,8 +105,6 @@ const InvoiceAddModal = (props) => {
       lan: language(),
       UserId: UserInfo.UserId,
       CustomerId: props.currentRow.CustomerId,
-      BuyerId: currBuyerId,
-      MerchantId: currMerchantId,
       InvoiceStartDate: invoiceStartDate,
       InvoiceEndDate: invoiceEndDate,
       PaymentId: props.currentRow.id,
@@ -100,6 +121,9 @@ const InvoiceAddModal = (props) => {
             }))
           : [];
         setInvoiceList(list);
+        setCurrBuyerId("");
+        setCurrMerchantId("");
+        setCurrBusinessLineId("");
       })
       .catch((err) => {
         setIsLoading(false);
@@ -123,33 +147,23 @@ const InvoiceAddModal = (props) => {
     });
 
     setInvoiceList(updatedItems);
-
-    if (checked) {
-      setSelectedInvoices((prev) => [...prev, row]);
-    } else {
-      setSelectedInvoices((prev) =>
-        prev.filter((item) => getRowKey(item) !== rowKey)
-      );
-    }
   };
 
   const handleSelectAll = (e) => {
     const checked = e.target.checked;
-    const updatedItems = invoiceList.map((item) => ({
-      ...item,
-      IsSelected: checked,
-    }));
-    setInvoiceList(updatedItems);
+    const visibleKeys = new Set(filteredInvoiceList.map(getRowKey));
 
-    if (checked) {
-      setSelectedInvoices([...updatedItems]);
-    } else {
-      setSelectedInvoices([]);
-    }
+    setInvoiceList((prev) =>
+      prev.map((item) =>
+        visibleKeys.has(getRowKey(item))
+          ? { ...item, IsSelected: checked }
+          : item
+      )
+    );
   };
 
   function addInvoicesToBill() {
-    const selected = invoiceList.filter((item) => item.IsSelected);
+    const selected = filteredInvoiceList.filter((item) => item.IsSelected);
 
     if (selected.length === 0) {
       props.masterProps.openNoticeModal({
@@ -191,7 +205,10 @@ const InvoiceAddModal = (props) => {
       label: (
         <input
           type="checkbox"
-          checked={invoiceList.length > 0 && invoiceList.every((item) => item.IsSelected)}
+          checked={
+            filteredInvoiceList.length > 0 &&
+            filteredInvoiceList.every((item) => item.IsSelected)
+          }
           onChange={handleSelectAll}
           style={{ width: "18px", height: "18px" }}
         />
@@ -231,6 +248,15 @@ const InvoiceAddModal = (props) => {
     //   sort: true,
     //   filter: true,
     // },
+    {
+      field: "AnalysisCode3",
+      label: "Business Line",
+      width: "8%",
+      align: "left",
+      visible: true,
+      sort: true,
+      filter: true,
+    },
     {
       field: "GeneralDescription11",
       label: "Buyer Name",
@@ -345,15 +371,23 @@ const InvoiceAddModal = (props) => {
 
   // Memoize selected buyer
   const selectedBuyer = React.useMemo(() => {
-    if (!BuyerList || !currBuyerId) return null;
-    return BuyerList.find((list) => list.id === currBuyerId) || null;
+    return BuyerList.find((list) => list.id === currBuyerId) || BuyerList[0];
   }, [BuyerList, currBuyerId]);
 
   // Memoize selected merchant
   const selectedMerchant = React.useMemo(() => {
-    if (!MerchantList || !currMerchantId) return null;
-    return MerchantList.find((list) => list.id === currMerchantId) || null;
+    return (
+      MerchantList.find((list) => list.id === currMerchantId) || MerchantList[0]
+    );
   }, [MerchantList, currMerchantId]);
+
+  // Memoize selected business line
+  const selectedBusinessLine = React.useMemo(() => {
+    return (
+      BusinessLineList.find((list) => list.id === currBusinessLineId) ||
+      BusinessLineList[0]
+    );
+  }, [BusinessLineList, currBusinessLineId]);
 
   return (
     <>
@@ -387,6 +421,22 @@ const InvoiceAddModal = (props) => {
             />
           </div>
 
+          <div
+            className="contactmodalBody pt-10"
+            style={{
+              display: "flex",
+              justifyContent: "end",
+              paddingRight: "16px",
+            }}
+          >
+            <Button
+              label={isLoading ? "Searching..." : "Search"}
+              class={"btnSave"}
+              onClick={searchInvoices}
+              disabled={isLoading}
+            />
+          </div>
+
           <div className="contactmodalBody pt-10">
             <label>Buyer</label>
             <Autocomplete
@@ -396,12 +446,14 @@ const InvoiceAddModal = (props) => {
               id="BuyerId"
               name="BuyerId"
               autoComplete
-              options={BuyerList ? BuyerList : []}
+              disabled={invoiceList.length === 0}
+              options={BuyerList}
               getOptionLabel={(option) => option.name}
               value={selectedBuyer}
-              onChange={(event, valueobj) =>
-                setCurrBuyerId(valueobj ? valueobj.id : "")
-              }
+              onChange={(event, valueobj) => {
+                setCurrBuyerId(valueobj ? valueobj.id : "");
+                clearSelection();
+              }}
               renderOption={(option) => (
                 <Typography className="chosen_dropdown_font">
                   {option.name}
@@ -420,12 +472,14 @@ const InvoiceAddModal = (props) => {
               id="MerchantId"
               name="MerchantId"
               autoComplete
-              options={MerchantList ? MerchantList : []}
+              disabled={invoiceList.length === 0}
+              options={MerchantList}
               getOptionLabel={(option) => option.name}
               value={selectedMerchant}
-              onChange={(event, valueobj) =>
-                setCurrMerchantId(valueobj ? valueobj.id : "")
-              }
+              onChange={(event, valueobj) => {
+                setCurrMerchantId(valueobj ? valueobj.id : "");
+                clearSelection();
+              }}
               renderOption={(option) => (
                 <Typography className="chosen_dropdown_font">
                   {option.name}
@@ -437,19 +491,31 @@ const InvoiceAddModal = (props) => {
             />
           </div>
 
-          <div
-            className="contactmodalBody pt-10"
-            style={{
-              display: "flex",
-              justifyContent: "end",
-              paddingRight: "16px",
-            }}
-          >
-            <Button
-              label={isLoading ? "Searching..." : "Search"}
-              class={"btnSave"}
-              onClick={searchInvoices}
-              disabled={isLoading}
+          <div className="contactmodalBody pt-10">
+            <label>Business Line</label>
+            <Autocomplete
+              autoHighlight
+              disableClearable
+              className="chosen_dropdown"
+              id="BusinessLineId"
+              name="BusinessLineId"
+              autoComplete
+              disabled={invoiceList.length === 0}
+              options={BusinessLineList}
+              getOptionLabel={(option) => option.name}
+              value={selectedBusinessLine}
+              onChange={(event, valueobj) => {
+                setCurrBusinessLineId(valueobj ? valueobj.id : "");
+                clearSelection();
+              }}
+              renderOption={(option) => (
+                <Typography className="chosen_dropdown_font">
+                  {option.name}
+                </Typography>
+              )}
+              renderInput={(params) => (
+                <TextField {...params} variant="standard" fullWidth />
+              )}
             />
           </div>
 
@@ -460,19 +526,19 @@ const InvoiceAddModal = (props) => {
                 <div style={{ padding: "12px 20px", backgroundColor: "#f3e5f5", borderRadius: "8px", minWidth: "120px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Invoice</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#7b1fa2" }}>
-                    {invoiceList.length}
+                    {filteredInvoiceList.length}
                   </div>
                 </div>
                 <div style={{ padding: "12px 20px", backgroundColor: "#e3f2fd", borderRadius: "8px", minWidth: "180px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Amount (FC)</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1565c0" }}>
-                    {invoiceList.reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {filteredInvoiceList.reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div style={{ padding: "12px 20px", backgroundColor: "#e8f5e9", borderRadius: "8px", minWidth: "180px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Amount (BDT)</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#2e7d32" }}>
-                    {invoiceList.reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {filteredInvoiceList.reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -482,19 +548,19 @@ const InvoiceAddModal = (props) => {
                 <div style={{ padding: "12px 20px", backgroundColor: "#ede7f6", borderRadius: "8px", minWidth: "120px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Invoice</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#512da8" }}>
-                    {invoiceList.filter(item => item.IsSelected).length}
+                    {filteredInvoiceList.filter(item => item.IsSelected).length}
                   </div>
                 </div>
                 <div style={{ padding: "12px 20px", backgroundColor: "#fff3e0", borderRadius: "8px", minWidth: "180px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Amount (FC)</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#e65100" }}>
-                    {invoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {filteredInvoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.TransactionAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div style={{ padding: "12px 20px", backgroundColor: "#fce4ec", borderRadius: "8px", minWidth: "180px" }}>
                   <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Selected Amount (BDT)</div>
                   <div style={{ fontSize: "18px", fontWeight: "bold", color: "#c2185b" }}>
-                    {invoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {filteredInvoiceList.filter(item => item.IsSelected).reduce((sum, item) => sum + (parseFloat(item.BaseAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -502,7 +568,7 @@ const InvoiceAddModal = (props) => {
             <div className="" style={{ maxHeight: "350px", overflow: "auto" }}>
               <CustomTable
                 columns={columnList}
-                rows={invoiceList.length > 0 ? invoiceList : {}}
+                rows={filteredInvoiceList.length > 0 ? filteredInvoiceList : {}}
                 actioncontrol={actioncontrol}
                 ispagination={false}
               />

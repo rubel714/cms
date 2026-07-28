@@ -259,7 +259,7 @@ function getDataSingle($data)
 		$query = "SELECT a.BillItemId as autoId, a.BillItemId, a.`BillId`, a.`InvoiceItemId`, 
 		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 
-		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
+		b.GeneralDescription9,b.TransactionReference,b.AnalysisCode3,b.GeneralDescription11,b.GeneralDescription17,
 		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
 		FROM t_billitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId

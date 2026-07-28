@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $BillId = isset($_REQUEST['BillId']) ? $_REQUEST['BillId'] : -1;
+$LoginUserId = isset($_REQUEST['LoginUserId']) ? $_REQUEST['LoginUserId'] : 0;
+
 if ($BillId == -1) {
     echo "Parameter is invalid";
     exit;
@@ -37,8 +39,16 @@ $BillNumber = "";
 $Remarks = "";
 $BillDate = "";
 $withinPeriod = "15 days of invoice date";
-$contactPerson = 'Sheikh Zahid Hussain';
-$contactPhone = '01711422132';
+
+$contactPerson = '';
+$contactPhone = '';
+
+$sqlu = "SELECT UserName, Email, PhoneNo FROM t_users where UserId=$LoginUserId;";
+$sqluresult = $db->query($sqlu);
+foreach ($sqluresult as $result) {
+    $contactPerson = $result['UserName'];
+    $contactPhone = $result['PhoneNo'];
+}
 
 $TotalBaseAmount=0;
 $TotalTransactionAmount=0;

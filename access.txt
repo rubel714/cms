@@ -1,19 +1,34 @@
+=================Web .env========175.29.124.231======================================
+FAST_REFRESH = false
+CHOKIDAR_USEPOLLING=true
+REACT_APP_BASE_NAME=/cms
+REACT_APP_API_URL=http://175.29.124.231/cms/backend/
+REACT_APP_FRONT_URL=http://175.29.124.231/cms/
+REACT_APP_STORAGE_URL=http://175.29.124.231/storage/cms/
 
-=================Domai================================================
-URL: https://cms.ng-pl.com
-User: admin
-Password: Net@pp096
 
-
+=================Web .env========175.29.124.231 UAT======================================
+FAST_REFRESH = false
+CHOKIDAR_USEPOLLING=true
+REACT_APP_BASE_NAME=/uatcms
+REACT_APP_API_URL=http://175.29.124.231/uatcms/backend/
+REACT_APP_FRONT_URL=http://175.29.124.231/uatcms/
+REACT_APP_STORAGE_URL=http://175.29.124.231/storage/uatcms/
 
 =================Local .env================================================
-
 FAST_REFRESH = false
 CHOKIDAR_USEPOLLING=true
 REACT_APP_BASE_NAME=/cms
 REACT_APP_API_URL=http://localhost/cms/backend/
 REACT_APP_FRONT_URL= http://localhost/cms/
 REACT_APP_STORAGE_URL= http://localhost/storage/cms/
+
+
+
+=================Domain OLD================================================
+URL: https://cms.ng-pl.com
+User: admin
+Password: Net@pp096
 
 
 =================Local env.php================================================
@@ -27,7 +42,7 @@ define("reportsitetitleeng", "CMS");
 define("loginonlyadmin", "0");  /*0=production mode, 1=maintanance mode*/
 
 
-=================Web .env================================================
+=================Web .env OLD================================================
 
 FAST_REFRESH = false
 CHOKIDAR_USEPOLLING=true
@@ -36,21 +51,9 @@ REACT_APP_API_URL=https://cms.ng-pl.com/backend/
 REACT_APP_FRONT_URL=https://cms.ng-pl.com/
 REACT_APP_STORAGE_URL= https://cms.ng-pl.com/storage/cms/
 
-=================Web .env========175.29.124.231======================================
-FAST_REFRESH = false
-CHOKIDAR_USEPOLLING=true
-REACT_APP_BASE_NAME=/cms
-REACT_APP_API_URL=http://175.29.124.231/cms/backend/
-REACT_APP_FRONT_URL=http://175.29.124.231/cms/
-REACT_APP_STORAGE_URL=http://175.29.124.231/storage/cms/
 
-=================Web .env========175.29.124.231 UAT======================================
-FAST_REFRESH = false
-CHOKIDAR_USEPOLLING=true
-REACT_APP_BASE_NAME=/uatcms
-REACT_APP_API_URL=http://175.29.124.231/uatcms/backend/
-REACT_APP_FRONT_URL=http://175.29.124.231/uatcms/
-REACT_APP_STORAGE_URL=http://175.29.124.231/storage/uatcms/
+
+
 
 
 =================Web env.php================================================
