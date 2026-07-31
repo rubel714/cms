@@ -1,5 +1,5 @@
 <?php
-ini_set('memory_limit', '512M');   // or 1G for very large files
+ini_set('memory_limit', '1024M');   // large spreadsheet uploads need this
 
 if(isset($_SERVER["HTTP_ORIGIN"])){
     // You can decide if the origin in $_SERVER['HTTP_ORIGIN'] is something you want to allow, or as we do here, just allow all
@@ -41,7 +41,16 @@ $conn = $db_connection->dbConnection();
 $auth = new Auth($conn, $allHeaders);
 
 // GET DATA FORM REQUEST
-$data = json_decode(file_get_contents("php://input"));
+$rawInput = file_get_contents("php://input");
+
+// PHP silently discards the body when it is larger than post_max_size, which
+// would otherwise surface as an unrelated "page not found" style failure.
+if ($rawInput === "" && isset($_SERVER["CONTENT_LENGTH"]) && $_SERVER["CONTENT_LENGTH"] > 0) {
+    echo json_encode(msg(0, 413, "Uploaded data is too large. Increase post_max_size (currently " . ini_get('post_max_size') . ") on the server."));
+    exit(0);
+}
+
+$data = json_decode($rawInput);
 $returnData = [];
 
 $returnData = [

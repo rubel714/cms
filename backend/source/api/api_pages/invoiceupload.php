@@ -4,6 +4,9 @@
 // error_reporting(E_ALL);
 error_reporting(error_reporting() & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+// Large spreadsheets need far more than the default limits to parse.
+ini_set('memory_limit', '-1');
+set_time_limit(0);
 
 $task = '';
 if (isset($data->action)) {
