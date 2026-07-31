@@ -81,14 +81,6 @@ function dataAddEdit($data)
 			$FileName = $FileNameString ? ConvertFile($FileNameString, $prefix) : null;
 			$TransactionDate = date("Y-m-d H:i:s");
 
-			$query = "SELECT SettingValue FROM t_settings where SettingCode='MAXINVUPDATE';";
-			$resultdata = $dbh->query($query);
-			$OldMaxInvUpdateDate = "";
-			foreach ($resultdata as $row) {
-				$OldMaxInvUpdateDate = $row["SettingValue"];
-			}
-
-
 			$query = "SELECT a.CustomerId, b.CustomerCode, c.BusinessLineCode, a.UserId 
 			FROM t_customer_map a 
 			inner join t_customer b on a.CustomerId=b.CustomerId
@@ -122,9 +114,6 @@ function dataAddEdit($data)
 			$q->build_query();
 			$aQuerys[] = $q;
 
-
-
-			
 
 			// $fileDir = '../../../media/invoicefiles/' . $FileName;
 			$fileDir = STORAGE_PATH . "media/invoicefiles/" . $FileName;
@@ -315,6 +304,10 @@ function dataAddEdit($data)
 
 
 				$TransactionReference = $data[$TransactionReferenceIdx];
+				//check if the invoice is already imported
+				if(checkDuplicateInvoice($dbh, $TransactionReference)){
+					continue;
+				}
 				$DebitCredit = $data[$DebitCreditIdx];
 
 				$BaseAmount = removeComma($data[$BaseAmountIdx])*(-1); //negative value for credit
@@ -488,20 +481,6 @@ function dataAddEdit($data)
 			}
 
 
-		
-
-			if ($MaxTransactionDateSort !== "" && $OldMaxInvUpdateDate < $MaxTransactionDateSort) {
-				$u = new updateq();
-				$u->table = 't_settings';
-				$u->columns = ['SettingValue'];
-				$u->values = [$MaxTransactionDateSort];
-				$u->pks = ['SettingCode'];
-				$u->pk_values = ['MAXINVUPDATE'];
-				$u->build_query();
-				$aQuerys[] = $u;
-			}
-	
-
 			$res = exec_query($aQuerys, $UserId, $lan);
 			$success = ($res['msgType'] == 'success') ? 1 : 0;
 			$status = ($res['msgType'] == 'success') ? 200 : 500;
@@ -552,6 +531,16 @@ function ConvertFile($base64_string, $prefix)
 	$output_file = date("Y_m_d_H_i_s") . "_" . rand(1, 9999) . "." . $extention;
 	file_put_contents($targetDir . "/" . $output_file, $decoded);
 	return $output_file;
+}
+
+function checkDuplicateInvoice($dbh, $TransactionReference)
+{
+	$query = "SELECT count(InvoiceItemId ) invCount FROM t_invoiceitems where TransactionReference='$TransactionReference';";
+	$resultdata = $dbh->query($query);
+	if($resultdata[0]['invCount'] > 0){
+		return true;
+	}
+	return false;
 }
 
 function removeComma($value)
