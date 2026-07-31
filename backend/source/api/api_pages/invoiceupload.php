@@ -445,7 +445,7 @@ function dataAddEdit($data)
 				// $TotalInvoice++;
 			}
 
-			$MaxTransactionDateSort = ""; //Ymd, used only for comparing
+			// $MaxTransactionDateSort = ""; //Ymd, used only for comparing
 
 			foreach ($mergedRows as $mRow) {
 
@@ -459,9 +459,9 @@ function dataAddEdit($data)
 					}
 
 
-					if ($MaxTransactionDateSort === "" || $sortDate > $MaxTransactionDateSort) {
-						$MaxTransactionDateSort = $sortDate;
-					}
+					// if ($MaxTransactionDateSort === "" || $sortDate > $MaxTransactionDateSort) {
+					// 	$MaxTransactionDateSort = $sortDate;
+					// }
 				}
 
 				$ExchangeRate = 1; //hard code for now
@@ -469,10 +469,16 @@ function dataAddEdit($data)
 					$ExchangeRate = $mRow['BaseAmount'] / $mRow['TransactionAmount'];
 				}
 
+				$RowDescription = (string)$mRow['Description'];
+				$DescriptionLimit = stripos($RowDescription, 'REV') !== false ? 17 : 12;
+				$GeneralDescription9 = strlen($RowDescription) > $DescriptionLimit
+					? substr($RowDescription, 0, $DescriptionLimit)
+					: $RowDescription;
+
 				$q = new insertq();
 				$q->table = 't_invoiceitems';
-				$q->columns = ['InvoiceId', 'AccountCode','CustomerName', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode3', 'AnalysisCode9', 'TransactionAmount','ExchangeRate', 'CurrencyCode', 'GeneralDescription11', 'GeneralDescription14', 'GeneralDescription17', 'GeneralDescription20','SunAccount','Agent','CustomerUserId'];
-				$q->values = ['[LastInsertedId]', $mRow['AccountCode'], $mRow['CustomerName'], $mRow['AccountingPeriod'], $mRow['DebitCredit'], $mRow['Description'], $mRow['JournalType'], $mRow['BaseAmountWithoutVat'], $mRow['VatAmount'], $mRow['BaseAmount'], $mRow['TransactionDate'], $mRow['TransactionReference'], $mRow['AnalysisCode1'], $mRow['AnalysisCode3'], $mRow['AnalysisCode9'], $mRow['TransactionAmount'], $ExchangeRate, $mRow['CurrencyCode'], $mRow['GeneralDescription11'], $mRow['GeneralDescription14'], $mRow['GeneralDescription17'], $mRow['GeneralDescription20'], $mRow['SunAccount'], $mRow['Agent'], $mRow['CustomerUserId']];
+				$q->columns = ['InvoiceId', 'AccountCode','CustomerName', 'AccountingPeriod', 'DebitCredit', 'Description', 'JournalType','BaseAmountWithoutVat','VatAmount', 'BaseAmount', 'TransactionDate', 'TransactionReference', 'AnalysisCode1', 'AnalysisCode3', 'AnalysisCode9', 'TransactionAmount','ExchangeRate', 'CurrencyCode','GeneralDescription9', 'GeneralDescription11', 'GeneralDescription14', 'GeneralDescription17', 'GeneralDescription20','SunAccount','Agent','CustomerUserId'];
+				$q->values = ['[LastInsertedId]', $mRow['AccountCode'], $mRow['CustomerName'], $mRow['AccountingPeriod'], $mRow['DebitCredit'], $mRow['Description'], $mRow['JournalType'], $mRow['BaseAmountWithoutVat'], $mRow['VatAmount'], $mRow['BaseAmount'], $mRow['TransactionDate'], $mRow['TransactionReference'], $mRow['AnalysisCode1'], $mRow['AnalysisCode3'], $mRow['AnalysisCode9'], $mRow['TransactionAmount'], $ExchangeRate, $mRow['CurrencyCode'], $GeneralDescription9, $mRow['GeneralDescription11'], $mRow['GeneralDescription14'], $mRow['GeneralDescription17'], $mRow['GeneralDescription20'], $mRow['SunAccount'], $mRow['Agent'], $mRow['CustomerUserId']];
 				$q->pks = ['InvoiceItemId'];
 				$q->bUseInsetId = false;
 				$q->build_query();
