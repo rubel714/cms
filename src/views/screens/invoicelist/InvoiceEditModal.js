@@ -211,40 +211,6 @@ const InvoiceEditModal = (props) => {
           </div>
 
           <div class="contactmodalBody pt-10">
-            <label>Invoice Amount (BDT)</label>
-            <input
-              type="number"
-              id="BaseAmount"
-              disabled={true}
-              name="BaseAmount"
-              //class={errorObject.BaseAmount}
-              placeholder="Enter invoice amount"
-              value={currentRow.BaseAmount}
-              onChange={(e) => handleChange(e)}
-            />
-
-            <label>Invoice Amount (BDT)</label>
-            <input
-              type="number"
-              id="BaseAmountWithoutVat"
-              name="BaseAmountWithoutVat"
-              //class={errorObject.BaseAmountWithoutVat}
-              placeholder="Enter amount"
-              value={currentRow.BaseAmountWithoutVat}
-              onChange={(e) => handleChange(e)}
-            />
-
-            <label>VAT Amount (BDT)</label>
-            <input
-              type="number"
-              id="VatAmount"
-              name="VatAmount"
-             // class={errorObject.VatAmount}
-              placeholder="Enter vat amount"
-              value={currentRow.VatAmount}
-              onChange={(e) => handleChange(e)}
-            />
-
             <label>Staff</label>
             <Autocomplete
               autoHighlight

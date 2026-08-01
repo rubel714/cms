@@ -19,6 +19,13 @@ if ($BillId == -1) {
     exit;
 }
 
+// Print options default to on so existing links keep the full layout
+$IsPrintAmountBDT = isset($_REQUEST['IsPrintAmountBDT']) ? (int) $_REQUEST['IsPrintAmountBDT'] : 1;
+$IsPrintStyle = isset($_REQUEST['IsPrintStyle']) ? (int) $_REQUEST['IsPrintStyle'] : 1;
+$IsPrintMerchandiser = isset($_REQUEST['IsPrintMerchandiser']) ? (int) $_REQUEST['IsPrintMerchandiser'] : 1;
+$IsPrintOrderNo = isset($_REQUEST['IsPrintOrderNo']) ? (int) $_REQUEST['IsPrintOrderNo'] : 1;
+$IsPrintServiceType = isset($_REQUEST['IsPrintServiceType']) ? (int) $_REQUEST['IsPrintServiceType'] : 1;
+
 
 include_once('../env.php');
 require_once("../source/api/pdolibs/Db.class.php");
@@ -166,118 +173,95 @@ $sqlf = "SELECT DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y'
 $sqlLoop1result = $db->query($sqlf);
 
 
+$columns = [
+    ['key' => 'TransactionDate', 'label' => 'Invoice Date', 'width' => 6, 'align' => 'center', 'visible' => true],
+    ['key' => 'TransactionReference', 'label' => 'Invoice Number', 'width' => 10, 'align' => 'left', 'visible' => true],
+    ['key' => 'GeneralDescription9', 'label' => 'Report Number', 'width' => 8, 'align' => 'left', 'visible' => true],
+    ['key' => 'GeneralDescription11', 'label' => 'Buyer Name', 'width' => 16, 'align' => 'left', 'visible' => true],
+    ['key' => 'TransactionAmount', 'label' => 'Amount in FC', 'width' => 5, 'align' => 'right', 'visible' => true, 'number' => true],
+    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 4, 'align' => 'right', 'visible' => true, 'number' => true],
+    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 7, 'align' => 'right', 'visible' => true, 'number' => true, 'hiderows' => ($IsPrintAmountBDT != 1)],
+    ['key' => 'GeneralDescription17', 'label' => 'Style number', 'width' => 13, 'align' => 'left', 'visible' => ($IsPrintStyle == 1)],
+    ['key' => 'OrderNumber', 'label' => 'Order Number', 'width' => 10, 'align' => 'left', 'visible' => ($IsPrintOrderNo == 1)],
+    ['key' => 'GeneralDescription14', 'label' => 'Merchandiser Name', 'width' => 13, 'align' => 'left', 'visible' => ($IsPrintMerchandiser == 1)],
+    ['key' => 'GeneralDescription20', 'label' => 'Service Type', 'width' => 6, 'align' => 'left', 'visible' => ($IsPrintServiceType == 1)],
+];
+
+$columns = array_values(array_filter($columns, function ($col) {
+    return $col['visible'];
+}));
+
+// Rescale the remaining widths so the table still spans the full page
+$declaredWidth = array_sum(array_column($columns, 'width'));
+foreach ($columns as $i => $col) {
+    $columns[$i]['pct'] = round(($col['width'] * 100) / $declaredWidth, 2);
+}
+
+/** Renders a row where $values maps a column key to already-formatted content. */
+function buildRow($columns, $values, $bold = false)
+{
+    $row = '<tr>';
+    foreach ($columns as $col) {
+        $value = isset($values[$col['key']]) ? $values[$col['key']] : '';
+        $style = ($bold && $value !== '') ? ' style="font-weight:bold"' : '';
+        $row .= '<td width="' . $col['pct'] . '%" align="' . $col['align'] . '"' . $style . '>' . $value . '</td>';
+    }
+    return $row . '</tr>';
+}
+
 $html = '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
 $html .= '<thead><tr style="font-weight:bold; background-color:#FFC900;">';
-$html .= '<th width="6%">Invoice Date</th>';
-$html .= '<th width="10%">Invoice Number</th>';
-$html .= '<th width="8%">Report Number</th>';
-$html .= '<th width="16%">Buyer Name</th>';
-$html .= '<th width="5%" align="right">Amount in FC</th>';
-$html .= '<th width="4%" align="right">Ex. Rate</th>';
-$html .= '<th width="7%" align="right">Amount in BDT</th>';
-$html .= '<th width="13%">Style number</th>';
-$html .= '<th width="10%">Order Number</th>';
-$html .= '<th width="13%">Merchandiser Name</th>';
-$html .= '<th width="6%">Service Type</th>';
+foreach ($columns as $col) {
+    $html .= '<th width="' . $col['pct'] . '%" align="' . $col['align'] . '">' . $col['label'] . '</th>';
+}
 $html .= '</tr></thead><tbody>';
 
 foreach ($sqlLoop1result as $result) {
-    $html .= '<tr>';
-    $html .= '<td width="6%" align="center">' . htmlspecialchars($result['TransactionDate'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['TransactionReference'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="8%">' . htmlspecialchars($result['GeneralDescription9'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="16%">' . htmlspecialchars($result['GeneralDescription11'], ENT_QUOTES, 'UTF-8') . '</td>';
-
-    $html .= '<td width="5%" align="right">' . number_format($result['TransactionAmount'], 2) . '</td>';
-    $html .= '<td width="4%" align="right">' . number_format($result['ExchangeRate'], 2) . '</td>';
-    $html .= '<td width="7%" align="right">' . number_format($result['BaseAmount'], 2) . '</td>';
-
-    $html .= '<td width="13%">' . htmlspecialchars($result['GeneralDescription17'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="10%">' . htmlspecialchars($result['OrderNumber'], ENT_QUOTES, 'UTF-8') . '</td>';
-
-    $html .= '<td width="13%">' . htmlspecialchars($result['GeneralDescription14'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '<td width="6%">' . htmlspecialchars($result['GeneralDescription20'], ENT_QUOTES, 'UTF-8') . '</td>';
-    $html .= '</tr>';
-
+    $values = [];
+    foreach ($columns as $col) {
+        if (!empty($col['hiderows'])) {
+            continue;
+        }
+        $raw = isset($result[$col['key']]) ? $result[$col['key']] : '';
+        $values[$col['key']] = !empty($col['number'])
+            ? number_format($raw, 2)
+            : htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');
+    }
+    $html .= buildRow($columns, $values);
 }
+
 if (count($sqlLoop1result) > 0) {
-     $html .= '<tr>';
-    $html .= '<td width="6%" align="center"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%" style="font-weight:bold">Sub Total</td>';
-    $html .= '<td width="5%" align="right" style="font-weight:bold">'.number_format($TotalTransactionAmount, 2).'</td>';
-    $html .= '<td width="4%"></td>';
-    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($TotalBaseAmount, 2).'</td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="6%"></td>';
-    $html .= '</tr>';
+    $html .= buildRow($columns, [
+        'GeneralDescription11' => 'Sub Total',
+        'TransactionAmount' => number_format($TotalTransactionAmount, 2),
+        'BaseAmount' => number_format($TotalBaseAmount, 2),
+    ], true);
 
-    
-if( $RebatePercentage>0){
-    $html .= '<tr>';
-    $html .= '<td width="6%" align="center"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%">Rebate(' . $RebatePercentage . '%)</td>';
-    $html .= '<td width="5%"></td>';
-    $html .= '<td width="4%"></td>';
-    $html .= '<td width="7%" align="right">'.number_format($RebateAmount, 2).'</td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="6%"></td>';
-    $html .= '</tr>';
-}
+    if ($RebatePercentage > 0) {
+        $html .= buildRow($columns, [
+            'GeneralDescription11' => 'Rebate(' . $RebatePercentage . '%)',
+            'BaseAmount' => number_format($RebateAmount, 2),
+        ]);
+    }
 
-if( $VATPercentage>0){
-    $html .= '<tr>';
-    $html .= '<td width="6%" align="center"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%">VAT(' . $VATPercentage . '%)</td>';
-    $html .= '<td width="5%"></td>';
-    $html .= '<td width="4%"></td>';
-    $html .= '<td width="7%" align="right">'.number_format($VATAmount, 2).'</td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="6%"></td>';
-    $html .= '</tr>';
-}
+    if ($VATPercentage > 0) {
+        $html .= buildRow($columns, [
+            'GeneralDescription11' => 'VAT(' . $VATPercentage . '%)',
+            'BaseAmount' => number_format($VATAmount, 2),
+        ]);
+    }
 
-    if( $TaxPercentage>0){
-    $html .= '<tr>';
-    $html .= '<td width="6%" align="center"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%">Tax(' . $TaxPercentage . '%)</td>';
-    $html .= '<td width="5%"></td>';
-    $html .= '<td width="4%"></td>';
-    $html .= '<td width="7%" align="right">'.number_format($TaxAmount, 2).'</td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="6%"></td>';
-    $html .= '</tr>';
-}
+    if ($TaxPercentage > 0) {
+        $html .= buildRow($columns, [
+            'GeneralDescription11' => 'Tax(' . $TaxPercentage . '%)',
+            'BaseAmount' => number_format($TaxAmount, 2),
+        ]);
+    }
 
-        
-    $html .= '<tr>';
-    $html .= '<td width="6%" align="center"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="8%"></td>';
-    $html .= '<td width="16%" style="font-weight:bold">Total</td>';
-    $html .= '<td width="5%"></td>';
-    $html .= '<td width="4%"></td>';
-    $html .= '<td width="7%" align="right" style="font-weight:bold">'.number_format($Total, 2).'</td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="10%"></td>';
-    $html .= '<td width="13%"></td>';
-    $html .= '<td width="6%"></td>';
-    $html .= '</tr>';
+    $html .= buildRow($columns, [
+        'GeneralDescription11' => 'Total',
+        'BaseAmount' => number_format($Total, 2),
+    ], true);
 }
 
 $html .= '</tbody></table>';

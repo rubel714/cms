@@ -16,6 +16,14 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
 import moment from "moment";
 
+const PRINT_OPTION_FIELDS = [
+  "IsPrintAmountBDT",
+  "IsPrintStyle",
+  "IsPrintMerchandiser",
+  "IsPrintOrderNo",
+  "IsPrintServiceType",
+];
+
 const BillGenerate = (props) => {
   const serverpage = "billgenerate"; // this is .php server page
   const permissionType = props.permissionType;
@@ -54,17 +62,23 @@ const BillGenerate = (props) => {
   
   /* =====Start of Excel Export Code==== */
 
+  const printOptionQueryString = () => {
+    return PRINT_OPTION_FIELDS.map(
+      (field) => "&" + field + "=" + (currentRow[field] == 1 ? 1 : 0),
+    ).join("");
+  };
+
   const PDFGenerate = () => {
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBill.php";
     window.open(
-      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + "&TimeStamp=" + Date.now(),
+      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + printOptionQueryString() + "&TimeStamp=" + Date.now(),
     );
   };
 
   const ExcelGenerate = () => {
     let finalUrl = EXCEL_EXPORT_URL + "report/GenerateBillExcel.php";
     window.open(
-      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + "&TimeStamp=" + Date.now(),
+      finalUrl + "?BillId=" + currentRow.id + "&LoginUserId=" + UserInfo.UserId + printOptionQueryString() + "&TimeStamp=" + Date.now(),
     );
   };
 
@@ -343,6 +357,11 @@ const BillGenerate = (props) => {
         VATAmount: "",
         TaxPercentage: "",
         TaxAmount: "",
+        IsPrintAmountBDT: 1,
+        IsPrintStyle: 1,
+        IsPrintMerchandiser: 1,
+        IsPrintOrderNo: 1,
+        IsPrintServiceType: 1,
         Items: [],
       });
       setEditableItems([]);
@@ -625,6 +644,11 @@ const BillGenerate = (props) => {
 
     setCurrentRow(data);
     setErrorObject({ ...errorObject, [name]: null });
+  };
+
+  const handleChangeCheck = (e) => {
+    const { name, checked } = e.target;
+    setCurrentRow({ ...currentRow, [name]: checked ? 1 : 0 });
   };
 
   // const handleChangeMany = (e, row) => {
@@ -1088,6 +1112,121 @@ const BillGenerate = (props) => {
                   value={currentRow.Remarks}
                   onChange={(e) => handleChange(e)}
                 />
+              </div>
+
+              <div
+                class="pt-10"
+                style={{
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  alignItems: "center",
+                  gap: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  <input
+                    id="IsPrintAmountBDT"
+                    name="IsPrintAmountBDT"
+                    type="checkbox"
+                    style={{ width: "18px", height: "18px" }}
+                    disabled={currentRow.StatusId == 5 ? true : false}
+                    checked={currentRow.IsPrintAmountBDT == 1}
+                    onChange={(e) => handleChangeCheck(e)}
+                  />
+                  Print Amount in BDT
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  <input
+                    id="IsPrintStyle"
+                    name="IsPrintStyle"
+                    type="checkbox"
+                    style={{ width: "18px", height: "18px" }}
+                    disabled={currentRow.StatusId == 5 ? true : false}
+                    checked={currentRow.IsPrintStyle == 1}
+                    onChange={(e) => handleChangeCheck(e)}
+                  />
+                  Print Style No.
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  <input
+                    id="IsPrintMerchandiser"
+                    name="IsPrintMerchandiser"
+                    type="checkbox"
+                    style={{ width: "18px", height: "18px" }}
+                    disabled={currentRow.StatusId == 5 ? true : false}
+                    checked={currentRow.IsPrintMerchandiser == 1}
+                    onChange={(e) => handleChangeCheck(e)}
+                  />
+                  Print Merchandiser
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  <input
+                    id="IsPrintOrderNo"
+                    name="IsPrintOrderNo"
+                    type="checkbox"
+                    style={{ width: "18px", height: "18px" }}
+                    disabled={currentRow.StatusId == 5 ? true : false}
+                    checked={currentRow.IsPrintOrderNo == 1}
+                    onChange={(e) => handleChangeCheck(e)}
+                  />
+                  Print Order No.
+                </label>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  <input
+                    id="IsPrintServiceType"
+                    name="IsPrintServiceType"
+                    type="checkbox"
+                    style={{ width: "18px", height: "18px" }}
+                    disabled={currentRow.StatusId == 5 ? true : false}
+                    checked={currentRow.IsPrintServiceType == 1}
+                    onChange={(e) => handleChangeCheck(e)}
+                  />
+                  Print Service Type
+                </label>
               </div>
 
               <div class="searchAdd">

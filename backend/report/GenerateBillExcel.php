@@ -20,12 +20,20 @@ if ($BillId == -1) {
     exit;
 }
 
+// Print options default to on so existing links keep the full layout
+$IsPrintAmountBDT = isset($_REQUEST['IsPrintAmountBDT']) ? (int) $_REQUEST['IsPrintAmountBDT'] : 1;
+$IsPrintStyle = isset($_REQUEST['IsPrintStyle']) ? (int) $_REQUEST['IsPrintStyle'] : 1;
+$IsPrintMerchandiser = isset($_REQUEST['IsPrintMerchandiser']) ? (int) $_REQUEST['IsPrintMerchandiser'] : 1;
+$IsPrintOrderNo = isset($_REQUEST['IsPrintOrderNo']) ? (int) $_REQUEST['IsPrintOrderNo'] : 1;
+$IsPrintServiceType = isset($_REQUEST['IsPrintServiceType']) ? (int) $_REQUEST['IsPrintServiceType'] : 1;
+
 include_once('../env.php');
 require_once("../source/api/pdolibs/Db.class.php");
 require("PhpSpreadsheet/vendor/autoload.php");
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -105,55 +113,58 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Bill');
 
-// Set column widths
-$sheet->getColumnDimension('A')->setWidth(12);  // Invoice Date
-$sheet->getColumnDimension('B')->setWidth(18);  // Invoice Number
-$sheet->getColumnDimension('C')->setWidth(15);  // Report Number
-$sheet->getColumnDimension('D')->setWidth(25);  // Buyer Name
-$sheet->getColumnDimension('E')->setWidth(15);  // Amount in FC
-$sheet->getColumnDimension('F')->setWidth(10);  // Ex. Rate
-$sheet->getColumnDimension('G')->setWidth(18);  // Amount in BDT
-$sheet->getColumnDimension('H')->setWidth(20);  // Style Number
-$sheet->getColumnDimension('I')->setWidth(15);  // Order Number
-$sheet->getColumnDimension('J')->setWidth(20);  // Merchandiser Name
-$sheet->getColumnDimension('K')->setWidth(12);  // Service Type
+$columns = [
+    ['key' => 'TransactionDate', 'label' => 'Invoice Date', 'width' => 12, 'visible' => true],
+    ['key' => 'TransactionReference', 'label' => 'Invoice Number', 'width' => 18, 'visible' => true],
+    ['key' => 'GeneralDescription9', 'label' => 'Report Number', 'width' => 15, 'visible' => true],
+    ['key' => 'GeneralDescription11', 'label' => 'Buyer Name', 'width' => 25, 'visible' => true],
+    ['key' => 'TransactionAmount', 'label' => 'Amount in FC', 'width' => 15, 'visible' => true, 'number' => true],
+    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 10, 'visible' => true, 'number' => true],
+    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 18, 'visible' => true, 'number' => true, 'hiderows' => ($IsPrintAmountBDT != 1)],
+    ['key' => 'GeneralDescription17', 'label' => 'Style Number', 'width' => 20, 'visible' => ($IsPrintStyle == 1)],
+    ['key' => 'OrderNumber', 'label' => 'Order Number', 'width' => 15, 'visible' => ($IsPrintOrderNo == 1)],
+    ['key' => 'GeneralDescription14', 'label' => 'Merchandiser Name', 'width' => 20, 'visible' => ($IsPrintMerchandiser == 1)],
+    ['key' => 'GeneralDescription20', 'label' => 'Service Type', 'width' => 12, 'visible' => ($IsPrintServiceType == 1)],
+];
+
+$columns = array_values(array_filter($columns, function ($col) {
+    return $col['visible'];
+}));
+
+// Map each remaining column onto a spreadsheet letter, keyed by source field
+$colLetter = [];
+foreach ($columns as $i => $col) {
+    $letter = Coordinate::stringFromColumnIndex($i + 1);
+    $columns[$i]['letter'] = $letter;
+    $colLetter[$col['key']] = $letter;
+    $sheet->getColumnDimension($letter)->setWidth($col['width']);
+}
+
+$lastCol = $columns[count($columns) - 1]['letter'];
+$colCount = count($columns);
 
 // Header Section
 $sheet->setCellValue('A1', $Remarks ? "Bill (" . $Remarks . ")" : "Bill");
 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-$sheet->mergeCells('A1:K1');
+$sheet->mergeCells('A1:' . $lastCol . '1');
 
 $sheet->setCellValue('A2', 'Bill Reference No: ' . $BillNumber);
 $sheet->getStyle('A2')->getFont()->setBold(true);
-$sheet->mergeCells('A2:K2');
+$sheet->mergeCells('A2:' . $lastCol . '2');
 
 $sheet->setCellValue('A3', 'Client Code: ' . $CustomerCode);
-$sheet->mergeCells('A3:K3');
+$sheet->mergeCells('A3:' . $lastCol . '3');
 
 $sheet->setCellValue('A4', 'Client Name: ' . $CustomerName);
-$sheet->mergeCells('A4:K4');
+$sheet->mergeCells('A4:' . $lastCol . '4');
 
 $sheet->setCellValue('A5', 'Bill Date: ' . $BillDate);
-$sheet->mergeCells('A5:K5');
+$sheet->mergeCells('A5:' . $lastCol . '5');
 
 // Table Header Row
 $headerRow = 7;
-$headers = [
-    'A' => 'Invoice Date',
-    'B' => 'Invoice Number',
-    'C' => 'Report Number',
-    'D' => 'Buyer Name',
-    'E' => 'Amount in FC',
-    'F' => 'Ex. Rate',
-    'G' => 'Amount in BDT',
-    'H' => 'Style Number',
-    'I' => 'Order Number',
-    'J' => 'Merchandiser Name',
-    'K' => 'Service Type'
-];
-
-foreach ($headers as $col => $header) {
-    $sheet->setCellValue($col . $headerRow, $header);
+foreach ($columns as $col) {
+    $sheet->setCellValue($col['letter'] . $headerRow, $col['label']);
 }
 
 // Style header row
@@ -173,64 +184,62 @@ $headerStyle = [
         'vertical' => Alignment::VERTICAL_CENTER,
     ],
 ];
-$sheet->getStyle('A' . $headerRow . ':K' . $headerRow)->applyFromArray($headerStyle);
+$sheet->getStyle('A' . $headerRow . ':' . $lastCol . $headerRow)->applyFromArray($headerStyle);
 
 // Data Rows
 $dataRow = 8;
 
 foreach ($sqlLoop1result as $result) {
-    $sheet->setCellValue('A' . $dataRow, $result['TransactionDate']);
-    $sheet->setCellValue('B' . $dataRow, $result['TransactionReference']);
-    $sheet->setCellValue('C' . $dataRow, $result['GeneralDescription9']);
-    $sheet->setCellValue('D' . $dataRow, $result['GeneralDescription11']);
-    $sheet->setCellValue('E' . $dataRow, $result['TransactionAmount']);
-    $sheet->setCellValue('F' . $dataRow, $result['ExchangeRate']);
-    $sheet->setCellValue('G' . $dataRow, $result['BaseAmount']);
-    $sheet->setCellValue('H' . $dataRow, $result['GeneralDescription17']);
-    $sheet->setCellValue('I' . $dataRow, $result['OrderNumber']);
-    $sheet->setCellValue('J' . $dataRow, $result['GeneralDescription14']);
-    $sheet->setCellValue('K' . $dataRow, $result['GeneralDescription20']);
-
+    foreach ($columns as $col) {
+        if (!empty($col['hiderows'])) {
+            continue;
+        }
+        $sheet->setCellValue($col['letter'] . $dataRow, isset($result[$col['key']]) ? $result[$col['key']] : '');
+    }
     $dataRow++;
 }
 
 // Summary Rows
+$labelCol = $colLetter['GeneralDescription11'];
+$fcCol = $colLetter['TransactionAmount'];
+$bdtCol = $colLetter['BaseAmount'];
+
 if (count($sqlLoop1result) > 0) {
     // Sub Total Row
-    $sheet->setCellValue('D' . $dataRow, 'Sub Total');
-    $sheet->setCellValue('E' . $dataRow, $TotalTransactionAmount);
-    $sheet->setCellValue('G' . $dataRow, $TotalBaseAmount);
-    $sheet->getStyle('D' . $dataRow)->getFont()->setBold(true);
-    $sheet->getStyle('E' . $dataRow)->getFont()->setBold(true);
-    $sheet->getStyle('G' . $dataRow)->getFont()->setBold(true);
+    $sheet->setCellValue($labelCol . $dataRow, 'Sub Total');
+    $sheet->setCellValue($fcCol . $dataRow, $TotalTransactionAmount);
+    $sheet->setCellValue($bdtCol . $dataRow, $TotalBaseAmount);
+    $sheet->getStyle($labelCol . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle($fcCol . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle($bdtCol . $dataRow)->getFont()->setBold(true);
     $dataRow++;
 
     // Rebate Row
     if ($RebatePercentage > 0) {
-        $sheet->setCellValue('D' . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
-        $sheet->setCellValue('G' . $dataRow, $RebateAmount);
+        $sheet->setCellValue($labelCol . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
+        $sheet->setCellValue($bdtCol . $dataRow, $RebateAmount);
         $dataRow++;
     }
 
     // VAT Row
     if ($VATPercentage > 0) {
-        $sheet->setCellValue('D' . $dataRow, 'VAT(' . $VATPercentage . '%)');
-        $sheet->setCellValue('G' . $dataRow, $VATAmount);
+        $sheet->setCellValue($labelCol . $dataRow, 'VAT(' . $VATPercentage . '%)');
+        $sheet->setCellValue($bdtCol . $dataRow, $VATAmount);
         $dataRow++;
     }
 
     // Tax Row
     if ($TaxPercentage > 0) {
-        $sheet->setCellValue('D' . $dataRow, 'Tax(' . $TaxPercentage . '%)');
-        $sheet->setCellValue('G' . $dataRow, $TaxAmount);
+        $sheet->setCellValue($labelCol . $dataRow, 'Tax(' . $TaxPercentage . '%)');
+        $sheet->setCellValue($bdtCol . $dataRow, $TaxAmount);
         $dataRow++;
     }
 
     // Total Row
-    $sheet->setCellValue('D' . $dataRow, 'Total');
-    $sheet->setCellValue('G' . $dataRow, $Total);
-    $sheet->getStyle('D' . $dataRow)->getFont()->setBold(true);
-    $sheet->getStyle('G' . $dataRow)->getFont()->setBold(true);
+    $sheet->setCellValue($labelCol . $dataRow, 'Total');
+    $sheet->setCellValue($bdtCol . $dataRow, $Total);
+    $sheet->getStyle($labelCol . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle($bdtCol . $dataRow)->getFont()->setBold(true);
 }
 
 // Style data area with borders
@@ -242,80 +251,92 @@ $dataStyle = [
         ],
     ],
 ];
-$sheet->getStyle('A' . $headerRow . ':K' . $lastDataRow)->applyFromArray($dataStyle);
+$sheet->getStyle('A' . $headerRow . ':' . $lastCol . $lastDataRow)->applyFromArray($dataStyle);
 
-// Format number columns
-$sheet->getStyle('E8:E' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-$sheet->getStyle('F8:F' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-$sheet->getStyle('G8:G' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-
-// Right align amount columns
-$sheet->getStyle('E8:G' . $lastDataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+// Format and right align the numeric columns
+foreach ($columns as $col) {
+    if (empty($col['number'])) {
+        continue;
+    }
+    $range = $col['letter'] . '8:' . $col['letter'] . $lastDataRow;
+    $sheet->getStyle($range)->getNumberFormat()->setFormatCode('#,##0.00');
+    $sheet->getStyle($range)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+}
 
 // Bank Details Section
+$bankEndCol = Coordinate::stringFromColumnIndex(min(6, $colCount));
+$bankCol1 = Coordinate::stringFromColumnIndex(1);
+$bankCol2 = Coordinate::stringFromColumnIndex(2);
+$bankCol3 = Coordinate::stringFromColumnIndex(4);
+$bankCol4 = Coordinate::stringFromColumnIndex(5);
+
 $bankRow = $lastDataRow + 2;
 
-$sheet->setCellValue('A' . $bankRow, 'Cash / BEFTN / RTGS / Pay Order / Cheque Deposit');
-$sheet->getStyle('A' . $bankRow)->getFont()->setBold(true);
-$sheet->getStyle('A' . $bankRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFC900');
-$sheet->mergeCells('A' . $bankRow . ':F' . $bankRow);
+$sheet->setCellValue($bankCol1 . $bankRow, 'Cash / BEFTN / RTGS / Pay Order / Cheque Deposit');
+$sheet->getStyle($bankCol1 . $bankRow)->getFont()->setBold(true);
+$sheet->getStyle($bankCol1 . $bankRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFC900');
+$sheet->mergeCells($bankCol1 . $bankRow . ':' . $bankEndCol . $bankRow);
 
 $bankRow++;
-$sheet->setCellValue('A' . $bankRow, 'Bank Name:');
-$sheet->setCellValue('B' . $bankRow, 'Standard Chartered Bank (SCB)');
-$sheet->setCellValue('D' . $bankRow, 'Bank Name:');
-$sheet->setCellValue('E' . $bankRow, 'The Hongkong and Shanghai Banking Corporation (HSBC)');
+$sheet->setCellValue($bankCol1 . $bankRow, 'Bank Name:');
+$sheet->setCellValue($bankCol2 . $bankRow, 'Standard Chartered Bank (SCB)');
+$sheet->setCellValue($bankCol3 . $bankRow, 'Bank Name:');
+$sheet->setCellValue($bankCol4 . $bankRow, 'The Hongkong and Shanghai Banking Corporation (HSBC)');
 
 $bankRow++;
-$sheet->setCellValue('A' . $bankRow, 'A/C Name:');
-$sheet->setCellValue('B' . $bankRow, 'ITS LABTEST BANGLADESH LTD');
-$sheet->setCellValue('D' . $bankRow, 'A/C Name:');
-$sheet->setCellValue('E' . $bankRow, 'ITS LABTEST BANGLADESH LTD');
+$sheet->setCellValue($bankCol1 . $bankRow, 'A/C Name:');
+$sheet->setCellValue($bankCol2 . $bankRow, 'ITS LABTEST BANGLADESH LTD');
+$sheet->setCellValue($bankCol3 . $bankRow, 'A/C Name:');
+$sheet->setCellValue($bankCol4 . $bankRow, 'ITS LABTEST BANGLADESH LTD');
 
 $bankRow++;
-$sheet->setCellValue('A' . $bankRow, 'A/C Number:');
-$sheet->setCellValue('B' . $bankRow, '01-2334178-01');
-$sheet->setCellValue('D' . $bankRow, 'A/C Number:');
-$sheet->setCellValue('E' . $bankRow, '001-289438-011');
+$sheet->setCellValue($bankCol1 . $bankRow, 'A/C Number:');
+$sheet->setCellValue($bankCol2 . $bankRow, '01-2334178-01');
+$sheet->setCellValue($bankCol3 . $bankRow, 'A/C Number:');
+$sheet->setCellValue($bankCol4 . $bankRow, '001-289438-011');
 
 $bankRow++;
-$sheet->setCellValue('A' . $bankRow, 'Branch:');
-$sheet->setCellValue('B' . $bankRow, 'Gulshan');
-$sheet->setCellValue('D' . $bankRow, 'Branch:');
-$sheet->setCellValue('E' . $bankRow, 'Gulshan');
+$sheet->setCellValue($bankCol1 . $bankRow, 'Branch:');
+$sheet->setCellValue($bankCol2 . $bankRow, 'Gulshan');
+$sheet->setCellValue($bankCol3 . $bankRow, 'Branch:');
+$sheet->setCellValue($bankCol4 . $bankRow, 'Gulshan');
 
 $bankRow++;
-$sheet->setCellValue('A' . $bankRow, 'Online Payment Gateway: https://invoice.sslcommerz.com/invoice-form?&refer=5F868A8E0553C');
-$sheet->getStyle('A' . $bankRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('92D050');
-$sheet->mergeCells('A' . $bankRow . ':F' . $bankRow);
+$sheet->setCellValue($bankCol1 . $bankRow, 'Online Payment Gateway: https://invoice.sslcommerz.com/invoice-form?&refer=5F868A8E0553C');
+$sheet->getStyle($bankCol1 . $bankRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('92D050');
+$sheet->mergeCells($bankCol1 . $bankRow . ':' . $bankEndCol . $bankRow);
 
-// Terms Section
-$termsRow = $lastDataRow + 2;
-$sheet->setCellValue('H' . $termsRow, 'You are cordially requested to settle the payment within ' . $withinPeriod);
-$sheet->mergeCells('H' . $termsRow . ':K' . ($termsRow + 1));
-$sheet->getStyle('H' . $termsRow)->getAlignment()->setWrapText(true);
+// Terms Section: sits beside the bank block when enough columns remain, otherwise below it
+$termsStartIndex = min(6, $colCount) + 2;
+$termsFitsBeside = ($colCount - $termsStartIndex + 1) >= 3;
+$termsCol = $termsFitsBeside ? Coordinate::stringFromColumnIndex($termsStartIndex) : 'A';
+$termsRow = $termsFitsBeside ? $lastDataRow + 2 : $bankRow + 2;
+
+$sheet->setCellValue($termsCol . $termsRow, 'You are cordially requested to settle the payment within ' . $withinPeriod);
+$sheet->mergeCells($termsCol . $termsRow . ':' . $lastCol . ($termsRow + 1));
+$sheet->getStyle($termsCol . $termsRow)->getAlignment()->setWrapText(true);
 
 $termsRow += 2;
-$sheet->setCellValue('H' . $termsRow, 'For Any Kind of Query Please feel free to Communicate,');
-$sheet->mergeCells('H' . $termsRow . ':K' . $termsRow);
+$sheet->setCellValue($termsCol . $termsRow, 'For Any Kind of Query Please feel free to Communicate,');
+$sheet->mergeCells($termsCol . $termsRow . ':' . $lastCol . $termsRow);
 
 $termsRow++;
-$sheet->setCellValue('H' . $termsRow, $contactPerson);
-$sheet->mergeCells('H' . $termsRow . ':K' . $termsRow);
+$sheet->setCellValue($termsCol . $termsRow, $contactPerson);
+$sheet->mergeCells($termsCol . $termsRow . ':' . $lastCol . $termsRow);
 
 $termsRow++;
-$sheet->setCellValue('H' . $termsRow, $contactPhone);
-$sheet->mergeCells('H' . $termsRow . ':K' . $termsRow);
+$sheet->setCellValue($termsCol . $termsRow, $contactPhone);
+$sheet->mergeCells($termsCol . $termsRow . ':' . $lastCol . $termsRow);
 
 $termsRow += 2;
-$sheet->setCellValue('H' . $termsRow, 'Credit Control & Invoicing');
-$sheet->mergeCells('H' . $termsRow . ':K' . $termsRow);
+$sheet->setCellValue($termsCol . $termsRow, 'Credit Control & Invoicing');
+$sheet->mergeCells($termsCol . $termsRow . ':' . $lastCol . $termsRow);
 
 // Note Section
-$noteRow = $bankRow + 2;
+$noteRow = max($bankRow, $termsRow) + 2;
 $noteText = "Note: This vat exemption is applicable for 100% export-oriented Industry only under SRO No. 188-Ain/2019/45-Mushok dated 13.06.2019 by the powers exercised as per section 126(1) of VAT Act, 2012. Please inform us to revise the invoice with VAT, if you are not eligible for Vat exemption under SRO No. 188-Ain/2019/45-Mushok. Service receiver will be responsible for any kind of claim/penalty for not being eligible for vat exemption issue.";
 $sheet->setCellValue('A' . $noteRow, $noteText);
-$sheet->mergeCells('A' . $noteRow . ':K' . ($noteRow + 2));
+$sheet->mergeCells('A' . $noteRow . ':' . $lastCol . ($noteRow + 2));
 $sheet->getStyle('A' . $noteRow)->getAlignment()->setWrapText(true);
 $sheet->getStyle('A' . $noteRow)->getFont()->setSize(8);
 

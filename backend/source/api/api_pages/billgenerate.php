@@ -175,7 +175,10 @@ function getDataList($data)
 
 		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
 		a.CustomerId, b.CustomerCode, b.CustomerName,a.TotalBaseAmount, a.RebatePercentage, a.RebateAmount, 
-		a.VATPercentage, a.VATAmount, a.TaxPercentage, a.TaxAmount, a.Remarks, a.StatusId
+		a.VATPercentage, a.VATAmount, a.TaxPercentage, a.TaxAmount, a.Remarks, a.StatusId,
+		ifnull(a.IsPrintAmountBDT,0) as IsPrintAmountBDT, ifnull(a.IsPrintStyle,0) as IsPrintStyle,
+		ifnull(a.IsPrintMerchandiser,0) as IsPrintMerchandiser, ifnull(a.IsPrintOrderNo,0) as IsPrintOrderNo,
+		ifnull(a.IsPrintServiceType,0) as IsPrintServiceType
 		FROM t_bill a
 		INNER JOIN t_customer b ON a.CustomerId = b.CustomerId
 		ORDER BY a.BillDate DESC, a.BillId DESC;";
@@ -307,6 +310,12 @@ function dataAddEdit($data)
 		$TaxPercentage = $data->rowData->TaxPercentage ? $data->rowData->TaxPercentage : null;
 		$TaxAmount = $data->rowData->TaxAmount ? $data->rowData->TaxAmount : null;
 
+		$IsPrintAmountBDT = (isset($data->rowData->IsPrintAmountBDT) && $data->rowData->IsPrintAmountBDT) ? 1 : 0;
+		$IsPrintStyle = (isset($data->rowData->IsPrintStyle) && $data->rowData->IsPrintStyle) ? 1 : 0;
+		$IsPrintMerchandiser = (isset($data->rowData->IsPrintMerchandiser) && $data->rowData->IsPrintMerchandiser) ? 1 : 0;
+		$IsPrintOrderNo = (isset($data->rowData->IsPrintOrderNo) && $data->rowData->IsPrintOrderNo) ? 1 : 0;
+		$IsPrintServiceType = (isset($data->rowData->IsPrintServiceType) && $data->rowData->IsPrintServiceType) ? 1 : 0;
+
 
 
 		// $BillIdCheck = "";
@@ -341,8 +350,8 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillNumber', 'Year', 'MonthId', 'BillSerial', 'BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
-				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
+				$q->columns = ['BillNumber', 'Year', 'MonthId', 'BillSerial', 'BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
+				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -351,8 +360,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_bill';
-				$u->columns = ['BillDate', 'CustomerId', 'Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount'];
-				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount];
+				$u->columns = ['BillDate', 'CustomerId', 'Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
+				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
 				$u->pks = ['BillId'];
 				$u->pk_values = [$BillId];
 				$u->build_query();

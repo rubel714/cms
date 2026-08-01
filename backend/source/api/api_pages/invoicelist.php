@@ -17,6 +17,10 @@ switch ($task) {
 		$returnData = dataAddEdit($data);
 		break;
 
+	case "amountAddEdit":
+		$returnData = amountAddEdit($data);
+		break;
+
 	// case "deleteData":
 	// 	$returnData = deleteData($data);
 	// break;
@@ -113,8 +117,6 @@ function dataAddEdit($data)
 		$UserId = trim($data->UserId);
 		$InvoiceItemId = $data->rowData->InvoiceItemId;
 		$CustomerUserId = $data->rowData->CustomerUserId?$data->rowData->CustomerUserId:null;
-		$BaseAmountWithoutVat = $data->rowData->BaseAmountWithoutVat?$data->rowData->BaseAmountWithoutVat:null;
-		$VatAmount = $data->rowData->VatAmount?$data->rowData->VatAmount:null;
 		$CustomerId = isset($data->rowData->CustomerId) ? intval($data->rowData->CustomerId) : 0;
 
 		try {
@@ -122,8 +124,8 @@ function dataAddEdit($data)
 			$dbh = new Db();
 			$aQuerys = array();
 
-			$columns = ['CustomerUserId','BaseAmountWithoutVat','VatAmount'];
-			$values = [$CustomerUserId, $BaseAmountWithoutVat, $VatAmount];
+			$columns = ['CustomerUserId'];
+			$values = [$CustomerUserId];
 
 			if ($CustomerId > 0) {
 				$customer = $dbh->query("SELECT CustomerCode, CustomerName FROM t_customer WHERE CustomerId = $CustomerId;");
@@ -144,6 +146,50 @@ function dataAddEdit($data)
 			$u->build_query();
 			$aQuerys = array($u);
 		
+			$res = exec_query($aQuerys, $UserId, $lan);
+			$success=($res['msgType']=='success')?1:0;
+			$status=($res['msgType']=='success')?200:500;
+
+			$returnData = [
+			    "success" => $success ,
+				"status" => $status,
+				"UserId"=> $UserId,
+				"message" => $res['msg']
+			];
+		} catch (PDOException $e) {
+			$returnData = msg(0, 500, $e->getMessage());
+		}
+
+		return $returnData;
+	}
+}
+
+function amountAddEdit($data)
+{
+
+	if ($_SERVER["REQUEST_METHOD"] != "POST") {
+		return $returnData = msg(0, 404, 'Page Not Found!');
+	} else {
+
+		$lan = trim($data->lan);
+		$UserId = trim($data->UserId);
+		$InvoiceItemId = $data->rowData->InvoiceItemId;
+		$BaseAmountWithoutVat = $data->rowData->BaseAmountWithoutVat?$data->rowData->BaseAmountWithoutVat:null;
+		$VatAmount = $data->rowData->VatAmount?$data->rowData->VatAmount:null;
+
+		try {
+
+			$aQuerys = array();
+
+			$u = new updateq();
+			$u->table = 't_invoiceitems';
+			$u->columns = ['BaseAmountWithoutVat','VatAmount'];
+			$u->values = [$BaseAmountWithoutVat, $VatAmount];
+			$u->pks = ['InvoiceItemId'];
+			$u->pk_values = [$InvoiceItemId];
+			$u->build_query();
+			$aQuerys = array($u);
+
 			$res = exec_query($aQuerys, $UserId, $lan);
 			$success=($res['msgType']=='success')?1:0;
 			$status=($res['msgType']=='success')?200:500;

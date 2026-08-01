@@ -1,6 +1,6 @@
 import React, { forwardRef, useRef, useEffect } from "react";
 import swal from "sweetalert";
-import { DeleteOutline, Edit } from "@material-ui/icons";
+import { DeleteOutline, Edit, MonetizationOn } from "@material-ui/icons";
 import { Button } from "../../../components/CustomControl/Button";
 
 import CustomTable from "components/CustomTable/CustomTable";
@@ -12,6 +12,7 @@ import {
 } from "../../../actions/api";
 import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 import InvoiceEditModal from "./InvoiceEditModal";
+import InvoiceAmountEditModal from "./InvoiceAmountEditModal";
 
 import {
   Typography,
@@ -52,6 +53,7 @@ const InvoiceList = (props) => {
   const [bFirst, setBFirst] = useState(true);
   const [currentRow, setCurrentRow] = useState([]);
   const [showModal, setShowModal] = useState(false); //true=show modal, false=hide modal
+  const [showAmountModal, setShowAmountModal] = useState(false); //true=show modal, false=hide modal
 
   const { isLoading, data: dataList, error, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
   const UserInfo = LoginUserInfo();
@@ -519,7 +521,7 @@ const InvoiceList = (props) => {
     {
       field: "custom",
       label: "Action",
-      width: "4%",
+      width: "6%",
       align: "center",
       visible: true,
       sort: false,
@@ -642,6 +644,15 @@ const InvoiceList = (props) => {
           />
         )}
 
+        {permissionType === 0 && (
+          <MonetizationOn
+            className={"table-edit-icon"}
+            onClick={() => {
+              editAmountData(rowData);
+            }}
+          />
+        )}
+
         {/* {permissionType === 0 && (
           <DeleteOutline
             className={"table-delete-icon"}
@@ -660,6 +671,11 @@ const InvoiceList = (props) => {
 
     setCurrentRow(rowData);
     openModal();
+  };
+
+  const editAmountData = (rowData) => {
+    setCurrentRow(rowData);
+    setShowAmountModal(true);
   };
 
   // React.useEffect(()=>{
@@ -686,6 +702,12 @@ const InvoiceList = (props) => {
     // console.log('response: ', response);
     getDataList();
     setShowModal(false); //true=modal show, false=modal hide
+  }
+
+  function amountModalCallback(response) {
+    //response = close, addedit
+    getDataList();
+    setShowAmountModal(false); //true=modal show, false=modal hide
   }
 
   const handleChange = (e) => {
@@ -1074,6 +1096,14 @@ const InvoiceList = (props) => {
           masterProps={props}
           currentRow={currentRow}
           modalCallback={modalCallback}
+        />
+      )}
+
+      {showAmountModal && (
+        <InvoiceAmountEditModal
+          masterProps={props}
+          currentRow={currentRow}
+          modalCallback={amountModalCallback}
         />
       )}
 
