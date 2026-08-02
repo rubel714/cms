@@ -503,6 +503,14 @@ const InvoiceList = (props) => {
       filter: true,
     },
     {
+      field: "AdjFlag",
+      label: "Adj",
+      align: "center",
+      visible: true,
+      sort: false,
+      filter: true,
+    },
+    {
       field: "IsBilledText",
       label: "Billed",
       align: "center",
@@ -512,12 +520,12 @@ const InvoiceList = (props) => {
     },
         {
       field: "IsPaidText",
-      label: "Paid",
-      align: "center",
-      visible: true,
-      sort: false,
-      filter: true,
-    },
+        label: "Paid",
+        align: "center",
+        visible: true,
+        sort: false,
+        filter: true,
+      },
     {
       field: "custom",
       label: "Action",

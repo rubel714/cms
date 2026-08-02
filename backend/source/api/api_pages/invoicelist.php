@@ -82,6 +82,7 @@ function getDataList($data)
  		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
 		DATE_FORMAT(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y'), '%d/%m/%Y') as TransactionDate, 
 		b.UserName as CustomerUserName,c.CustomerId as CustomerId,concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,
+		a.OriginalBaseAmountWithoutVat,	a.OriginalVatAmount,a.OriginalBaseAmount,a.OriginalTransactionAmount,a.ExchangeRate,a.AdjFlag,
 		case when a.IsBilled=1 then 'Yes' else 'No' end as IsBilledText,
 		case when a.IsPaid=1 then 'Yes' else 'No' end as IsPaidText
 		FROM t_invoiceitems a
@@ -174,17 +175,30 @@ function amountAddEdit($data)
 		$lan = trim($data->lan);
 		$UserId = trim($data->UserId);
 		$InvoiceItemId = $data->rowData->InvoiceItemId;
-		$BaseAmountWithoutVat = $data->rowData->BaseAmountWithoutVat?$data->rowData->BaseAmountWithoutVat:null;
-		$VatAmount = $data->rowData->VatAmount?$data->rowData->VatAmount:null;
+		$AdjBaseAmountWithoutVat = (isset($data->rowData->AdjBaseAmountWithoutVat) && is_numeric($data->rowData->AdjBaseAmountWithoutVat))
+			? $data->rowData->AdjBaseAmountWithoutVat
+			: 0;
+		$AdjVatAmount = (isset($data->rowData->AdjVatAmount) && is_numeric($data->rowData->AdjVatAmount))
+			? $data->rowData->AdjVatAmount
+			: 0;
+
+		$AdjBaseAmount = $AdjBaseAmountWithoutVat + $AdjVatAmount;
+		$AdjReason = isset($data->rowData->AdjReason) ? trim($data->rowData->AdjReason) : '';
 
 		try {
 
+			$dbh = new Db();
 			$aQuerys = array();
+
+			$item = $dbh->query("SELECT ExchangeRate FROM t_invoiceitems WHERE InvoiceItemId = " . intval($InvoiceItemId) . ";");
+			$ExchangeRate = (!empty($item) && $item[0]['ExchangeRate'] > 0) ? $item[0]['ExchangeRate'] : 0;
+			$AdjTransactionAmount = ($ExchangeRate > 0) ? round($AdjBaseAmount / $ExchangeRate, 2) : 0;
+			$AdjFlag = "Adjust";
 
 			$u = new updateq();
 			$u->table = 't_invoiceitems';
-			$u->columns = ['BaseAmountWithoutVat','VatAmount'];
-			$u->values = [$BaseAmountWithoutVat, $VatAmount];
+			$u->columns = ['AdjBaseAmountWithoutVat','AdjVatAmount','AdjBaseAmount','AdjTransactionAmount','AdjReason','AdjDateTime','AdjUserId','AdjFlag'];
+			$u->values = [$AdjBaseAmountWithoutVat, $AdjVatAmount, $AdjBaseAmount, $AdjTransactionAmount, $AdjReason, date('Y-m-d H:i:s'), $UserId, $AdjFlag];
 			$u->pks = ['InvoiceItemId'];
 			$u->pk_values = [$InvoiceItemId];
 			$u->build_query();

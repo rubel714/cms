@@ -8,6 +8,15 @@ import {
   language,
 } from "../../../actions/api";
 
+const toNumber = (value) => {
+  const num = parseFloat(value);
+  return isNaN(num) ? 0 : num;
+};
+
+const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const isEmpty = (value) => value === "" || value === null || value === undefined;
+
 const InvoiceAmountEditModal = (props) => {
   const serverpage = "invoicelist"; // this is .php server page
 
@@ -15,8 +24,31 @@ const InvoiceAmountEditModal = (props) => {
   const [errorObject, setErrorObject] = useState({});
 
   React.useEffect(() => {
-    setCurrentRow(props.currentRow);
+    let data = { ...props.currentRow };
+
+    /**First time adjustment starts from the original amounts */
+    if (isEmpty(data.AdjBaseAmountWithoutVat)) {
+      data.AdjBaseAmountWithoutVat = data.OriginalBaseAmountWithoutVat;
+    }
+    if (isEmpty(data.AdjVatAmount)) {
+      data.AdjVatAmount = data.OriginalVatAmount;
+    }
+
+    setCurrentRow(data);
   }, []);
+
+  const AdjBaseAmount = React.useMemo(() => {
+    return round2(
+      toNumber(currentRow.AdjBaseAmountWithoutVat) +
+        toNumber(currentRow.AdjVatAmount)
+    );
+  }, [currentRow.AdjBaseAmountWithoutVat, currentRow.AdjVatAmount]);
+
+  const AdjTransactionAmount = React.useMemo(() => {
+    const rate = toNumber(currentRow.ExchangeRate);
+    if (rate === 0) return 0;
+    return round2(AdjBaseAmount / rate);
+  }, [AdjBaseAmount, currentRow.ExchangeRate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,8 +67,15 @@ const InvoiceAmountEditModal = (props) => {
       UserId: UserInfo.UserId,
       rowData: {
         InvoiceItemId: currentRow.InvoiceItemId,
-        BaseAmountWithoutVat: currentRow.BaseAmountWithoutVat,
-        VatAmount: currentRow.VatAmount,
+        AdjBaseAmountWithoutVat: isEmpty(currentRow.AdjBaseAmountWithoutVat)
+          ? 0
+          : currentRow.AdjBaseAmountWithoutVat,
+        AdjVatAmount: isEmpty(currentRow.AdjVatAmount)
+          ? 0
+          : currentRow.AdjVatAmount,
+        AdjBaseAmount: AdjBaseAmount,
+        AdjTransactionAmount: AdjTransactionAmount,
+        AdjReason: isEmpty(currentRow.AdjReason) ? "" : currentRow.AdjReason,
       },
     };
     apiCall.post(serverpage, { params }, apiOption()).then((res) => {
@@ -71,34 +110,106 @@ const InvoiceAmountEditModal = (props) => {
           </div>
 
           <div class="contactmodalBody pt-10">
-            <label>Invoice Amount (BDT)</label>
+            <label>Original Amount (BDT)</label>
             <input
               type="number"
-              id="BaseAmount"
+              id="OriginalBaseAmountWithoutVat"
+              name="OriginalBaseAmountWithoutVat"
               disabled={true}
-              name="BaseAmount"
-              placeholder="Enter invoice amount"
-              value={currentRow.BaseAmount}
+              value={currentRow.OriginalBaseAmountWithoutVat}
               onChange={(e) => handleChange(e)}
             />
 
-            <label>Invoice Amount (BDT)</label>
+            <label>Original VAT Amount (BDT)</label>
             <input
               type="number"
-              id="BaseAmountWithoutVat"
-              name="BaseAmountWithoutVat"
-              placeholder="Enter amount"
-              value={currentRow.BaseAmountWithoutVat}
+              id="OriginalVatAmount"
+              name="OriginalVatAmount"
+              disabled={true}
+              value={currentRow.OriginalVatAmount}
               onChange={(e) => handleChange(e)}
             />
 
-            <label>VAT Amount (BDT)</label>
+            <label>Original Invoice Amount (BDT)</label>
             <input
               type="number"
-              id="VatAmount"
-              name="VatAmount"
-              placeholder="Enter vat amount"
-              value={currentRow.VatAmount}
+              id="OriginalBaseAmount"
+              name="OriginalBaseAmount"
+              disabled={true}
+              value={currentRow.OriginalBaseAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Original Amount (USD)</label>
+            <input
+              type="number"
+              id="OriginalTransactionAmount"
+              name="OriginalTransactionAmount"
+              disabled={true}
+              value={currentRow.OriginalTransactionAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Exchange Rate</label>
+            <input
+              type="number"
+              id="ExchangeRate"
+              name="ExchangeRate"
+              disabled={true}
+              value={currentRow.ExchangeRate}
+              onChange={(e) => handleChange(e)}
+            />
+          </div>
+
+          <div class="contactmodalBody pt-10">
+            <label>Adjusted Amount (BDT)</label>
+            <input
+              type="number"
+              id="AdjBaseAmountWithoutVat"
+              name="AdjBaseAmountWithoutVat"
+              placeholder="Enter adjusted amount"
+              value={currentRow.AdjBaseAmountWithoutVat}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Adjusted VAT Amount (BDT)</label>
+            <input
+              type="number"
+              id="AdjVatAmount"
+              name="AdjVatAmount"
+              placeholder="Enter adjusted vat amount"
+              value={currentRow.AdjVatAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Adjusted Invoice Amount (BDT)</label>
+            <input
+              type="number"
+              id="AdjBaseAmount"
+              name="AdjBaseAmount"
+              disabled={true}
+              value={AdjBaseAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Adjusted Amount (USD)</label>
+            <input
+              type="number"
+              id="AdjTransactionAmount"
+              name="AdjTransactionAmount"
+              disabled={true}
+              value={AdjTransactionAmount}
+              onChange={(e) => handleChange(e)}
+            />
+
+            <label>Adjustment Reason</label>
+            <input
+              type="text"
+              id="AdjReason"
+              name="AdjReason"
+              maxLength={200}
+              placeholder="Enter adjustment reason"
+              value={currentRow.AdjReason ? currentRow.AdjReason : ""}
               onChange={(e) => handleChange(e)}
             />
           </div>
