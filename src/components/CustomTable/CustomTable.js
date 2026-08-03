@@ -237,6 +237,17 @@ function CustomTable({
                             );
                           }
 
+                          if (column.format) {
+                            return (
+                              <td
+                                key={column.field}
+                                style={{ textAlign: columns[i].align }}
+                              >
+                                {column.format(row[column.field], row)}
+                              </td>
+                            );
+                          }
+
                           return (
                             <td
                               key={column.field}

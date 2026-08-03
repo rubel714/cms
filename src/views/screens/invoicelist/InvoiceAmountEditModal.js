@@ -17,6 +17,11 @@ const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 const isEmpty = (value) => value === "" || value === null || value === undefined;
 
+const isYes = (value) => `${value ?? ""}`.trim().toLowerCase() === "yes";
+
+const isApproved = (value) =>
+  `${value ?? ""}`.trim().toLowerCase() === "approved";
+
 const InvoiceAmountEditModal = (props) => {
   const serverpage = "invoicelist"; // this is .php server page
 
@@ -36,6 +41,19 @@ const InvoiceAmountEditModal = (props) => {
 
     setCurrentRow(data);
   }, []);
+
+  /**A billed, paid or already approved invoice can no longer be adjusted */
+  const isViewMode = React.useMemo(() => {
+    return (
+      isYes(props.currentRow.IsBilledText) ||
+      isYes(props.currentRow.IsPaidText) ||
+      isApproved(props.currentRow.AdjFlag)
+    );
+  }, [
+    props.currentRow.IsBilledText,
+    props.currentRow.IsPaidText,
+    props.currentRow.AdjFlag,
+  ]);
 
   const AdjBaseAmount = React.useMemo(() => {
     return round2(
@@ -59,7 +77,24 @@ const InvoiceAmountEditModal = (props) => {
     setErrorObject({ ...errorObject, [name]: null });
   };
 
+  const validateForm = () => {
+    let errorData = {};
+    let isValid = true;
+
+    if (isEmpty(currentRow.AdjReason) || `${currentRow.AdjReason}`.trim() === "") {
+      errorData.AdjReason = "validation-style";
+      isValid = false;
+    }
+
+    setErrorObject(errorData);
+    return isValid;
+  };
+
   function addEditAPICall() {
+    if (isViewMode || !validateForm()) {
+      return;
+    }
+
     let UserInfo = LoginUserInfo();
     let params = {
       action: "amountAddEdit",
@@ -75,7 +110,7 @@ const InvoiceAmountEditModal = (props) => {
           : currentRow.AdjVatAmount,
         AdjBaseAmount: AdjBaseAmount,
         AdjTransactionAmount: AdjTransactionAmount,
-        AdjReason: isEmpty(currentRow.AdjReason) ? "" : currentRow.AdjReason,
+        AdjReason: `${currentRow.AdjReason}`.trim(),
       },
     };
     apiCall.post(serverpage, { params }, apiOption()).then((res) => {
@@ -103,7 +138,7 @@ const InvoiceAmountEditModal = (props) => {
         <div class="modal-content">
           <div class="modalHeader">
             <h4>
-              Edit Amount{" "}
+              {isViewMode ? "View Amount" : "Edit Amount"}{" "}
               {currentRow.TransactionReference &&
                 `- ${currentRow.TransactionReference}`}
             </h4>
@@ -167,6 +202,7 @@ const InvoiceAmountEditModal = (props) => {
               type="number"
               id="AdjBaseAmountWithoutVat"
               name="AdjBaseAmountWithoutVat"
+              disabled={isViewMode}
               placeholder="Enter adjusted amount"
               value={currentRow.AdjBaseAmountWithoutVat}
               onChange={(e) => handleChange(e)}
@@ -177,6 +213,7 @@ const InvoiceAmountEditModal = (props) => {
               type="number"
               id="AdjVatAmount"
               name="AdjVatAmount"
+              disabled={isViewMode}
               placeholder="Enter adjusted vat amount"
               value={currentRow.AdjVatAmount}
               onChange={(e) => handleChange(e)}
@@ -202,11 +239,13 @@ const InvoiceAmountEditModal = (props) => {
               onChange={(e) => handleChange(e)}
             />
 
-            <label>Adjustment Reason</label>
+            <label>Adjustment Reason {!isViewMode && "*"}</label>
             <input
               type="text"
               id="AdjReason"
               name="AdjReason"
+              class={errorObject.AdjReason}
+              disabled={isViewMode}
               maxLength={200}
               placeholder="Enter adjustment reason"
               value={currentRow.AdjReason ? currentRow.AdjReason : ""}
@@ -216,11 +255,13 @@ const InvoiceAmountEditModal = (props) => {
 
           <div class="modalItem">
             <Button label={"Close"} class={"btnClose"} onClick={modalClose} />
-            <Button
-              label={"Update"}
-              class={"btnUpdate"}
-              onClick={addEditAPICall}
-            />
+            {!isViewMode && (
+              <Button
+                label={"Update"}
+                class={"btnUpdate"}
+                onClick={addEditAPICall}
+              />
+            )}
           </div>
         </div>
       </div>

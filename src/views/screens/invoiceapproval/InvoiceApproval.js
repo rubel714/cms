@@ -14,6 +14,9 @@ import ExecuteQueryHook from "../../../components/hooks/ExecuteQueryHook";
 import { TextField } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
+/**AdjFlag value in t_invoiceitems that still awaits an approval decision */
+const FLAG_PENDING = "Adjust";
+
 const InvoiceApproval = (props) => {
   const serverpage = "invoiceapproval"; // this is .php server page
 
@@ -38,7 +41,7 @@ const InvoiceApproval = (props) => {
 
   const pendingCount = React.useMemo(() => {
     if (!dataList || !Array.isArray(dataList)) return 0;
-    return dataList.filter((row) => Number(row.IsApproved) !== 1).length;
+    return dataList.filter((row) => row.AdjFlag === FLAG_PENDING).length;
   }, [dataList]);
 
   const columnList = [
@@ -266,27 +269,28 @@ const InvoiceApproval = (props) => {
 
   /** Action from table row buttons*/
   function actioncontrol(rowData) {
-    const isApproved = Number(rowData.IsApproved) === 1;
+    if (permissionType !== 0) return <></>;
+
+    /**Approve/Reject is a final decision, so only a pending row is actionable */
+    if (rowData.AdjFlag !== FLAG_PENDING) return <></>;
 
     return (
       <>
-        {permissionType === 0 && !isApproved && (
-          <CheckCircleOutline
-            className={"table-edit-icon"}
-            onClick={() => {
-              confirmApproval(rowData, true);
-            }}
-          />
-        )}
+        <CheckCircleOutline
+          className={"table-edit-icon"}
+          titleAccess={"Approve"}
+          onClick={() => {
+            confirmApproval(rowData, true);
+          }}
+        />
 
-        {permissionType === 0 && isApproved && (
-          <HighlightOff
-            className={"table-delete-icon"}
-            onClick={() => {
-              confirmApproval(rowData, false);
-            }}
-          />
-        )}
+        <HighlightOff
+          className={"table-delete-icon"}
+          titleAccess={"Reject"}
+          onClick={() => {
+            confirmApproval(rowData, false);
+          }}
+        />
       </>
     );
   }
@@ -295,8 +299,8 @@ const InvoiceApproval = (props) => {
     swal({
       title: "Are you sure?",
       text: isApprove
-        ? "This adjusted invoice will be marked as approved."
-        : "Approval of this adjusted invoice will be withdrawn.",
+        ? "This adjusted invoice will be approved and cannot be changed afterwards."
+        : "This adjusted invoice will be rejected and cannot be changed afterwards.",
       icon: "warning",
       buttons: {
         confirm: {
@@ -324,7 +328,7 @@ const InvoiceApproval = (props) => {
 
   function approvalApi(rowData, isApprove) {
     let params = {
-      action: isApprove ? "approveData" : "unapproveData",
+      action: isApprove ? "approveData" : "rejectData",
       lan: language(),
       UserId: UserInfo.UserId,
       rowData: {

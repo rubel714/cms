@@ -509,6 +509,21 @@ const InvoiceList = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      format: (value) => {
+        const flag = `${value ?? ""}`.trim().toLowerCase();
+        const color =
+          flag === "reject" || flag === "rejected"
+            ? "#d32f2f"
+            : flag === "approved" || flag === "approve"
+            ? "#2e7d32"
+            : "";
+
+        return color ? (
+          <span style={{ color: color, fontWeight: "bold" }}>{value}</span>
+        ) : (
+          value
+        );
+      },
     },
     {
       field: "IsBilledText",
