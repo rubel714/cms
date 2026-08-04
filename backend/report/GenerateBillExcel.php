@@ -62,17 +62,22 @@ $TotalBaseAmount=0;
 $TotalTransactionAmount=0;
 $RebatePercentage=0;
 $RebateAmount=0;
+$RebateAmountUSD=0;
 $VATPercentage=0;
 $VATAmount=0;
+$VATAmountUSD=0;
 $TaxPercentage=0;
 $TaxAmount=0;
+$TaxAmountUSD=0;
 $Total=0;
+$TotalUSD=0;
 
 // Get Bill Header Data
 $sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate,
 ifnull(a.TotalBaseAmount,0) as TotalBaseAmount,ifnull(a.TotalTransactionAmount,0) as TotalTransactionAmount, ifnull(a.RebatePercentage,0) as RebatePercentage, 
-ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount,
-ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount
+ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.RebateAmountUSD,0) as RebateAmountUSD,
+ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount, ifnull(a.VATAmountUSD,0) as VATAmountUSD,
+ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount, ifnull(a.TaxAmountUSD,0) as TaxAmountUSD
 FROM t_bill a 
 inner join t_customer b on a.CustomerId=b.CustomerId
 where a.BillId=$BillId;";
@@ -90,11 +95,15 @@ foreach ($sqlmresult as $result) {
     $TotalTransactionAmount = $result['TotalTransactionAmount'];
     $RebatePercentage = $result['RebatePercentage'];
     $RebateAmount = $result['RebateAmount'];
+    $RebateAmountUSD = $result['RebateAmountUSD'];
     $VATPercentage = $result['VATPercentage'];
     $VATAmount = $result['VATAmount'];
+    $VATAmountUSD = $result['VATAmountUSD'];
     $TaxPercentage = $result['TaxPercentage'];
     $TaxAmount = $result['TaxAmount'];
+    $TaxAmountUSD = $result['TaxAmountUSD'];
     $Total = $TotalBaseAmount - $RebateAmount - $VATAmount - $TaxAmount;
+    $TotalUSD = $TotalTransactionAmount - $RebateAmountUSD - $VATAmountUSD - $TaxAmountUSD;
 }
 
 // Get Bill Items Data
@@ -119,8 +128,8 @@ $columns = [
     ['key' => 'GeneralDescription9', 'label' => 'Report Number', 'width' => 15, 'visible' => true],
     ['key' => 'GeneralDescription11', 'label' => 'Buyer Name', 'width' => 25, 'visible' => true],
     ['key' => 'TransactionAmount', 'label' => 'Amount in FC', 'width' => 15, 'visible' => true, 'number' => true],
-    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 10, 'visible' => true, 'number' => true],
-    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 18, 'visible' => true, 'number' => true, 'hiderows' => ($IsPrintAmountBDT != 1)],
+    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 10, 'visible' => ($IsPrintAmountBDT == 1), 'number' => true],
+    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 18, 'visible' => ($IsPrintAmountBDT == 1), 'number' => true],
     ['key' => 'GeneralDescription17', 'label' => 'Style Number', 'width' => 20, 'visible' => ($IsPrintStyle == 1)],
     ['key' => 'OrderNumber', 'label' => 'Order Number', 'width' => 15, 'visible' => ($IsPrintOrderNo == 1)],
     ['key' => 'GeneralDescription14', 'label' => 'Merchandiser Name', 'width' => 20, 'visible' => ($IsPrintMerchandiser == 1)],
@@ -191,9 +200,6 @@ $dataRow = 8;
 
 foreach ($sqlLoop1result as $result) {
     foreach ($columns as $col) {
-        if (!empty($col['hiderows'])) {
-            continue;
-        }
         $sheet->setCellValue($col['letter'] . $dataRow, isset($result[$col['key']]) ? $result[$col['key']] : '');
     }
     $dataRow++;
@@ -202,44 +208,48 @@ foreach ($sqlLoop1result as $result) {
 // Summary Rows
 $labelCol = $colLetter['GeneralDescription11'];
 $fcCol = $colLetter['TransactionAmount'];
-$bdtCol = $colLetter['BaseAmount'];
+$showBDT = ($IsPrintAmountBDT == 1);
+// Without the BDT column the charge figures have nowhere to go, so they move to the FC column
+$amountCol = $showBDT ? $colLetter['BaseAmount'] : $fcCol;
 
 if (count($sqlLoop1result) > 0) {
     // Sub Total Row
     $sheet->setCellValue($labelCol . $dataRow, 'Sub Total');
     $sheet->setCellValue($fcCol . $dataRow, $TotalTransactionAmount);
-    $sheet->setCellValue($bdtCol . $dataRow, $TotalBaseAmount);
     $sheet->getStyle($labelCol . $dataRow)->getFont()->setBold(true);
     $sheet->getStyle($fcCol . $dataRow)->getFont()->setBold(true);
-    $sheet->getStyle($bdtCol . $dataRow)->getFont()->setBold(true);
+    if ($showBDT) {
+        $sheet->setCellValue($amountCol . $dataRow, $TotalBaseAmount);
+        $sheet->getStyle($amountCol . $dataRow)->getFont()->setBold(true);
+    }
     $dataRow++;
 
     // Rebate Row
     if ($RebatePercentage > 0) {
         $sheet->setCellValue($labelCol . $dataRow, 'Rebate(' . $RebatePercentage . '%)');
-        $sheet->setCellValue($bdtCol . $dataRow, $RebateAmount);
+        $sheet->setCellValue($amountCol . $dataRow, $showBDT ? $RebateAmount : $RebateAmountUSD);
         $dataRow++;
     }
 
     // VAT Row
     if ($VATPercentage > 0) {
         $sheet->setCellValue($labelCol . $dataRow, 'VAT(' . $VATPercentage . '%)');
-        $sheet->setCellValue($bdtCol . $dataRow, $VATAmount);
+        $sheet->setCellValue($amountCol . $dataRow, $showBDT ? $VATAmount : $VATAmountUSD);
         $dataRow++;
     }
 
     // Tax Row
     if ($TaxPercentage > 0) {
         $sheet->setCellValue($labelCol . $dataRow, 'Tax(' . $TaxPercentage . '%)');
-        $sheet->setCellValue($bdtCol . $dataRow, $TaxAmount);
+        $sheet->setCellValue($amountCol . $dataRow, $showBDT ? $TaxAmount : $TaxAmountUSD);
         $dataRow++;
     }
 
     // Total Row
     $sheet->setCellValue($labelCol . $dataRow, 'Total');
-    $sheet->setCellValue($bdtCol . $dataRow, $Total);
+    $sheet->setCellValue($amountCol . $dataRow, $showBDT ? $Total : $TotalUSD);
     $sheet->getStyle($labelCol . $dataRow)->getFont()->setBold(true);
-    $sheet->getStyle($bdtCol . $dataRow)->getFont()->setBold(true);
+    $sheet->getStyle($amountCol . $dataRow)->getFont()->setBold(true);
 }
 
 // Style data area with borders

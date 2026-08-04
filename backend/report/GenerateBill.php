@@ -60,16 +60,21 @@ $TotalBaseAmount=0;
 $TotalTransactionAmount=0;
 $RebatePercentage=0;
 $RebateAmount=0;
+$RebateAmountUSD=0;
 $VATPercentage=0;
 $VATAmount=0;
+$VATAmountUSD=0;
 $TaxPercentage=0;
 $TaxAmount=0;
+$TaxAmountUSD=0;
 $Total=0;
+$TotalUSD=0;
 
 $sqlm = "SELECT b.CustomerCode, b.CustomerName, a.Remarks, a.BillNumber, a.BillDate,
 ifnull(a.TotalBaseAmount,0) as TotalBaseAmount,ifnull(a.TotalTransactionAmount,0) as TotalTransactionAmount, ifnull(a.RebatePercentage,0) as RebatePercentage, 
-ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount,
-ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount
+ifnull(a.RebateAmount,0) as RebateAmount, ifnull(a.RebateAmountUSD,0) as RebateAmountUSD,
+ifnull(a.VATPercentage,0) as VATPercentage, ifnull(a.VATAmount,0) as VATAmount, ifnull(a.VATAmountUSD,0) as VATAmountUSD,
+ifnull(a.TaxPercentage,0) as TaxPercentage, ifnull(a.TaxAmount,0) as TaxAmount, ifnull(a.TaxAmountUSD,0) as TaxAmountUSD
 FROM t_bill a 
 inner join t_customer b on a.CustomerId=b.CustomerId
 where a.BillId=$BillId;";
@@ -87,11 +92,15 @@ foreach ($sqlmresult as $result) {
     $TotalTransactionAmount = $result['TotalTransactionAmount'];
     $RebatePercentage = $result['RebatePercentage'];
     $RebateAmount = $result['RebateAmount'];
+    $RebateAmountUSD = $result['RebateAmountUSD'];
     $VATPercentage = $result['VATPercentage'];
     $VATAmount = $result['VATAmount'];
+    $VATAmountUSD = $result['VATAmountUSD'];
     $TaxPercentage = $result['TaxPercentage'];
     $TaxAmount = $result['TaxAmount'];
+    $TaxAmountUSD = $result['TaxAmountUSD'];
     $Total = $TotalBaseAmount - $RebateAmount - $VATAmount - $TaxAmount;
+    $TotalUSD = $TotalTransactionAmount - $RebateAmountUSD - $VATAmountUSD - $TaxAmountUSD;
 
 }
 
@@ -179,8 +188,8 @@ $columns = [
     ['key' => 'GeneralDescription9', 'label' => 'Report Number', 'width' => 8, 'align' => 'left', 'visible' => true],
     ['key' => 'GeneralDescription11', 'label' => 'Buyer Name', 'width' => 16, 'align' => 'left', 'visible' => true],
     ['key' => 'TransactionAmount', 'label' => 'Amount in FC', 'width' => 5, 'align' => 'right', 'visible' => true, 'number' => true],
-    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 4, 'align' => 'right', 'visible' => true, 'number' => true],
-    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 7, 'align' => 'right', 'visible' => true, 'number' => true, 'hiderows' => ($IsPrintAmountBDT != 1)],
+    ['key' => 'ExchangeRate', 'label' => 'Ex. Rate', 'width' => 4, 'align' => 'right', 'visible' => ($IsPrintAmountBDT == 1), 'number' => true],
+    ['key' => 'BaseAmount', 'label' => 'Amount in BDT', 'width' => 7, 'align' => 'right', 'visible' => ($IsPrintAmountBDT == 1), 'number' => true],
     ['key' => 'GeneralDescription17', 'label' => 'Style number', 'width' => 13, 'align' => 'left', 'visible' => ($IsPrintStyle == 1)],
     ['key' => 'OrderNumber', 'label' => 'Order Number', 'width' => 10, 'align' => 'left', 'visible' => ($IsPrintOrderNo == 1)],
     ['key' => 'GeneralDescription14', 'label' => 'Merchandiser Name', 'width' => 13, 'align' => 'left', 'visible' => ($IsPrintMerchandiser == 1)],
@@ -219,9 +228,6 @@ $html .= '</tr></thead><tbody>';
 foreach ($sqlLoop1result as $result) {
     $values = [];
     foreach ($columns as $col) {
-        if (!empty($col['hiderows'])) {
-            continue;
-        }
         $raw = isset($result[$col['key']]) ? $result[$col['key']] : '';
         $values[$col['key']] = !empty($col['number'])
             ? number_format($raw, 2)
@@ -231,6 +237,17 @@ foreach ($sqlLoop1result as $result) {
 }
 
 if (count($sqlLoop1result) > 0) {
+    // Without the BDT column the charge figures have nowhere to go, so they move to the FC column
+    $summaryRow = function ($label, $bdtValue, $fcValue) use ($columns, $IsPrintAmountBDT) {
+        $values = ['GeneralDescription11' => $label];
+        if ($IsPrintAmountBDT == 1) {
+            $values['BaseAmount'] = number_format($bdtValue, 2);
+        } else {
+            $values['TransactionAmount'] = number_format($fcValue, 2);
+        }
+        return $values;
+    };
+
     $html .= buildRow($columns, [
         'GeneralDescription11' => 'Sub Total',
         'TransactionAmount' => number_format($TotalTransactionAmount, 2),
@@ -238,30 +255,18 @@ if (count($sqlLoop1result) > 0) {
     ], true);
 
     if ($RebatePercentage > 0) {
-        $html .= buildRow($columns, [
-            'GeneralDescription11' => 'Rebate(' . $RebatePercentage . '%)',
-            'BaseAmount' => number_format($RebateAmount, 2),
-        ]);
+        $html .= buildRow($columns, $summaryRow('Rebate(' . $RebatePercentage . '%)', $RebateAmount, $RebateAmountUSD));
     }
 
     if ($VATPercentage > 0) {
-        $html .= buildRow($columns, [
-            'GeneralDescription11' => 'VAT(' . $VATPercentage . '%)',
-            'BaseAmount' => number_format($VATAmount, 2),
-        ]);
+        $html .= buildRow($columns, $summaryRow('VAT(' . $VATPercentage . '%)', $VATAmount, $VATAmountUSD));
     }
 
     if ($TaxPercentage > 0) {
-        $html .= buildRow($columns, [
-            'GeneralDescription11' => 'Tax(' . $TaxPercentage . '%)',
-            'BaseAmount' => number_format($TaxAmount, 2),
-        ]);
+        $html .= buildRow($columns, $summaryRow('Tax(' . $TaxPercentage . '%)', $TaxAmount, $TaxAmountUSD));
     }
 
-    $html .= buildRow($columns, [
-        'GeneralDescription11' => 'Total',
-        'BaseAmount' => number_format($Total, 2),
-    ], true);
+    $html .= buildRow($columns, $summaryRow('Total', $Total, $TotalUSD), true);
 }
 
 $html .= '</tbody></table>';
