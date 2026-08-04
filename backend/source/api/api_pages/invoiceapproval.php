@@ -105,10 +105,20 @@ function approveData($data)
 			return msg(0, 400, 'This invoice is already approved or rejected!');
 		}
 
+		$dbh = new Db();
+		$item = $dbh->query("SELECT 
+		(ifnull(OriginalBaseAmount, 0)-ifnull(AdjBaseAmount, 0)) as OriginalAndAdjBaseAmountDiff, 
+		(ifnull(OriginalTransactionAmount, 0)-ifnull(AdjTransactionAmount, 0)) as OriginalAndAdjTransactionAmountDiff
+		FROM t_invoiceitems WHERE InvoiceItemId = " . intval($InvoiceItemId) . ";");
+	
+		$OriginalAndAdjBaseAmountDiff = $item[0]['OriginalAndAdjBaseAmountDiff'];
+		$OriginalAndAdjTransactionAmountDiff = $item[0]['OriginalAndAdjTransactionAmountDiff'];
+		$AdjDebitCredit = $OriginalAndAdjBaseAmountDiff<0 ? 'Debit' : 'Credit';
+
 		$u = new updateq();
 		$u->table = 't_invoiceitems';
-		$u->columns = ['AdjFlag', 'ApproveUserId', 'ApproveDateTime'];
-		$u->values = ['Approved', $UserId, date('Y-m-d H:i:s')];
+		$u->columns = ['AdjFlag', 'ApproveUserId', 'ApproveDateTime','OriginalAndAdjBaseAmountDiff','OriginalAndAdjTransactionAmountDiff','AdjDebitCredit'];
+		$u->values = ['Approved', $UserId, date('Y-m-d H:i:s'), $OriginalAndAdjBaseAmountDiff, $OriginalAndAdjTransactionAmountDiff, $AdjDebitCredit];
 		$u->pks = ['InvoiceItemId'];
 		$u->pk_values = [$InvoiceItemId];
 		$u->build_query();
