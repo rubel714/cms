@@ -174,8 +174,10 @@ function getDataList($data)
 		$dbh = new Db();
 
 		$query = "SELECT a.BillId AS id,a.BillNumber, DATE_FORMAT(a.BillDate, '%Y-%m-%d') as BillDate,
-		a.CustomerId, b.CustomerCode, b.CustomerName,a.TotalBaseAmount, a.RebatePercentage, a.RebateAmount, 
-		a.VATPercentage, a.VATAmount, a.TaxPercentage, a.TaxAmount, a.Remarks, a.StatusId,
+		a.CustomerId, b.CustomerCode, b.CustomerName,a.TotalBaseAmount, a.TotalTransactionAmount,
+		a.RebatePercentage, a.RebateAmount, a.RebateAmountUSD,
+		a.VATPercentage, a.VATAmount, a.VATAmountUSD, a.TaxPercentage, a.TaxAmount, a.TaxAmountUSD,
+		a.Remarks, a.StatusId,
 		ifnull(a.IsPrintAmountBDT,0) as IsPrintAmountBDT, ifnull(a.IsPrintStyle,0) as IsPrintStyle,
 		ifnull(a.IsPrintMerchandiser,0) as IsPrintMerchandiser, ifnull(a.IsPrintOrderNo,0) as IsPrintOrderNo,
 		ifnull(a.IsPrintServiceType,0) as IsPrintServiceType
@@ -305,10 +307,13 @@ function dataAddEdit($data)
 		$TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
 		$RebatePercentage = $data->rowData->RebatePercentage ? $data->rowData->RebatePercentage : null;
 		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : null;
+		$RebateAmountUSD = (isset($data->rowData->RebateAmountUSD) && $data->rowData->RebateAmountUSD) ? $data->rowData->RebateAmountUSD : null;
 		$VATPercentage = $data->rowData->VATPercentage ? $data->rowData->VATPercentage : null;
 		$VATAmount = $data->rowData->VATAmount ? $data->rowData->VATAmount : null;
+		$VATAmountUSD = (isset($data->rowData->VATAmountUSD) && $data->rowData->VATAmountUSD) ? $data->rowData->VATAmountUSD : null;
 		$TaxPercentage = $data->rowData->TaxPercentage ? $data->rowData->TaxPercentage : null;
 		$TaxAmount = $data->rowData->TaxAmount ? $data->rowData->TaxAmount : null;
+		$TaxAmountUSD = (isset($data->rowData->TaxAmountUSD) && $data->rowData->TaxAmountUSD) ? $data->rowData->TaxAmountUSD : null;
 
 		$IsPrintAmountBDT = (isset($data->rowData->IsPrintAmountBDT) && $data->rowData->IsPrintAmountBDT) ? 1 : 0;
 		$IsPrintStyle = (isset($data->rowData->IsPrintStyle) && $data->rowData->IsPrintStyle) ? 1 : 0;
@@ -350,8 +355,8 @@ function dataAddEdit($data)
 
 				$q = new insertq();
 				$q->table = 't_bill';
-				$q->columns = ['BillNumber', 'Year', 'MonthId', 'BillSerial', 'BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
-				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
+				$q->columns = ['BillNumber', 'Year', 'MonthId', 'BillSerial', 'BillDate', 'CustomerId', 'Remarks', 'UserId', 'StatusId', 'RebatePercentage', 'RebateAmount', 'RebateAmountUSD', 'VATPercentage', 'VATAmount', 'VATAmountUSD', 'TaxPercentage', 'TaxAmount', 'TaxAmountUSD', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
+				$q->values = [$BillNumber, $Year, $MonthId, $NextBillSerial, $BillDate, $CustomerId, $Remarks, $UserId, $StatusId, $RebatePercentage, $RebateAmount, $RebateAmountUSD, $VATPercentage, $VATAmount, $VATAmountUSD, $TaxPercentage, $TaxAmount, $TaxAmountUSD, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
 				$q->pks = ['BillId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
@@ -360,8 +365,8 @@ function dataAddEdit($data)
 				// $StatusId = 5; //Completed
 				$u = new updateq();
 				$u->table = 't_bill';
-				$u->columns = ['BillDate', 'CustomerId', 'Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'VATPercentage', 'VATAmount', 'TaxPercentage', 'TaxAmount', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
-				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $VATPercentage, $VATAmount, $TaxPercentage, $TaxAmount, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
+				$u->columns = ['BillDate', 'CustomerId', 'Remarks', 'StatusId', 'RebatePercentage', 'RebateAmount', 'RebateAmountUSD', 'VATPercentage', 'VATAmount', 'VATAmountUSD', 'TaxPercentage', 'TaxAmount', 'TaxAmountUSD', 'TotalBaseAmount', 'TotalTransactionAmount', 'IsPrintAmountBDT', 'IsPrintStyle', 'IsPrintMerchandiser', 'IsPrintOrderNo', 'IsPrintServiceType'];
+				$u->values = [$BillDate, $CustomerId, $Remarks, $StatusId, $RebatePercentage, $RebateAmount, $RebateAmountUSD, $VATPercentage, $VATAmount, $VATAmountUSD, $TaxPercentage, $TaxAmount, $TaxAmountUSD, $TotalBaseAmount, $TotalTransactionAmount, $IsPrintAmountBDT, $IsPrintStyle, $IsPrintMerchandiser, $IsPrintOrderNo, $IsPrintServiceType];
 				$u->pks = ['BillId'];
 				$u->pk_values = [$BillId];
 				$u->build_query();

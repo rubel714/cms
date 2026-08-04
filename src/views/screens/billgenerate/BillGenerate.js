@@ -146,8 +146,8 @@ const BillGenerate = (props) => {
     },
                 {
       field: "RebateAmount",
-      label: "Rebate Amount",
-      width: "9%",
+      label: "Rebate Amount (BDT)",
+      width: "10%",
       align: "right",
       visible: true,
       sort: true,
@@ -168,8 +168,8 @@ const BillGenerate = (props) => {
     },
                 {
       field: "VATAmount",
-      label: "VAT Amount",
-      width: "8%",
+      label: "VAT Amount (BDT)",
+      width: "10%",
       align: "right",
       visible: true,
       sort: true,
@@ -189,8 +189,8 @@ const BillGenerate = (props) => {
     },
                 {
       field: "TaxAmount",
-      label: "Tax Amount",
-      width: "7%",
+      label: "Tax Amount (BDT)",
+      width: "9%",
       align: "right",
       visible: true,
       sort: true,
@@ -254,6 +254,12 @@ const BillGenerate = (props) => {
         RebateAmount: ((totalBase * rebatePercentage) / 100).toFixed(2),
         VATAmount: ((totalBase * vatPercentage) / 100).toFixed(2),
         TaxAmount: ((totalBase * taxPercentage) / 100).toFixed(2),
+        RebateAmountUSD: (
+          (totalTransaction * rebatePercentage) /
+          100
+        ).toFixed(2),
+        VATAmountUSD: ((totalTransaction * vatPercentage) / 100).toFixed(2),
+        TaxAmountUSD: ((totalTransaction * taxPercentage) / 100).toFixed(2),
       };
 
       // Auto-save when invoices are added or deleted
@@ -353,10 +359,13 @@ const BillGenerate = (props) => {
         TotalTransactionAmount: 0,
         RebatePercentage: "",
         RebateAmount: "",
+        RebateAmountUSD: "",
         VATPercentage: "",
         VATAmount: "",
+        VATAmountUSD: "",
         TaxPercentage: "",
         TaxAmount: "",
+        TaxAmountUSD: "",
         IsPrintAmountBDT: 1,
         IsPrintStyle: 1,
         IsPrintMerchandiser: 1,
@@ -623,23 +632,30 @@ const BillGenerate = (props) => {
     data[name] = value;
 
     const totalBase = parseFloat(data.TotalBaseAmount) || 0;
+    const totalTransaction = parseFloat(data.TotalTransactionAmount) || 0;
 
     // Auto-calculate RebateAmount when RebatePercentage changes
     if (name === "RebatePercentage") {
       const rebatePercentage = parseFloat(value) || 0;
       data.RebateAmount = ((totalBase * rebatePercentage) / 100).toFixed(2);
+      data.RebateAmountUSD = (
+        (totalTransaction * rebatePercentage) /
+        100
+      ).toFixed(2);
     }
 
     // Auto-calculate VATAmount when VATPercentage changes
     if (name === "VATPercentage") {
       const vatPercentage = parseFloat(value) || 0;
       data.VATAmount = ((totalBase * vatPercentage) / 100).toFixed(2);
+      data.VATAmountUSD = ((totalTransaction * vatPercentage) / 100).toFixed(2);
     }
 
     // Auto-calculate TaxAmount when TaxPercentage changes
     if (name === "TaxPercentage") {
       const taxPercentage = parseFloat(value) || 0;
       data.TaxAmount = ((totalBase * taxPercentage) / 100).toFixed(2);
+      data.TaxAmountUSD = ((totalTransaction * taxPercentage) / 100).toFixed(2);
     }
 
     setCurrentRow(data);
@@ -1252,8 +1268,6 @@ const BillGenerate = (props) => {
               <div class="fourColumnContainer pt-10">
                 <label></label>
                 <div></div>
-                <label></label>
-                <div></div>
 
                 <label>Rebate %</label>
                 <input
@@ -1267,7 +1281,7 @@ const BillGenerate = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>Rebate</label>
+                <label>Rebate (BDT)</label>
                 <input
                   type="number"
                   id="RebateAmount"
@@ -1279,10 +1293,18 @@ const BillGenerate = (props) => {
                   value={currentRow.RebateAmount}
                   onChange={(e) => handleChange(e)}
                 />
+
+                <label>Rebate (USD)</label>
+                <input
+                  type="number"
+                  id="RebateAmountUSD"
+                  name="RebateAmountUSD"
+                  disabled={true}
+                  value={currentRow.RebateAmountUSD}
+                  onChange={(e) => handleChange(e)}
+                />
                 {/* </div>
               <div class="fourColumnContainer pt-10"> */}
-                <label></label>
-                <div></div>
                 <label></label>
                 <div></div>
 
@@ -1298,7 +1320,7 @@ const BillGenerate = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>VAT</label>
+                <label>VAT (BDT)</label>
                 <input
                   type="number"
                   id="VATAmount"
@@ -1310,10 +1332,18 @@ const BillGenerate = (props) => {
                   value={currentRow.VATAmount}
                   onChange={(e) => handleChange(e)}
                 />
+
+                <label>VAT (USD)</label>
+                <input
+                  type="number"
+                  id="VATAmountUSD"
+                  name="VATAmountUSD"
+                  disabled={true}
+                  value={currentRow.VATAmountUSD}
+                  onChange={(e) => handleChange(e)}
+                />
                 {/* </div>
                 <div class="fourColumnContainer pt-10"> */}
-                <label></label>
-                <div></div>
                 <label></label>
                 <div></div>
                 <label>TAX %</label>
@@ -1327,7 +1357,7 @@ const BillGenerate = (props) => {
                   value={currentRow.TaxPercentage}
                   onChange={(e) => handleChange(e)}
                 />
-                <label>TAX</label>
+                <label>TAX (BDT)</label>
                 <input
                   type="number"
                   id="TaxAmount"
@@ -1337,6 +1367,16 @@ const BillGenerate = (props) => {
                   // class={errorObject.TaxAmount}
                   // placeholder="Enter TAX Amount"
                   value={currentRow.TaxAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>TAX (USD)</label>
+                <input
+                  type="number"
+                  id="TaxAmountUSD"
+                  name="TaxAmountUSD"
+                  disabled={true}
+                  value={currentRow.TaxAmountUSD}
                   onChange={(e) => handleChange(e)}
                 />
               </div>
