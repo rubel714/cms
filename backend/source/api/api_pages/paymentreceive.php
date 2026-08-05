@@ -122,7 +122,7 @@ function getUnpaidInvoices($data)
 			left join t_paymentitems p on a.InvoiceItemId=p.InvoiceItemId
 			where c.CustomerId = $CustomerId
 			and a.IsPaid = 0
-			and p.PaymentItemId is null
+			and p.PaymentItemId is null and (a.AdjFlag is null or a.AdjFlag = 'Approved')
 			$DateFilter
 			ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 		} else {
@@ -147,7 +147,7 @@ function getUnpaidInvoices($data)
 					LEFT JOIN t_paymentitems p ON a.InvoiceItemId=p.InvoiceItemId
 					WHERE c.CustomerId = $CustomerId
 					AND a.IsPaid = 0
-					AND p.PaymentItemId IS NULL
+					AND p.PaymentItemId IS NULL and (a.AdjFlag is null or a.AdjFlag = 'Approved')
 					$DateFilter
 					
 					ORDER BY InvType ASC, TransactionDate DESC;";

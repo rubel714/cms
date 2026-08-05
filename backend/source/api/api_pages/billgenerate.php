@@ -231,7 +231,7 @@ function getUnbilledInvoices($data)
 	    where c.CustomerId = $CustomerId 
 		and (a.GeneralDescription11 = '$BuyerId' OR '$BuyerId' = '')
 		and (a.GeneralDescription14 = '$MerchantId' OR '$MerchantId' = '')
-		and a.IsBilled=0
+		and a.IsBilled=0 and (a.AdjFlag is null or a.AdjFlag = 'Approved')
 		$DateFilter
 		ORDER BY STR_TO_DATE(a.TransactionDate, '%d%m%Y') DESC;";
 
