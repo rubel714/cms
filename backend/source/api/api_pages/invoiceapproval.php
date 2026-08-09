@@ -106,19 +106,23 @@ function approveData($data)
 		}
 
 		$dbh = new Db();
-		$item = $dbh->query("SELECT 
+		$item = $dbh->query("SELECT AdjBaseAmount,AdjBaseAmountWithoutVat,AdjTransactionAmount,AdjVatAmount,
 		(ifnull(OriginalBaseAmount, 0)-ifnull(AdjBaseAmount, 0)) as OriginalAndAdjBaseAmountDiff, 
 		(ifnull(OriginalTransactionAmount, 0)-ifnull(AdjTransactionAmount, 0)) as OriginalAndAdjTransactionAmountDiff
 		FROM t_invoiceitems WHERE InvoiceItemId = " . intval($InvoiceItemId) . ";");
 	
+		$AdjBaseAmount = $item[0]['AdjBaseAmount'];
+		$AdjBaseAmountWithoutVat = $item[0]['AdjBaseAmountWithoutVat'];
+		$AdjTransactionAmount = $item[0]['AdjTransactionAmount'];
+		$AdjVatAmount = $item[0]['AdjVatAmount'];
 		$OriginalAndAdjBaseAmountDiff = $item[0]['OriginalAndAdjBaseAmountDiff'];
 		$OriginalAndAdjTransactionAmountDiff = $item[0]['OriginalAndAdjTransactionAmountDiff'];
 		$AdjDebitCredit = $OriginalAndAdjBaseAmountDiff<0 ? 'Debit' : 'Credit';
 
 		$u = new updateq();
 		$u->table = 't_invoiceitems';
-		$u->columns = ['AdjFlag', 'ApproveUserId', 'ApproveDateTime','OriginalAndAdjBaseAmountDiff','OriginalAndAdjTransactionAmountDiff','AdjDebitCredit'];
-		$u->values = ['Approved', $UserId, date('Y-m-d H:i:s'), $OriginalAndAdjBaseAmountDiff, $OriginalAndAdjTransactionAmountDiff, $AdjDebitCredit];
+		$u->columns = ['AdjBaseAmount','AdjBaseAmountWithoutVat','AdjTransactionAmount','AdjVatAmount','AdjFlag', 'ApproveUserId', 'ApproveDateTime','OriginalAndAdjBaseAmountDiff','OriginalAndAdjTransactionAmountDiff','AdjDebitCredit'];
+		$u->values = [$AdjBaseAmount, $AdjBaseAmountWithoutVat, $AdjTransactionAmount, $AdjVatAmount, 'Approved', $UserId, date('Y-m-d H:i:s'), $OriginalAndAdjBaseAmountDiff, $OriginalAndAdjTransactionAmountDiff, $AdjDebitCredit];
 		$u->pks = ['InvoiceItemId'];
 		$u->pk_values = [$InvoiceItemId];
 		$u->build_query();
