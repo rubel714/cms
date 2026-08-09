@@ -121,7 +121,7 @@ function approveData($data)
 
 		$u = new updateq();
 		$u->table = 't_invoiceitems';
-		$u->columns = ['AdjBaseAmount','AdjBaseAmountWithoutVat','AdjTransactionAmount','AdjVatAmount','AdjFlag', 'ApproveUserId', 'ApproveDateTime','OriginalAndAdjBaseAmountDiff','OriginalAndAdjTransactionAmountDiff','AdjDebitCredit'];
+		$u->columns = ['BaseAmount','BaseAmountWithoutVat','TransactionAmount','VatAmount','AdjFlag', 'ApproveUserId', 'ApproveDateTime','OriginalAndAdjBaseAmountDiff','OriginalAndAdjTransactionAmountDiff','AdjDebitCredit'];
 		$u->values = [$AdjBaseAmount, $AdjBaseAmountWithoutVat, $AdjTransactionAmount, $AdjVatAmount, 'Approved', $UserId, date('Y-m-d H:i:s'), $OriginalAndAdjBaseAmountDiff, $OriginalAndAdjTransactionAmountDiff, $AdjDebitCredit];
 		$u->pks = ['InvoiceItemId'];
 		$u->pk_values = [$InvoiceItemId];
