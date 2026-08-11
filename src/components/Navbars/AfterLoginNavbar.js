@@ -377,6 +377,19 @@ function AfterLoginNavbar(props) {
                   {" "}
                   Reports
                   <ul class="dropdownList">
+                    {menuShowPermision("invoiceadjustmentreport") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() =>
+                            props.history.push("invoiceadjustmentreport")
+                          }
+                        >
+                          Invoice Adjustment Report
+                        </a>
+                      </li>
+                    )}
+
                     {/* 
                     {menuShowPermision("customervisitpunchledger") === 1 && (
                       <li>

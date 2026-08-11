@@ -21,6 +21,10 @@ switch ($task) {
 		InvoiceListExport();
 		break;
 
+	case "InvoiceAdjustmentReportExport":
+		InvoiceAdjustmentReportExport();
+		break;
+
 
 
 
@@ -172,6 +176,67 @@ function InvoiceListExport()
 
 	//Report save name. Not allow any type of special character
 	$tableProperties["report_save_name"] = 'Invoice_List';
+}
+
+
+function InvoiceAdjustmentReportExport()
+{
+	global $sql, $tableProperties, $TEXT, $siteTitle;
+
+	$StartDate = isset($_REQUEST['StartDate']) ? trim($_REQUEST['StartDate']) : '';
+	$EndDate = isset($_REQUEST['EndDate']) ? trim($_REQUEST['EndDate']) : '';
+	$CustomerFilter = isset($_REQUEST['CustomerFilter']) ? trim($_REQUEST['CustomerFilter']) : '';
+
+	/**Only approved adjustments appear on this report */
+	$whereConditions = "(a.AdjFlag ='Approved')";
+
+	if (!empty($StartDate) && !empty($EndDate)) {
+		$whereConditions .= " AND (STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y') between '$StartDate' and '$EndDate') ";
+	}
+
+	if ($CustomerFilter !== '' && $CustomerFilter !== 'null') {
+		if ($CustomerFilter == -1) {
+			$whereConditions .= " AND c.CustomerId is null ";
+		} else if ($CustomerFilter > 0) {
+			$whereConditions .= " AND c.CustomerId = " . intval($CustomerFilter) . " ";
+		}
+	}
+
+	$sql = "SELECT concat(a.AccountCode, ' - ', c.CustomerName) as CustomerName,
+	DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(a.AccountingPeriod,4), '-',LPAD(LEFT(a.AccountingPeriod, LENGTH(a.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
+	DATE_FORMAT(STR_TO_DATE(LPAD(a.TransactionDate, 8, '0'), '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
+	a.TransactionReference, a.Description, a.AnalysisCode3,
+	a.OriginalBaseAmountWithoutVat, a.OriginalVatAmount, a.OriginalBaseAmount,
+	a.AdjBaseAmountWithoutVat, a.AdjVatAmount, a.AdjBaseAmount,
+	a.AdjReason,
+	DATE_FORMAT(a.AdjDateTime, '%d/%m/%Y') as AdjDateTimeText,
+	DATE_FORMAT(a.ApproveDateTime, '%d/%m/%Y') as ApproveDateTimeText,
+	a.AdjDebitCredit
+
+	FROM t_invoiceitems a
+	left join t_customer c on a.AccountCode=c.CustomerCode
+
+	where $whereConditions
+	ORDER BY a.AdjDateTime DESC;";
+
+	$tableProperties["query_field"] = array("CustomerName", "AccountingPeriod", "TransactionDate", "TransactionReference", "Description", "AnalysisCode3", "OriginalBaseAmountWithoutVat", "OriginalVatAmount", "OriginalBaseAmount", "AdjBaseAmountWithoutVat", "AdjVatAmount", "AdjBaseAmount", "AdjReason", "AdjDateTimeText", "ApproveDateTimeText", "AdjDebitCredit");
+	$tableProperties["table_header"] = array("Customer", "Invoice Month", "Invoice Date", "Invoice No", "Description", "Business Line", "Original Amount (BDT)", "Original VAT (BDT)", "Original Invoice Amount (BDT)", "Adjusted Amount (BDT)", "Adjusted VAT (BDT)", "Adjusted Invoice Amount (BDT)", "Adjustment Reason", "Adjusted Date", "Approved Date", "Debit/Credit");
+	$tableProperties["align"] = array("left", "left", "left", "left", "left", "left", "right", "right", "right", "right", "right", "right", "left", "left", "left", "left");
+	$tableProperties["width_print_pdf"] = array("6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "6%", "5%"); //when exist serial then here total 95% and 5% use for serial
+	$tableProperties["width_excel"] = array("35", "15", "15", "20", "30", "15", "18", "18", "22", "18", "18", "22", "30", "15", "15", "12");
+	$tableProperties["precision"] = array("string", "string", "string", "string", "string", "string", 2, 2, 2, 2, 2, 2, "string", "string", "string", "string"); //string,date,datetime,0,1,2,3,4
+	$tableProperties["total"] = array(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0); //not total=0, total=1
+	$tableProperties["color_code"] = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); //colorcode field = 1 not color code field = 0
+	$tableProperties["header_logo"] = 0; //include header left and right logo. 0 or 1
+	$tableProperties["footer_signatory"] = 0; //include footer signatory. 0 or 1
+
+	//Report header list
+	$tableProperties["header_list"][0] = $siteTitle;
+	$tableProperties["header_list"][1] = 'Invoice Adjustment Report';
+	$tableProperties["header_list"][2] = "Date from " . $StartDate . " to " . $EndDate;
+
+	//Report save name. Not allow any type of special character
+	$tableProperties["report_save_name"] = 'Invoice_Adjustment_Report';
 }
 
 
