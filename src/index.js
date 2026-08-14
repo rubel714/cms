@@ -25,6 +25,7 @@ import Team from "views/screens/team/index.js";
 import Designation from "views/screens/designation/index.js";
 import Department from "views/screens/department/index.js";
 import InvoiceUpload from "views/screens/invoiceupload/index.js";
+import InvoiceAndOrderMap from "views/screens/invoiceandordermap/index.js";
 import InvoiceList from "views/screens/invoicelist/index.js";
 import InvoiceApproval from "views/screens/invoiceapproval/index.js";
 import InvoiceAdjustmentReport from "views/screens/invoiceadjustmentreport/index.js";
@@ -85,6 +86,7 @@ ReactDOM.render(
             <Route path="/department" render={(props) => <Department {...props} />} />
            
             <Route path="/invoiceupload" render={(props) => <InvoiceUpload {...props} />} />
+            <Route path="/invoiceandordermap" render={(props) => <InvoiceAndOrderMap {...props} />} />
             <Route path="/invoicelist" render={(props) => <InvoiceList {...props} />} />
             <Route path="/invoiceapproval" render={(props) => <InvoiceApproval {...props} />} />
             <Route path="/invoiceadjustmentreport" render={(props) => <InvoiceAdjustmentReport {...props} />} />

@@ -173,7 +173,7 @@ $tableWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
 
 $sqlf = "SELECT DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate,
 		b.GeneralDescription9,b.TransactionReference,b.GeneralDescription11,b.GeneralDescription17,
-		null OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
+		b.OrderNumber,b.TransactionAmount, b.ExchangeRate, b.BaseAmount,b.GeneralDescription14,b.GeneralDescription20
 		FROM t_billitems a 
 		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
 		where a.BillId=$BillId
