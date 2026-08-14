@@ -98,6 +98,7 @@ const InvoiceAndOrderMap = (props) => {
       visible: true,
       sort: false,
       filter: true,
+      width: "20%",
     },
     {
       field: "OrderNumber",
@@ -113,6 +114,8 @@ const InvoiceAndOrderMap = (props) => {
       align: "left",
       visible: true,
       sort: false,
+      
+      width: "10%",
       filter: true,
       format: (value) => {
         if (value === "Not Found") {
