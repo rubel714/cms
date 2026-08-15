@@ -76,6 +76,28 @@ function dataAddEdit($data)
 			];
 		}
 
+		$headerA1 = strtoupper(trim((string) $worksheet->getCell('A1')->getFormattedValue()));
+		if ($fileType === 'invoicemodule') {
+			$expectedHeader = 'BUYERNAME';
+			$fileTypeLabel = 'Invoice Module';
+		} else {
+			$expectedHeader = 'LOCATION';
+			$fileTypeLabel = 'TIPS';
+		}
+
+		if ($headerA1 !== $expectedHeader) {
+			return [
+				"success" => 0,
+				"status" => 500,
+				"UserId" => $UserId,
+				"TotalInFile" => 0,
+				"TotalFound" => 0,
+				"TotalNotFound" => 0,
+				"TotalUpdated" => 0,
+				"message" => "Invalid file for " . $fileTypeLabel . ". Cell A1 must be \"" . ($fileType === 'invoicemodule' ? 'BUYERNAME' : 'Location') . "\"."
+			];
+		}
+
 		$highestRow = $worksheet->getHighestDataRow();
 		$mapRows = array();
 
