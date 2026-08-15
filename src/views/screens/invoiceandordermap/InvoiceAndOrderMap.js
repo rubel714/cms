@@ -36,10 +36,33 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: "50%",
     width: "100%",
   },
-  // input: {
-  //   marginTop: theme.spacing(2),
-  //   marginBottom: theme.spacing(1),
-  // }
+  typeGroup: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: theme.spacing(2),
+  },
+  typeBtn: {
+    minWidth: 140,
+    margin: "0 4px",
+    padding: "8px 16px",
+    border: "1px solid #1976d2",
+    backgroundColor: "#fff",
+    color: "#1976d2",
+    cursor: "pointer",
+    fontWeight: "bold",
+    borderRadius: 4,
+  },
+  typeBtnActive: {
+    minWidth: 140,
+    margin: "0 4px",
+    padding: "8px 16px",
+    border: "1px solid #1976d2",
+    backgroundColor: "#1976d2",
+    color: "#fff",
+    cursor: "pointer",
+    fontWeight: "bold",
+    borderRadius: 4,
+  },
 }));
 const InvoiceAndOrderMap = (props) => {
   const serverpage = "invoiceandordermap"; // this is .php server page
@@ -55,6 +78,8 @@ const InvoiceAndOrderMap = (props) => {
 
   const classes = useStyles();
   const [selectedFile, setSelectedFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [fileType, setFileType] = useState("tips"); // tips | invoicemodule
   // const [uploadStatus, setUploadStatus] = useState("");
   const [toggleShowTable, setToggleShowTable] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -290,6 +315,7 @@ const InvoiceAndOrderMap = (props) => {
         ClientId: UserInfo.ClientId,
         BranchId: UserInfo.BranchId,
         rowData: selectedFile,
+        fileType: fileType,
       };
 
       setLoading(true); //Show loader
@@ -321,9 +347,16 @@ const InvoiceAndOrderMap = (props) => {
       });
     }
   }
+  function changeFileType(nextType) {
+    setFileType(nextType);
+    setSelectedFile(null);
+    setFileInputKey((prev) => prev + 1);
+  }
+
   function uploadAnotherFile() {
     setToggleShowTable(false);
     setSelectedFile(null);
+    setFileInputKey((prev) => prev + 1);
     setMappedList([]);
     setMapSummary({
       TotalInFile: 0,
@@ -364,7 +397,39 @@ const InvoiceAndOrderMap = (props) => {
                 Upload a File (.xlsx, .xls)
               </Typography>
 
+              <div className={classes.typeGroup}>
+                <button
+                  type="button"
+                  className={
+                    fileType === "tips"
+                      ? classes.typeBtnActive
+                      : classes.typeBtn
+                  }
+                  onClick={() => changeFileType("tips")}
+                >
+                  TIPS
+                </button>
+                <button
+                  type="button"
+                  className={
+                    fileType === "invoicemodule"
+                      ? classes.typeBtnActive
+                      : classes.typeBtn
+                  }
+                  onClick={() => changeFileType("invoicemodule")}
+                >
+                  Invoice Module
+                </button>
+              </div>
+
+              <Typography variant="body2" align="center" gutterBottom>
+                {fileType === "tips"
+                  ? "TIPS: Invoice No (TransactionReference) in column C, Order Number in column AO"
+                  : "Invoice Module: Invoice No (TransactionReference) in column E, Order Number in column P"}
+              </Typography>
+
               <Input
+                key={fileInputKey}
                 type="file"
                 accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 onChange={(e) => handleFileChange(e)}
@@ -408,7 +473,8 @@ const InvoiceAndOrderMap = (props) => {
                   fontWeight: "bold",
                 }}
               >
-                In file: {mapSummary.TotalInFile} | Found to update:{" "}
+                {fileType === "tips" ? "TIPS" : "Invoice Module"} | In file:{" "}
+                {mapSummary.TotalInFile} | Found to update:{" "}
                 {mapSummary.TotalFound} | Not found: {mapSummary.TotalNotFound}
               </div>
 

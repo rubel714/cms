@@ -46,6 +46,15 @@ function dataAddEdit($data)
 	$lan = trim($data->lan);
 	$UserId = trim($data->UserId);
 	$FileNameString = $data->rowData;
+	$fileType = isset($data->fileType) ? strtolower(trim($data->fileType)) : 'tips';
+
+	if ($fileType === 'invoicemodule') {
+		$refCol = 'E';
+		$orderCol = 'P';
+	} else {
+		$refCol = 'C';
+		$orderCol = 'AO';
+	}
 
 	try {
 
@@ -71,16 +80,8 @@ function dataAddEdit($data)
 		$mapRows = array();
 
 		for ($row = 2; $row <= $highestRow; $row++) {
-			$rowData = $worksheet->rangeToArray(
-				"C{$row}:AO{$row}",
-				null,
-				true,
-				true,
-				false
-			)[0];
-
-			$TransactionReference = trim((string) $rowData[0]);
-			$OrderNumber = trim((string) $rowData[38]);
+			$TransactionReference = trim((string) $worksheet->getCell($refCol . $row)->getFormattedValue());
+			$OrderNumber = trim((string) $worksheet->getCell($orderCol . $row)->getFormattedValue());
 
 			if ($TransactionReference === '' || $OrderNumber === '') {
 				continue;
