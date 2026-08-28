@@ -276,8 +276,10 @@ function getDataList($data)
 		 DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 		a.CustomerId,b.CustomerCode, b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
 		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
-		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount,
-		a.RebatePercent,a.RebateAmount,a.CNPercent,a.CNAmount,a.AitPercent,a.AitDeduction,a.VatPercent,a.VatAmount,a.DueAmount,a.AdvanceAmount
+		,a.PaymentModeId,a.CurrencyId,a.PaymentReceiveCurrencyAmount,a.ExchangeRate
+		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount
+		,a.CollectedMethodId,a.CollectionAddress,a.CollectionPersonName,a.CollectionPersonPhone
+		,a.RebatePercent,a.RebateAmount,a.CNPercent,a.CNAmount,a.AitPercent,a.AitDeduction,a.VatPercent,a.VatAmount,a.DueAmount,a.AdvanceAmount
 
 		FROM t_payment a
 		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
@@ -392,11 +394,19 @@ function dataAddEdit($data)
 		$BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
 		$ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
 		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
+		$PaymentModeId = $data->rowData->PaymentModeId ? $data->rowData->PaymentModeId : null;
+		$CurrencyId = $data->rowData->CurrencyId ? $data->rowData->CurrencyId : null;
+		$PaymentReceiveCurrencyAmount = $data->rowData->PaymentReceiveCurrencyAmount ? $data->rowData->PaymentReceiveCurrencyAmount : 0;
+		$ExchangeRate = $data->rowData->ExchangeRate ? $data->rowData->ExchangeRate : 1;
 		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
 		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
 		// $TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
 		// $TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
 		$PaymentReceiveAmount = $data->rowData->PaymentReceiveAmount ? $data->rowData->PaymentReceiveAmount : 0;
+		$CollectedMethodId = $data->rowData->CollectedMethodId ? $data->rowData->CollectedMethodId : null;
+		$CollectionAddress = $data->rowData->CollectionAddress ? $data->rowData->CollectionAddress : null;
+		$CollectionPersonName = $data->rowData->CollectionPersonName ? $data->rowData->CollectionPersonName : null;
+		$CollectionPersonPhone = $data->rowData->CollectionPersonPhone ? $data->rowData->CollectionPersonPhone : null;
 		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : 0;
 		$CNAmount = $data->rowData->CNAmount ? $data->rowData->CNAmount : 0;
 		$AitDeduction = $data->rowData->AitDeduction ? $data->rowData->AitDeduction : 0;
@@ -442,18 +452,19 @@ function dataAddEdit($data)
 				$q = new insertq();
 				$q->table = 't_payment';
 
-				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
+				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'PaymentModeId', 'CurrencyId', 'PaymentReceiveCurrencyAmount', 'ExchangeRate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'CollectedMethodId', 'CollectionAddress', 'CollectionPersonName', 'CollectionPersonPhone', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
+				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $PaymentModeId, $CurrencyId, $PaymentReceiveCurrencyAmount, $ExchangeRate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $CollectedMethodId, $CollectionAddress, $CollectionPersonName, $CollectionPersonPhone, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
 				$q->pks = ['PaymentId'];
 				$q->bUseInsetId = true;
 				$q->build_query();
 				$aQuerys[] = $q;
 			} else {
 				// $StatusId = 5; //Completed
+				$PostUserId = $StatusId == 5 ? $UserId : null;
 				$u = new updateq();
 				$u->table = 't_payment';
-				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'Remarks', 'StatusId', 'PaymentReceiveAmount', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $Remarks, $StatusId, $PaymentReceiveAmount, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
+				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'PaymentModeId', 'CurrencyId', 'PaymentReceiveCurrencyAmount', 'ExchangeRate', 'Remarks', 'StatusId', 'PostUserId', 'PaymentReceiveAmount', 'CollectedMethodId', 'CollectionAddress', 'CollectionPersonName', 'CollectionPersonPhone', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
+				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $PaymentModeId, $CurrencyId, $PaymentReceiveCurrencyAmount, $ExchangeRate, $Remarks, $StatusId, $PostUserId, $PaymentReceiveAmount, $CollectedMethodId, $CollectionAddress, $CollectionPersonName, $CollectionPersonPhone, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
 				$u->pks = ['PaymentId'];
 				$u->pk_values = [$PaymentId];
 				$u->build_query();

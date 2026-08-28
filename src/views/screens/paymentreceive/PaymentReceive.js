@@ -45,6 +45,15 @@ const PaymentReceive = (props) => {
   const [BankList, setBankList] = useState(null);
   const [currBankId, setCurrBankId] = useState("");
 
+  const [CurrencyList, setCurrencyList] = useState(null);
+  const [currCurrencyId, setCurrCurrencyId] = useState("");
+
+  const [PaymentModeList, setPaymentModeList] = useState(null);
+  const [currPaymentModeId, setCurrPaymentModeId] = useState("");
+
+  const [CollectedMethodList, setCollectedMethodList] = useState(null);
+  const [currCollectedMethodId, setCurrCollectedMethodId] = useState("");
+
   const [editableItems, setEditableItems] = useState([]);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
@@ -98,7 +107,7 @@ const PaymentReceive = (props) => {
     },
     {
       field: "PaymentDate",
-      label: "Receive Date",
+      label: "MR Issue Date",
       width: "7%",
       align: "left",
       visible: true,
@@ -191,6 +200,9 @@ const PaymentReceive = (props) => {
     getCustomerGroupList();
     getCustomerList();
     getBankList();
+    getCurrencyList();
+    getPaymentModeList();
+    getCollectedMethodList();
   }, []);
 
   React.useEffect(() => {
@@ -250,17 +262,35 @@ const PaymentReceive = (props) => {
     });
   }, [editableItems]);
 
+  const getSelectedOption = (list, id) => {
+    if (!list || list.length === 0) return null;
+    const selected = list.find(
+      (item) => String(item.id ?? "") === String(id ?? ""),
+    );
+    return selected || list[0];
+  };
+
   // Memoize selected customer to avoid expensive findIndex on every render
   const selectedCustomer = React.useMemo(() => {
-    if (!CustomerList || !currCustomerId) return null;
-    return CustomerList.find((list) => list.id === currCustomerId) || null;
+    return getSelectedOption(CustomerList, currCustomerId);
   }, [CustomerList, currCustomerId]);
 
   // Memoize selected bank to avoid expensive findIndex on every render
   const selectedBank = React.useMemo(() => {
-    if (!BankList || !currBankId) return null;
-    return BankList.find((list) => list.id === currBankId) || null;
+    return getSelectedOption(BankList, currBankId);
   }, [BankList, currBankId]);
+
+  const selectedCurrency = React.useMemo(() => {
+    return getSelectedOption(CurrencyList, currCurrencyId);
+  }, [CurrencyList, currCurrencyId]);
+
+  const selectedPaymentMode = React.useMemo(() => {
+    return getSelectedOption(PaymentModeList, currPaymentModeId);
+  }, [PaymentModeList, currPaymentModeId]);
+
+  const selectedCollectedMethod = React.useMemo(() => {
+    return getSelectedOption(CollectedMethodList, currCollectedMethodId);
+  }, [CollectedMethodList, currCollectedMethodId]);
 
   function getCustomerGroupList() {
     let params = {
@@ -306,6 +336,48 @@ const PaymentReceive = (props) => {
       setBankList([{ id: "", name: "Select Bank" }].concat(res.data.datalist));
 
       // setCurrCustomerId(selectCustomerGroupId);
+    });
+  }
+
+  function getCurrencyList() {
+    let params = {
+      action: "CurrencyList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setCurrencyList(
+        [{ id: "", name: "Select Currency" }].concat(res.data.datalist),
+      );
+    });
+  }
+
+  function getPaymentModeList() {
+    let params = {
+      action: "PaymentModeList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setPaymentModeList(
+        [{ id: "", name: "Select Payment Mode" }].concat(res.data.datalist),
+      );
+    });
+  }
+
+  function getCollectedMethodList() {
+    let params = {
+      action: "CollectedMethodList",
+      lan: language(),
+      UserId: UserInfo.UserId,
+    };
+
+    apiCall.post("combo_generic", { params }, apiOption()).then((res) => {
+      setCollectedMethodList(
+        [{ id: "", name: "Select Collected By" }].concat(res.data.datalist),
+      );
     });
   }
 
@@ -366,12 +438,20 @@ const PaymentReceive = (props) => {
         ChequeNumber: "",
         ChequeDate: "",
         BankBranchName: "",
+        PaymentModeId: "",
+        CurrencyId: "",
+        PaymentReceiveCurrencyAmount: 0,
+        ExchangeRate: 1,
         Remarks: "",
 
         TotalBaseAmount: "",
         TotalTransactionAmount: 0,
 
         PaymentReceiveAmount: 0,
+        CollectedMethodId: "",
+        CollectionAddress: "",
+        CollectionPersonName: "",
+        CollectionPersonPhone: "",
         RebateAmount: 0,
         CNAmount: 0,
         AitDeduction: 0,
@@ -384,6 +464,9 @@ const PaymentReceive = (props) => {
       setCurrCustomerGroupId("");
       setCurrCustomerId("");
       setCurrBankId("");
+      setCurrCurrencyId("");
+      setCurrPaymentModeId("");
+      setCurrCollectedMethodId("");
 
       openModal();
     });
@@ -406,6 +489,9 @@ const PaymentReceive = (props) => {
     setCurrCustomerGroupId(rowData.CustomerGroupId);
     setCurrCustomerId(rowData.CustomerId);
     setCurrBankId(rowData.BankId);
+    setCurrCurrencyId(rowData.CurrencyId);
+    setCurrPaymentModeId(rowData.PaymentModeId);
+    setCurrCollectedMethodId(rowData.CollectedMethodId);
 
     getDataSingleFromServer(rowData.id);
     openModal();
@@ -670,6 +756,21 @@ const PaymentReceive = (props) => {
       data["BankId"] = value;
       setCurrBankId(value);
     }
+
+    if (name === "CurrencyId") {
+      data["CurrencyId"] = value;
+      setCurrCurrencyId(value);
+    }
+
+    if (name === "PaymentModeId") {
+      data["PaymentModeId"] = value;
+      setCurrPaymentModeId(value);
+    }
+
+    if (name === "CollectedMethodId") {
+      data["CollectedMethodId"] = value;
+      setCurrCollectedMethodId(value);
+    }
     setErrorObject({ ...errorObject, [name]: null });
     setCurrentRow(data);
   };
@@ -678,6 +779,12 @@ const PaymentReceive = (props) => {
     const { name, value } = e.target;
     let data = { ...currentRow };
     data[name] = value;
+
+    if (name === "PaymentReceiveCurrencyAmount" || name === "ExchangeRate") {
+      const currencyAmount = parseFloat(data.PaymentReceiveCurrencyAmount) || 0;
+      const exchangeRate = parseFloat(data.ExchangeRate) || 0;
+      data.PaymentReceiveAmount = (currencyAmount * exchangeRate).toFixed(2);
+    }
 
     // Calculate total base amount from editableItems
     const totalBase = editableItems.reduce((sum, item) => {
@@ -1063,7 +1170,7 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>Payment Receive Date *</label>
+                <label>MR Issue Date *</label>
                 <input
                   type="date"
                   id="PaymentDate"
@@ -1074,7 +1181,7 @@ const PaymentReceive = (props) => {
                       : false
                   }
                   class={errorObject.PaymentDate}
-                  placeholder="Enter Payment Receive Date"
+                  placeholder="Enter MR Issue Date"
                   value={currentRow.PaymentDate}
                   onChange={(e) => handleChange(e)}
                 />
@@ -1118,7 +1225,6 @@ const PaymentReceive = (props) => {
 
                 <label>Customer *</label>
                 <Autocomplete
-                  autoHighlight
                   disableClearable
                   className="chosen_dropdown"
                   id="CustomerId"
@@ -1131,7 +1237,10 @@ const PaymentReceive = (props) => {
                   }
                   class={errorObject.CustomerId}
                   options={CustomerList ? CustomerList : []}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={(option) => (option && option.name) || ""}
+                  getOptionSelected={(option, value) =>
+                    String(option?.id ?? "") === String(value?.id ?? "")
+                  }
                   value={selectedCustomer}
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
@@ -1164,7 +1273,6 @@ const PaymentReceive = (props) => {
               <div class="contactmodalBody pt-10"> */}
                 <label>Bank</label>
                 <Autocomplete
-                  autoHighlight
                   disableClearable
                   className="chosen_dropdown"
                   id="BankId"
@@ -1177,7 +1285,10 @@ const PaymentReceive = (props) => {
                   }
                   // class={errorObject.BankId}
                   options={BankList ? BankList : []}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={(option) => (option && option.name) || ""}
+                  getOptionSelected={(option, value) =>
+                    String(option?.id ?? "") === String(value?.id ?? "")
+                  }
                   value={selectedBank}
                   onChange={(event, valueobj) =>
                     handleChangeFilterDropDown(
@@ -1223,7 +1334,7 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
-                <label>Cheque Date</label>
+                <label>Cheque/ FDD Date</label>
                 <input
                   type="date"
                   id="ChequeDate"
@@ -1239,19 +1350,149 @@ const PaymentReceive = (props) => {
                   onChange={(e) => handleChange(e)}
                 />
 
+                <label>Payment Mode</label>
+                <Autocomplete
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="PaymentModeId"
+                  name="PaymentModeId"
+                  autoComplete
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  options={PaymentModeList ? PaymentModeList : []}
+                  getOptionLabel={(option) => (option && option.name) || ""}
+                  getOptionSelected={(option, value) =>
+                    String(option?.id ?? "") === String(value?.id ?? "")
+                  }
+                  value={selectedPaymentMode}
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "PaymentModeId",
+                      valueobj ? valueobj.id : "",
+                    )
+                  }
+                  renderOption={(option) => option.name}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
 
-                <label>Payment Received</label>
+                <label>Currency</label>
+                <Autocomplete
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="CurrencyId"
+                  name="CurrencyId"
+                  autoComplete
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  options={CurrencyList ? CurrencyList : []}
+                  getOptionLabel={(option) => (option && option.name) || ""}
+                  getOptionSelected={(option, value) =>
+                    String(option?.id ?? "") === String(value?.id ?? "")
+                  }
+                  value={selectedCurrency}
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "CurrencyId",
+                      valueobj ? valueobj.id : "",
+                    )
+                  }
+                  renderOption={(option) => option.name}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+
+                <label>Payment Amount in FC</label>
+                <input
+                  type="number"
+                  id="PaymentReceiveCurrencyAmount"
+                  name="PaymentReceiveCurrencyAmount"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  placeholder="Amount in FC"
+                  value={currentRow.PaymentReceiveCurrencyAmount}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Exchange Rate</label>
+                <input
+                  type="number"
+                  id="ExchangeRate"
+                  name="ExchangeRate"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  placeholder="Enter Exchange Rate"
+                  value={currentRow.ExchangeRate}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Payment Amount in BDT</label>
                 <input
                   type="number"
                   id="PaymentReceiveAmount"
                   name="PaymentReceiveAmount"
-                  disabled={currentRow.StatusId == 5 ? true : false}
-                  // class={errorObject.PaymentReceiveAmount}
-                  placeholder="Enter Payment Received"
+                  disabled={true}
+                  placeholder="Payment Received"
                   value={currentRow.PaymentReceiveAmount}
                   onChange={(e) => handleChange(e)}
                 />
 
+                <label>Collected By</label>
+                <Autocomplete
+                  disableClearable
+                  className="chosen_dropdown"
+                  id="CollectedMethodId"
+                  name="CollectedMethodId"
+                  autoComplete
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  options={CollectedMethodList ? CollectedMethodList : []}
+                  getOptionLabel={(option) => (option && option.name) || ""}
+                  getOptionSelected={(option, value) =>
+                    String(option?.id ?? "") === String(value?.id ?? "")
+                  }
+                  value={selectedCollectedMethod}
+                  onChange={(event, valueobj) =>
+                    handleChangeFilterDropDown(
+                      "CollectedMethodId",
+                      valueobj ? valueobj.id : "",
+                    )
+                  }
+                  renderOption={(option) => option.name}
+                  renderInput={(params) => (
+                    <TextField {...params} variant="standard" fullWidth />
+                  )}
+                />
+
+                <label>Collection Address</label>
+                <input
+                  type="text"
+                  id="CollectionAddress"
+                  name="CollectionAddress"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  placeholder="Enter Collection Address"
+                  value={currentRow.CollectionAddress}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Collection Person Name</label>
+                <input
+                  type="text"
+                  id="CollectionPersonName"
+                  name="CollectionPersonName"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  placeholder="Enter Collection Person Name"
+                  value={currentRow.CollectionPersonName}
+                  onChange={(e) => handleChange(e)}
+                />
+
+                <label>Collection Person Phone</label>
+                <input
+                  type="text"
+                  id="CollectionPersonPhone"
+                  name="CollectionPersonPhone"
+                  disabled={currentRow.StatusId == 5 ? true : false}
+                  placeholder="Enter Collection Person Phone"
+                  value={currentRow.CollectionPersonPhone}
+                  onChange={(e) => handleChange(e)}
+                />
 
                 <label>Remarks</label>
                 <input

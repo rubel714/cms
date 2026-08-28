@@ -42,6 +42,12 @@ switch ($task) {
 	case "BankList":
 		$returnData = BankList($data);
 		break;
+	case "CurrencyList":
+		$returnData = CurrencyList($data);
+		break;
+	case "CollectedMethodList":
+		$returnData = CollectedMethodList($data);
+		break;
 	case "BuyerList":
 		$returnData = BuyerList($data);
 		break;
@@ -329,6 +335,56 @@ function BankList($data)
 		$query = "SELECT `BankId` id,`BankName` `name`
 	 			 	FROM `t_bank` 
 					ORDER BY BankName;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+function CurrencyList($data)
+{
+	try {
+
+		$dbh = new Db();
+
+		$query = "SELECT `CurrencyId` id,`CurrencyName` `name`
+	 			 	FROM `t_currency` 
+					ORDER BY CurrencyName;";
+
+		$resultdata = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdata
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+function CollectedMethodList($data)
+{
+	try {
+
+		$dbh = new Db();
+
+		$query = "SELECT `CollectedMethodId` id,`CollectedMethod` `name`
+	 			 	FROM `t_collectedmethod` 
+					ORDER BY CollectedMethod;";
 
 		$resultdata = $dbh->query($query);
 
@@ -1127,15 +1183,11 @@ function PaymentModeList($data)
 {
 	try {
 
-		$ClientId = trim($data->ClientId);
-		$BranchId = trim($data->BranchId);
-
 		$dbh = new Db();
 
-		$query = "SELECT `PaymentModeId` id,`PaymentMode` `name`
+		$query = "SELECT `PaymentModeId` id,`PaymentModeName` `name`
 	 			 	FROM `t_paymentmode` 
-					where ClientId=$ClientId
-					ORDER BY PaymentMode;";
+					ORDER BY PaymentModeName;";
 
 		$resultdata = $dbh->query($query);
 
