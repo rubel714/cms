@@ -116,6 +116,13 @@ const InvoiceList = (props) => {
     ).length;
   }, [dataList]);
 
+  const notAssignStaffCount = React.useMemo(() => {
+    if (!dataList || !Array.isArray(dataList)) return 0;
+    return dataList.filter(
+      (row) => !row.CustomerUserId || Number(row.CustomerUserId) <= 0
+    ).length;
+  }, [dataList]);
+
   /* =====Start of Excel Export Code==== */
   const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
 
@@ -1083,6 +1090,15 @@ const InvoiceList = (props) => {
             <div class="">
               <span style={{ fontWeight: "bold", color: "#d32f2f" }}>
                 {notAssignCustomerCount}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label>Staff Not Assign</label>
+            <div class="">
+              <span style={{ fontWeight: "bold", color: "#d32f2f" }}>
+                {notAssignStaffCount}
               </span>
             </div>
           </div>
