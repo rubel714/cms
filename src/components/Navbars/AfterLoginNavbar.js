@@ -302,64 +302,37 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    {menuShowPermision("paymentreceive") === 1 && (
+                   
+                   
+
+
+
+                  </ul>
+                </li>
+              )}
+
+            {menuShowPermision("moneyreceipt") === 1 && (
+                <li class="dropdownMenu">
+                  {" "}
+                  Money Receipt
+                  <ul class="dropdownList">
+
+                  {menuShowPermision("paymentreceive") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
                           onClick={() => props.history.push("paymentreceive")}
                         >
-                          Payment Receive
+                          Payment Receive (MR)
                         </a>
                       </li>
                     )}
-                   
-
-
-                    {/* {menuShowPermision("machine") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("machine")}
-                        >
-                          Machine
-                        </a>
-                      </li>
-                    )}
-                    {menuShowPermision("machineparts") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("machineparts")}
-                        >
-                          Machine Parts
-                        </a>
-                      </li>
-                    )}
-
-                    {menuShowPermision("machinemodel") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("machinemodel")}
-                        >
-                          Machine Model
-                        </a>
-                      </li>
-                    )}
-
-                    {menuShowPermision("machineserial") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("machineserial")}
-                        >
-                          Machine Serial
-                        </a>
-                      </li>
-                    )} */}
+  
+  
                   </ul>
                 </li>
               )}
+
 
               {/* {menuShowPermision("mytask") === 1 && (
                 <li class="dropdownMenu">

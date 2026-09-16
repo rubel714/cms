@@ -1135,7 +1135,7 @@ const PaymentReceive = (props) => {
         {/* <!-- ######-----TOP HEADER-----####### --> */}
         <div class="topHeader">
           <h4>
-            <a href="#">Home</a> ❯ Invoice ❯ Payment Receive
+            <a href="#">Home</a> ❯ Money Receipt ❯ Payment Receive (MR)
           </h4>
         </div>
 
