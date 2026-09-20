@@ -10,8 +10,8 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Typography, TextField } from "@material-ui/core";
 import CustomTable from "components/CustomTable/CustomTable";
 
-const PaymentInvoiceAddModal = (props) => {
-  const serverpage = "paymentreceive"; // this is .php server page
+const AllocateInvoiceAddModal = (props) => {
+  const serverpage = "allocateinvoice"; // this is .php server page
 
   const [currentRow, setCurrentRow] = useState({});
   const [invoiceList, setInvoiceList] = useState([]);
@@ -531,4 +531,4 @@ const PaymentInvoiceAddModal = (props) => {
   );
 };
 
-export default PaymentInvoiceAddModal;
+export default AllocateInvoiceAddModal;

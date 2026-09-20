@@ -247,7 +247,7 @@ function AfterLoginNavbar(props) {
                   Invoice
                   <ul class="dropdownList">
 
-                     {menuShowPermision("invoiceupload") === 1 && (
+                    {menuShowPermision("invoiceupload") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -258,7 +258,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                     {menuShowPermision("invoiceandordermap") === 1 && (
+                    {menuShowPermision("invoiceandordermap") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -302,8 +302,8 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                   
-                   
+
+
 
 
 
@@ -311,13 +311,15 @@ function AfterLoginNavbar(props) {
                 </li>
               )}
 
-            {menuShowPermision("moneyreceipt") === 1 && (
+              {menuShowPermision("moneyreceipt") === 1 && (
                 <li class="dropdownMenu">
                   {" "}
                   Money Receipt
                   <ul class="dropdownList">
 
-                  {menuShowPermision("paymentreceive") === 1 && (
+
+
+                    {menuShowPermision("paymentreceive") === 1 && (
                       <li>
                         <a
                           href="javascript:void(0)"
@@ -327,8 +329,30 @@ function AfterLoginNavbar(props) {
                         </a>
                       </li>
                     )}
-  
-  
+
+                    {menuShowPermision("mrverification") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("mrverification")}
+                        >
+                          MR Verification
+                        </a>
+                      </li>
+                    )}
+
+                    {menuShowPermision("allocateinvoice") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("allocateinvoice")}
+                        >
+                          Allocate Invoice
+                        </a>
+                      </li>
+                    )}
+
+
                   </ul>
                 </li>
               )}

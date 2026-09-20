@@ -853,3 +853,76 @@ text-align: left !important;
 /* Media Query for Large Device Mobile Tablet/Computer */
 @media only screen and (min-width: 1200px) and (max-width: 4000px) {
 }
+
+.allocateInvoiceForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 16px;
+  margin-top: 10px;
+}
+
+.allocateInvoiceForm .aiField {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.allocateInvoiceForm .aiField.wide {
+  grid-column: 1 / -1;
+}
+
+.allocateInvoiceForm .aiFieldHighlight input {
+  background-color: #fff6cc;
+  font-weight: 700;
+  height: 30px;
+}
+
+.allocateInvoiceForm label {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  flex: 0 0 130px;
+  width: 130px;
+  line-height: 1.2;
+}
+
+.allocateInvoiceForm .aiField > input,
+.allocateInvoiceForm .aiField > .chosen_dropdown {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.allocateInvoiceForm input[type="text"],
+.allocateInvoiceForm input[type="number"],
+.allocateInvoiceForm input[type="date"] {
+  height: 28px;
+  background: #fffef8;
+}
+
+.allocateInvoiceForm .chosen_dropdown {
+  width: auto;
+}
+
+.allocateInvoiceForm .MuiInput-underline:before {
+  border-bottom: 1px solid gray;
+}
+
+.allocateInvoiceForm .MuiInputBase-root {
+  min-height: 28px;
+}
+
+@media only screen and (max-width: 1100px) {
+  .allocateInvoiceForm {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media only screen and (max-width: 700px) {
+  .allocateInvoiceForm {
+    grid-template-columns: 1fr;
+  }
+}
