@@ -341,6 +341,39 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
+                    {menuShowPermision("collectorassignment") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("collectorassignment")}
+                        >
+                          Collector Assignment
+                        </a>
+                      </li>
+                    )}
+
+                    {menuShowPermision("mrcollectionstatus") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("mrcollectionstatus")}
+                        >
+                          MR Collection Status
+                        </a>
+                      </li>
+                    )}
+
+                    {menuShowPermision("mrcollectionstatuscheck") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("mrcollectionstatuscheck")}
+                        >
+                          MR Collection Status Check
+                        </a>
+                      </li>
+                    )}
+
                     {menuShowPermision("allocateinvoice") === 1 && (
                       <li>
                         <a
@@ -348,6 +381,17 @@ function AfterLoginNavbar(props) {
                           onClick={() => props.history.push("allocateinvoice")}
                         >
                           Allocate Invoice
+                        </a>
+                      </li>
+                    )}
+
+                    {menuShowPermision("collectionverification") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("collectionverification")}
+                        >
+                          Collection Verification
                         </a>
                       </li>
                     )}

@@ -926,3 +926,74 @@ text-align: left !important;
     grid-template-columns: 1fr;
   }
 }
+
+/* MR workflow (Payment Receive -> Collection Verification) */
+.btnReject {
+  background-color: rgb(200, 40, 40);
+  min-width: 90px;
+}
+
+.mrSection {
+  margin-top: 16px;
+}
+
+.mrCalcGrid {
+  display: grid;
+  grid-template-columns: 18% 32% 18% 32%;
+  column-gap: 8px;
+  row-gap: 6px;
+  align-items: center;
+}
+
+.mrCalcGrid label {
+  text-align: right;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.mrCalcGrid input {
+  height: 28px;
+  background: #fffef8;
+}
+
+.mrCalcGrid input.mrCalcHighlight {
+  background-color: #fff6cc;
+  font-weight: 700;
+}
+
+@media only screen and (max-width: 700px) {
+  .mrCalcGrid {
+    grid-template-columns: 40% 60%;
+  }
+}
+
+.mrReadOnlyNote {
+  align-self: center;
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8a5a00;
+}
+
+.mrSection > h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.mrModalFields {
+  display: grid;
+  grid-template-columns: 35% 65%;
+  row-gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mrModalFields label {
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.mrModalFields input[type="date"] {
+  height: 25px;
+}

@@ -1,8 +1,9 @@
 import React from "react";
 import swal from "sweetalert";
-import { DeleteOutline, Edit } from "@material-ui/icons";
+import { DeleteOutline, Edit, Send, Visibility } from "@material-ui/icons";
 import { Button } from "../../../components/CustomControl/Button";
 import CustomTable from "components/CustomTable/CustomTable";
+import ApproveRejectModal from "components/MRWorkflow/ApproveRejectModal";
 import {
   apiCall,
   apiOption,
@@ -24,6 +25,7 @@ const PaymentReceive = (props) => {
   const [currentRow, setCurrentRow] = useState({});
   const [listedittoggle, setListedittoggle] = useState(true);
   const [errorObject, setErrorObject] = useState({});
+  const [submitRow, setSubmitRow] = useState(null);
   const { data: dataList, ExecuteQuery } = ExecuteQueryHook();
 
   const [CustomerList, setCustomerList] = useState(null);
@@ -37,17 +39,9 @@ const PaymentReceive = (props) => {
   const [CollectedMethodList, setCollectedMethodList] = useState(null);
   const [currCollectedMethodId, setCurrCollectedMethodId] = useState("");
 
-  const EXCEL_EXPORT_URL = process.env.REACT_APP_API_URL;
-
-  const PDFGenerate = () => {
-    const finalUrl = EXCEL_EXPORT_URL + "report/GenerateMoneyReceipt.php";
-    window.open(
-      finalUrl + "?PaymentId=" + currentRow.id + "&TimeStamp=" + Date.now()
-    );
-  };
-
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "2%" },
+    { field: "CurrentStep", label: "Current Step", width: "8%", align: "left", visible: true, sort: false, filter: true },
     {
       field: "MRNo",
       label: "MR",
@@ -269,18 +263,37 @@ const PaymentReceive = (props) => {
   }
 
   function actioncontrol(rowData) {
+    const isDraft = String(rowData.StepId) === "1";
     return (
       <>
-        {permissionType === 0 && (
+        {isDraft ? (
           <Edit
             className={"table-edit-icon"}
             onClick={() => {
               editData(rowData);
             }}
           />
+        ) : (
+          <Visibility
+            className={"table-edit-icon"}
+            titleAccess="View"
+            onClick={() => {
+              editData(rowData);
+            }}
+          />
         )}
 
-        {permissionType === 0 && rowData.StatusId == 1 && (
+        {permissionType === 0 && isDraft && (
+          <Send
+            className={"table-edit-icon"}
+            titleAccess="Submit"
+            onClick={() => {
+              setSubmitRow(rowData);
+            }}
+          />
+        )}
+
+        {permissionType === 0 && isDraft && (
           <DeleteOutline
             className={"table-delete-icon"}
             onClick={() => {
@@ -399,48 +412,11 @@ const PaymentReceive = (props) => {
   }
 
   function saveData() {
-    addEditAPICall(1);
-  }
-
-  function completePayment() {
-    swal({
-      title: "Are you sure?",
-      text: "You want to complete this payment, it will not be editable after completion.",
-      icon: "warning",
-      buttons: {
-        confirm: {
-          text: "Yes",
-          value: true,
-          visible: true,
-          className: "",
-          closeModal: true,
-        },
-        cancel: {
-          text: "No",
-          value: null,
-          visible: true,
-          className: "",
-          closeModal: true,
-        },
-      },
-      dangerMode: true,
-    }).then((allowAction) => {
-      if (allowAction) {
-        addEditAPICall(5);
-      }
-    });
-  }
-
-  function addEditAPICall(StatusId = 1) {
     if (!validateForm()) {
       return;
     }
 
     const data = { ...currentRow };
-    if (StatusId == 5) {
-      data.StatusId = StatusId;
-    }
-
     const params = {
       action: "dataAddEdit",
       lan: language(),
@@ -458,6 +434,36 @@ const PaymentReceive = (props) => {
       if (res.data.success === 1) {
         data.id = res.data.PaymentId;
         setCurrentRow(data);
+      }
+    });
+  }
+
+  function openSubmitFromForm() {
+    if (!validateForm()) {
+      return;
+    }
+    setSubmitRow(currentRow);
+  }
+
+  function submitAPICall(comments) {
+    const params = {
+      action: "submitData",
+      lan: language(),
+      UserId: UserInfo.UserId,
+      rowData: submitRow,
+      Comments: comments,
+    };
+
+    apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+      props.openNoticeModal({
+        isOpen: true,
+        msg: res.data.message,
+        msgtype: res.data.success,
+      });
+
+      if (res.data.success === 1) {
+        setSubmitRow(null);
+        hideModal();
       }
     });
   }
@@ -521,7 +527,8 @@ const PaymentReceive = (props) => {
     setErrorObject({ ...errorObject, [name]: null });
   };
 
-  const isCompleted = currentRow.StatusId == 5;
+  const isReadOnly =
+    permissionType !== 0 || (currentRow.StepId != null && String(currentRow.StepId) !== "1");
 
   return (
     <>
@@ -562,21 +569,20 @@ const PaymentReceive = (props) => {
               <Button
                 label={currentRow.id ? "Update" : "Save"}
                 class={"btnSave"}
-                disabled={isCompleted}
+                disabled={isReadOnly}
                 onClick={saveData}
               />
               <Button
                 label={"Submit"}
                 class={"btnUpdate"}
-                disabled={!currentRow.id || isCompleted}
-                onClick={completePayment}
+                disabled={!currentRow.id || isReadOnly}
+                onClick={openSubmitFromForm}
               />
-              <Button
-                label={"Money Receipt"}
-                class={"btnPrint"}
-                disabled={!(currentRow.id && isCompleted)}
-                onClick={PDFGenerate}
-              />
+              {currentRow.id && String(currentRow.StepId) !== "1" && (
+                <span className="mrReadOnlyNote">
+                  This MR is at {currentRow.CurrentStep}. View only.
+                </span>
+              )}
             </div>
 
             <div class="allocateInvoiceForm">
@@ -599,7 +605,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="RefNo"
                       name="RefNo"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Ref Number"
                       value={currentRow.RefNo}
                       onChange={(e) => handleChange(e)}
@@ -611,7 +617,7 @@ const PaymentReceive = (props) => {
                       type="date"
                       id="PaymentDate"
                       name="PaymentDate"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       class={errorObject.PaymentDate}
                       placeholder="Enter MR Issue Date"
                       value={currentRow.PaymentDate}
@@ -626,7 +632,7 @@ const PaymentReceive = (props) => {
                       id="CustomerId"
                       name="CustomerId"
                       autoComplete
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       options={CustomerList ? CustomerList : []}
                       getOptionLabel={(option) => (option && option.name) || ""}
                       getOptionSelected={(option, value) =>
@@ -667,7 +673,7 @@ const PaymentReceive = (props) => {
                       id="BankId"
                       name="BankId"
                       autoComplete
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       options={BankList ? BankList : []}
                       getOptionLabel={(option) => (option && option.name) || ""}
                       getOptionSelected={(option, value) =>
@@ -692,7 +698,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="BankBranchName"
                       name="BankBranchName"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Branch Name"
                       value={currentRow.BankBranchName}
                       onChange={(e) => handleChange(e)}
@@ -704,7 +710,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="ChequeNumber"
                       name="ChequeNumber"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Cheque Number"
                       value={currentRow.ChequeNumber}
                       onChange={(e) => handleChange(e)}
@@ -716,7 +722,7 @@ const PaymentReceive = (props) => {
                       type="date"
                       id="ChequeDate"
                       name="ChequeDate"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Cheque Date"
                       value={currentRow.ChequeDate}
                       onChange={(e) => handleChange(e)}
@@ -730,7 +736,7 @@ const PaymentReceive = (props) => {
                       id="PaymentModeId"
                       name="PaymentModeId"
                       autoComplete
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       options={PaymentModeList ? PaymentModeList : []}
                       getOptionLabel={(option) => (option && option.name) || ""}
                       getOptionSelected={(option, value) =>
@@ -757,7 +763,7 @@ const PaymentReceive = (props) => {
                       id="CurrencyId"
                       name="CurrencyId"
                       autoComplete
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       options={CurrencyList ? CurrencyList : []}
                       getOptionLabel={(option) => (option && option.name) || ""}
                       getOptionSelected={(option, value) =>
@@ -782,7 +788,7 @@ const PaymentReceive = (props) => {
                       type="number"
                       id="PaymentReceiveCurrencyAmount"
                       name="PaymentReceiveCurrencyAmount"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Amount in FC"
                       value={currentRow.PaymentReceiveCurrencyAmount}
                       onChange={(e) => handleChange(e)}
@@ -794,7 +800,7 @@ const PaymentReceive = (props) => {
                       type="number"
                       id="ExchangeRate"
                       name="ExchangeRate"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Exchange Rate"
                       value={currentRow.ExchangeRate}
                       onChange={(e) => handleChange(e)}
@@ -820,7 +826,7 @@ const PaymentReceive = (props) => {
                       id="CollectedMethodId"
                       name="CollectedMethodId"
                       autoComplete
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       options={CollectedMethodList ? CollectedMethodList : []}
                       getOptionLabel={(option) => (option && option.name) || ""}
                       getOptionSelected={(option, value) =>
@@ -845,7 +851,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="CollectionPersonName"
                       name="CollectionPersonName"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Collection Person Name"
                       value={currentRow.CollectionPersonName}
                       onChange={(e) => handleChange(e)}
@@ -857,7 +863,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="CollectionPersonPhone"
                       name="CollectionPersonPhone"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Collection Person Phone"
                       value={currentRow.CollectionPersonPhone}
                       onChange={(e) => handleChange(e)}
@@ -869,7 +875,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="CollectionAddress"
                       name="CollectionAddress"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Collection Address"
                       value={currentRow.CollectionAddress}
                       onChange={(e) => handleChange(e)}
@@ -881,7 +887,7 @@ const PaymentReceive = (props) => {
                       type="text"
                       id="Remarks"
                       name="Remarks"
-                      disabled={isCompleted}
+                      disabled={isReadOnly}
                       placeholder="Enter Remarks"
                       value={currentRow.Remarks}
                       onChange={(e) => handleChange(e)}
@@ -891,6 +897,15 @@ const PaymentReceive = (props) => {
           </>
         )}
       </div>
+
+      {submitRow && (
+        <ApproveRejectModal
+          mode="submit"
+          mrNo={submitRow.MRNo}
+          onConfirm={submitAPICall}
+          onClose={() => setSubmitRow(null)}
+        />
+      )}
     </>
   );
 };

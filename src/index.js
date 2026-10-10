@@ -32,7 +32,11 @@ import InvoiceAdjustmentReport from "views/screens/invoiceadjustmentreport/index
 
 import PaymentReceive from "views/screens/paymentreceive/index.js";
 import MRVerification from "views/screens/mrverification/index.js";
+import CollectorAssignment from "views/screens/collectorassignment/index.js";
+import MRCollectionStatus from "views/screens/mrcollectionstatus/index.js";
+import MRCollectionStatusCheck from "views/screens/mrcollectionstatuscheck/index.js";
 import AllocateInvoice from "views/screens/allocateinvoice/index.js";
+import CollectionVerification from "views/screens/collectionverification/index.js";
 
 import BillGenerate from "views/screens/billgenerate/index.js";
 // import Machine from "views/screens/machine/index.js";
@@ -98,7 +102,11 @@ ReactDOM.render(
 
             <Route path="/paymentreceive" render={(props) => <PaymentReceive {...props} />} />
             <Route path="/mrverification" render={(props) => <MRVerification {...props} />} />
+            <Route path="/collectorassignment" render={(props) => <CollectorAssignment {...props} />} />
+            <Route path="/mrcollectionstatuscheck" render={(props) => <MRCollectionStatusCheck {...props} />} />
+            <Route path="/mrcollectionstatus" render={(props) => <MRCollectionStatus {...props} />} />
             <Route path="/allocateinvoice" render={(props) => <AllocateInvoice {...props} />} />
+            <Route path="/collectionverification" render={(props) => <CollectionVerification {...props} />} />
           
           
           

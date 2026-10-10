@@ -1,5 +1,9 @@
 <?php
 
+require_once(__DIR__ . '/mrworkflow_common.php');
+
+const MR_STEP_THIS = 6;
+
 $task = '';
 if (isset($data->action)) {
 	$task = trim($data->action);
@@ -8,7 +12,7 @@ if (isset($data->action)) {
 switch ($task) {
 
 	case "getDataList":
-		$returnData = getDataList($data);
+		$returnData = mrGetStepDataList(MR_STEP_THIS);
 		break;
 
 	case "getUnpaidInvoices":
@@ -31,12 +35,16 @@ switch ($task) {
 		$returnData = dataAddEdit($data);
 		break;
 
-	case "deleteData":
-		$returnData = deleteData($data);
+	case "approveData":
+		$returnData = approveData($data);
 		break;
 
-	case "getNextMRNumber":
-		$returnData = getNextMRNumber();
+	case "rejectData":
+		$returnData = mrRejectStep($data, MR_STEP_THIS);
+		break;
+
+	case "getApprovalLog":
+		$returnData = mrGetApprovalLog($data);
 		break;
 
 	default:
@@ -58,6 +66,11 @@ function deletePaymentItem($data)
 
 	if ($PaymentId == "" || $PaymentItemId == "") {
 		return $returnData = msg(0, 422, 'Invalid payment item.');
+	}
+
+	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	if ($check !== true) {
+		return $check;
 	}
 
 	try {
@@ -191,6 +204,11 @@ function addInvoicesToPayment($data)
 		return $returnData = msg(0, 422, 'Please select at least one invoice.');
 	}
 
+	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	if ($check !== true) {
+		return $check;
+	}
+
 	try {
 		$dbh = new Db();
 		$aQuerys = array();
@@ -266,423 +284,77 @@ function addInvoicesToPayment($data)
 }
 
 
-function getDataList($data)
-{
-
-	try {
-		$dbh = new Db();
-
-		$query = "SELECT a.PaymentId AS id, 
-		 DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
-		a.CustomerId,b.CustomerCode, b.CustomerName, a.CustomerGroupId,c.CustomerGroupName,a.BankId,d.BankName,
-		a.Remarks,a.StatusId,a.MRNo,a.RefNo,a.ChequeNumber,a.ChequeDate,a.BankBranchName
-		,a.PaymentModeId,a.CurrencyId,a.PaymentReceiveCurrencyAmount,a.ExchangeRate
-		,a.TotalBaseAmount,a.TotalTransactionAmount,a.PaymentReceiveAmount
-		,a.CollectedMethodId,a.CollectionAddress,a.CollectionPersonName,a.CollectionPersonPhone
-		,a.RebatePercent,a.RebateAmount,a.CNPercent,a.CNAmount,a.AitPercent,a.AitDeduction,a.VatPercent,a.VatAmount,a.DueAmount,a.AdvanceAmount
-
-		FROM t_payment a
-		LEFT JOIN t_customer b ON a.CustomerId = b.CustomerId
-		LEFT JOIN t_customergroup c ON a.CustomerGroupId = c.CustomerGroupId
-		LEFT JOIN t_bank d ON a.BankId = d.BankId
-		ORDER BY a.PaymentDate DESC, a.MRNo DESC;";
-
-		$resultdatalist = $dbh->query($query);
-
-
-		$returnData = [
-			"success" => 1,
-			"status" => 200,
-			"message" => "",
-			"datalist" => $resultdatalist
-		];
-	} catch (PDOException $e) {
-		$returnData = msg(0, 500, $e->getMessage());
-	}
-
-	return $returnData;
-}
-
-
 function getDataSingle($data)
 {
 	$PaymentId = trim($data->id);
 
 	try {
-		$dbh = new Db();
-
-		/**Master Data */
-		// $query = "SELECT PaymentId AS id, `PaymentDate`, `CustomerId`, `CustomerGroupId`, `BankId`, 
-		//  `Remarks`, `UserId`
-		// FROM t_payment
-		// where PaymentId=$PaymentId;";
-
-		$resultdataMaster = []; // $dbh->query($query);
-
-
-		/**Items Data */
-		// $query = "SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,
-		// DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(b.AccountingPeriod,4), '-',LPAD(LEFT(b.AccountingPeriod, LENGTH(b.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
-		// b.AccountCode, b.Description, 
-		// DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
-		// b.TransactionAmount, b.ExchangeRate,b.BaseAmount
-		// FROM t_paymentitems a 
-		// left join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
-		// where a.PaymentId=$PaymentId
-		// order by a.PaymentItemId ASC;";
-
-		$query = "
-		SELECT m.PaymentItemId as autoId, m.`PaymentItemId`, m.`PaymentId`, m.`InvoiceItemId`,m.PaymentExtendId,
-		'' as AccountingPeriod, '' as AccountCode, '' as `Description`, 
-		DATE_FORMAT(p.PaymentDate, '%d/%m/%Y') AS TransactionDate,
-		CONCAT(n.RptNumber,' - ',o.RptPreFix) AS TransactionReference, 
-		0 as TransactionAmount, 0 as ExchangeRate,(n.Amount*o.IsWillPay) AS BaseAmount
-		FROM t_paymentitems m
-		inner join t_paymentextend n on m.PaymentExtendId=n.PaymentExtendId
-		INNER JOIN t_payment_extend_type o ON n.PaymentExtendTypeId=o.PaymentExtendTypeId
-		INNER JOIN t_payment p ON n.PaymentId=p.PaymentId
-		WHERE m.PaymentId=$PaymentId
-
-		UNION ALL
-
-		SELECT a.PaymentItemId as autoId, a.`PaymentItemId`, a.`PaymentId`, a.`InvoiceItemId`,a.PaymentExtendId,
-		DATE_FORMAT(STR_TO_DATE(CONCAT(RIGHT(b.AccountingPeriod,4), '-',LPAD(LEFT(b.AccountingPeriod, LENGTH(b.AccountingPeriod)-4),2,'0'), '-01'),'%Y-%m-%d'),'%M-%Y') as AccountingPeriod,
-		b.AccountCode, b.Description, 
-		DATE_FORMAT(STR_TO_DATE(b.TransactionDate, '%d%m%Y'), '%d/%m/%Y') as TransactionDate, b.TransactionReference, 
-		b.TransactionAmount, b.ExchangeRate,b.BaseAmount
-		FROM t_paymentitems a 
-		inner join t_invoiceitems b on a.InvoiceItemId=b.InvoiceItemId
-		where a.PaymentId=$PaymentId
-
-		order by PaymentItemId ASC;";
-		$resultdataItems = $dbh->query($query);
-
-
 		$returnData = [
 			"success" => 1,
 			"status" => 200,
 			"message" => "",
-			"datalist" => array("master" => $resultdataMaster, "items" => $resultdataItems)
+			"datalist" => array("master" => [], "items" => mrGetPaymentItems($PaymentId))
 		];
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());
 	}
 
 	return $returnData;
+}
+
+/** Calculation fields edited on the Allocate Invoice screen. */
+function allocationValues($rowData)
+{
+	$columns = ['Remarks', 'RebatePercent', 'RebateAmount', 'CNPercent', 'CNAmount', 'AitPercent', 'AitDeduction', 'VatPercent', 'VatAmount', 'AdvanceAmount', 'DueAmount'];
+	$values = [
+		$rowData->Remarks ? $rowData->Remarks : null,
+		$rowData->RebatePercent ? $rowData->RebatePercent : 0,
+		$rowData->RebateAmount ? $rowData->RebateAmount : 0,
+		$rowData->CNPercent ? $rowData->CNPercent : 0,
+		$rowData->CNAmount ? $rowData->CNAmount : 0,
+		$rowData->AitPercent ? $rowData->AitPercent : 0,
+		$rowData->AitDeduction ? $rowData->AitDeduction : 0,
+		$rowData->VatPercent ? $rowData->VatPercent : 0,
+		$rowData->VatAmount ? $rowData->VatAmount : 0,
+		$rowData->AdvanceAmount ? $rowData->AdvanceAmount : 0,
+		$rowData->DueAmount ? $rowData->DueAmount : 0,
+	];
+
+	return [$columns, $values];
 }
 
 function dataAddEdit($data)
 {
-
-	if ($_SERVER["REQUEST_METHOD"] != "POST") {
-		return $returnData = msg(0, 404, 'Page Not Found!');
-	} else {
-
-		$dbh = new Db();
-
-		$lan = trim($data->lan);
-		$UserId = trim($data->UserId);
-
-		$PaymentId = $data->rowData->id;
-		$MRNo = $data->rowData->MRNo;
-		$RefNo = $data->rowData->RefNo ? $data->rowData->RefNo : null;
-
-		$PaymentDate = $data->rowData->PaymentDate;
-		$CustomerId = $data->rowData->CustomerId ? $data->rowData->CustomerId : null;
-		$CustomerGroupId = $data->rowData->CustomerGroupId ? $data->rowData->CustomerGroupId : null;
-		$BankId = $data->rowData->BankId ? $data->rowData->BankId : null;
-		$BankBranchName = $data->rowData->BankBranchName ? $data->rowData->BankBranchName : null;
-		$ChequeNumber = $data->rowData->ChequeNumber ? $data->rowData->ChequeNumber : null;
-		$ChequeDate = $data->rowData->ChequeDate ? $data->rowData->ChequeDate : null;
-		$PaymentModeId = $data->rowData->PaymentModeId ? $data->rowData->PaymentModeId : null;
-		$CurrencyId = $data->rowData->CurrencyId ? $data->rowData->CurrencyId : null;
-		$PaymentReceiveCurrencyAmount = $data->rowData->PaymentReceiveCurrencyAmount ? $data->rowData->PaymentReceiveCurrencyAmount : 0;
-		$ExchangeRate = $data->rowData->ExchangeRate ? $data->rowData->ExchangeRate : 1;
-		$Remarks = $data->rowData->Remarks ? $data->rowData->Remarks : null;
-		$StatusId = $data->rowData->StatusId ? $data->rowData->StatusId : 1;
-		// $TotalBaseAmount = $data->rowData->TotalBaseAmount ? $data->rowData->TotalBaseAmount : 0;
-		// $TotalTransactionAmount = $data->rowData->TotalTransactionAmount ? $data->rowData->TotalTransactionAmount : 0;
-		$PaymentReceiveAmount = $data->rowData->PaymentReceiveAmount ? $data->rowData->PaymentReceiveAmount : 0;
-		$CollectedMethodId = $data->rowData->CollectedMethodId ? $data->rowData->CollectedMethodId : null;
-		$CollectionAddress = $data->rowData->CollectionAddress ? $data->rowData->CollectionAddress : null;
-		$CollectionPersonName = $data->rowData->CollectionPersonName ? $data->rowData->CollectionPersonName : null;
-		$CollectionPersonPhone = $data->rowData->CollectionPersonPhone ? $data->rowData->CollectionPersonPhone : null;
-		$RebateAmount = $data->rowData->RebateAmount ? $data->rowData->RebateAmount : 0;
-		$CNAmount = $data->rowData->CNAmount ? $data->rowData->CNAmount : 0;
-		$AitDeduction = $data->rowData->AitDeduction ? $data->rowData->AitDeduction : 0;
-		$VatAmount = $data->rowData->VatAmount ? $data->rowData->VatAmount : 0;
-		$AdvanceAmount = $data->rowData->AdvanceAmount ? $data->rowData->AdvanceAmount : 0;
-
-		$RebatePercent = $data->rowData->RebatePercent ? $data->rowData->RebatePercent : 0;
-		$CNPercent = $data->rowData->CNPercent ? $data->rowData->CNPercent : 0;
-		$AitPercent = $data->rowData->AitPercent ? $data->rowData->AitPercent : 0;
-		$VatPercent = $data->rowData->VatPercent ? $data->rowData->VatPercent : 0;
-		$DueAmount = $data->rowData->DueAmount ? $data->rowData->DueAmount : 0;
-
-		
-
-
-		// $items = isset($data->items) ? $data->items : [];
-
-		// $query = "SELECT count(a.PaymentId) DraftCount
-		// FROM t_payment a
-		// where a.CustomerId=$CustomerId
-		// and a.StatusId=1;";
-		// $resultdatalist = $dbh->query($query);
-		// if ($resultdatalist[0]['DraftCount'] >= 1 && $PaymentId == "") {
-		// 	return $returnData = msg(0, 500, 'There is already a draft payment for this customer. Please complete or delete the existing draft payment before creating a new one.');
-		// }
-
-
-
-		try {
-
-			$dbh = new Db();
-			$aQuerys = array();
-
-			if ($PaymentId == "") {
-
-				// $query3 = "SELECT ifnull(max(MRNo),0) + 1 as NextMRNo FROM t_payment;";
-				// $result3 = $dbh->query($query3);
-				// $MRNo = $result3[0]['NextMRNo'];
-
-				$NextMR = getNextMRNumber();
-				$MRNo = $NextMR['MRNo'];
-
-				$q = new insertq();
-				$q->table = 't_payment';
-
-				$q->columns = ['MRNo', 'RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'PaymentModeId', 'CurrencyId', 'PaymentReceiveCurrencyAmount', 'ExchangeRate',  'Remarks', 'UserId', 'StatusId', 'PaymentReceiveAmount', 'CollectedMethodId', 'CollectionAddress', 'CollectionPersonName', 'CollectionPersonPhone', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
-				$q->values = [$MRNo, $RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $PaymentModeId, $CurrencyId, $PaymentReceiveCurrencyAmount, $ExchangeRate, $Remarks, $UserId, $StatusId, $PaymentReceiveAmount, $CollectedMethodId, $CollectionAddress, $CollectionPersonName, $CollectionPersonPhone, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
-				$q->pks = ['PaymentId'];
-				$q->bUseInsetId = true;
-				$q->build_query();
-				$aQuerys[] = $q;
-			} else {
-				// $StatusId = 5; //Completed
-				$PostUserId = $StatusId == 5 ? $UserId : null;
-				$u = new updateq();
-				$u->table = 't_payment';
-				$u->columns = ['RefNo', 'PaymentDate', 'CustomerId', 'CustomerGroupId', 'BankId', 'BankBranchName', 'ChequeNumber', 'ChequeDate', 'PaymentModeId', 'CurrencyId', 'PaymentReceiveCurrencyAmount', 'ExchangeRate', 'Remarks', 'StatusId', 'PostUserId', 'PaymentReceiveAmount', 'CollectedMethodId', 'CollectionAddress', 'CollectionPersonName', 'CollectionPersonPhone', 'RebateAmount', 'CNAmount', 'AitDeduction', 'VatAmount', 'AdvanceAmount', 'RebatePercent', 'CNPercent', 'AitPercent', 'VatPercent', 'DueAmount'];
-				$u->values = [$RefNo, $PaymentDate, $CustomerId, $CustomerGroupId, $BankId, $BankBranchName, $ChequeNumber, $ChequeDate, $PaymentModeId, $CurrencyId, $PaymentReceiveCurrencyAmount, $ExchangeRate, $Remarks, $StatusId, $PostUserId, $PaymentReceiveAmount, $CollectedMethodId, $CollectionAddress, $CollectionPersonName, $CollectionPersonPhone, $RebateAmount, $CNAmount, $AitDeduction, $VatAmount, $AdvanceAmount, $RebatePercent, $CNPercent, $AitPercent, $VatPercent, $DueAmount];
-				$u->pks = ['PaymentId'];
-				$u->pk_values = [$PaymentId];
-				$u->build_query();
-				$aQuerys[] = $u;
-			}
-
-
-			if ($StatusId == 5) {
-
-				// if ($CNAmount > 0) {
-				// 	$PaymentExtendTypeId = 2; //t_payment_extend_type
-				// 	$RptPreFix = "CN";
-				//// 	$RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-				// 	$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-				// 	$Amount = $CNAmount;
-				// 	$q = new insertq();
-				// 	$q->table = 't_paymentextend';
-				// 	$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-				// 	$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-				// 	$q->pks = ['PaymentExtendId'];
-				// 	$q->bUseInsetId = true;
-				// 	$q->build_query();
-				// 	$aQuerys[] = $q;
-				// }
-
-				if ($AitDeduction > 0) {
-					$PaymentExtendTypeId = 3; //t_payment_extend_type
-					// $RptPreFix = "AIT";
-					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $AitDeduction;
-					$q = new insertq();
-					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-					$q->pks = ['PaymentExtendId'];
-					$q->bUseInsetId = true;
-					$q->build_query();
-					$aQuerys[] = $q;
-				}
-
-				if ($VatAmount > 0) {
-					$PaymentExtendTypeId = 4; //t_payment_extend_type
-					// $RptPreFix = "VAT";
-					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $VatAmount;
-					$q = new insertq();
-					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-					$q->pks = ['PaymentExtendId'];
-					$q->bUseInsetId = true;
-					$q->build_query();
-					$aQuerys[] = $q;
-				}
-
-				if ($AdvanceAmount > 0) {
-					$PaymentExtendTypeId = 5; //t_payment_extend_type
-					// $RptPreFix = "ADV";
-					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $AdvanceAmount;
-					$q = new insertq();
-					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-					$q->pks = ['PaymentExtendId'];
-					$q->bUseInsetId = true;
-					$q->build_query();
-					$aQuerys[] = $q;
-				}
-
-				
-				if ($DueAmount > 0) {
-					$PaymentExtendTypeId = 6; //t_payment_extend_type
-					// $RptPreFix = "DUE";
-					// $RptNumber = $RptPreFix . "-" . $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$RptNumber = $MRNo; // getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)['NextRptNumber'];
-					$Amount = $DueAmount;
-					$q = new insertq();
-					$q->table = 't_paymentextend';
-					$q->columns = ['PaymentId', 'PaymentExtendTypeId', 'RptNumber', 'Amount'];
-					$q->values = [$PaymentId, $PaymentExtendTypeId, $RptNumber, $Amount];
-					$q->pks = ['PaymentExtendId'];
-					$q->bUseInsetId = true;
-					$q->build_query();
-					$aQuerys[] = $q;
-				}
-
-			}
-
-
-			$res = exec_query($aQuerys, $UserId, $lan);
-			$success = ($res['msgType'] == 'success') ? 1 : 0;
-			$status = ($res['msgType'] == 'success') ? 200 : 500;
-
-			//when post then set billed flag in invoice
-			if ($success == 1 && $PaymentId != "" && $StatusId == 5) {
-				//when payment is completed then mark the related invoice items as paid
-				$query1 = "update t_invoiceitems set IsPaid = 1 
-					where InvoiceItemId in (select InvoiceItemId from t_paymentitems where PaymentId = $PaymentId and InvoiceItemId is not null);";
-				$dbh->query($query1);
-
-
-				//when payment completed then calculate and update total base amount and total transaction amount in payment table
-				$query2 = "UPDATE t_payment a 
-							INNER JOIN (SELECT m.PaymentId, SUM(n.BaseAmount) SumBaseAmount, SUM(n.TransactionAmount) SumTransactionAmount 
-								FROM t_paymentitems m
-								INNER JOIN t_invoiceitems n ON m.InvoiceItemId=n.InvoiceItemId
-								WHERE m.PaymentId = $PaymentId
-								GROUP BY m.PaymentId) b ON a.PaymentId=b.PaymentId
-							SET a.TotalBaseAmount = b.SumBaseAmount, a.TotalTransactionAmount = b.SumTransactionAmount
-							WHERE a.PaymentId = $PaymentId;";
-				$dbh->query($query2);
-
-
-				
-				//when payment is completed then mark the related t_paymentextend items as finished - challan received
-				$query3 = "update t_paymentextend set IsFinished = 1 
-					where PaymentExtendId in (select PaymentExtendId from t_paymentitems where PaymentId = $PaymentId and PaymentExtendId is not null);";
-				$dbh->query($query3);
-
-
-			}
-
-
-			$returnData = [
-				"success" => $success,
-				"status" => $status,
-				"PaymentId" => $PaymentId == "" ? $res['PaymentId'] : $PaymentId,
-				"UserId" => $UserId,
-				"message" => $res['msg'],
-			];
-		} catch (PDOException $e) {
-			$returnData = msg(0, 500, $e->getMessage());
-		}
-
-		return $returnData;
-	}
-}
-
-
-function deleteData($data)
-{
-
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return $returnData = msg(0, 404, 'Page Not Found!');
 	}
-	// CHECKING EMPTY FIELDS
-	elseif (!isset($data->rowData->id)) {
-		$fields = ['fields' => ['id']];
-		return $returnData = msg(0, 422, 'Please Fill in all Required Fields!', $fields);
-	} else {
 
-		$PaymentId = $data->rowData->id;
-		$lan = trim($data->lan);
-		$UserId = trim($data->UserId);
+	$lan = trim($data->lan);
+	$UserId = trim($data->UserId);
+	$PaymentId = isset($data->rowData->id) ? trim($data->rowData->id) : '';
 
-		try {
-
-			$d = new deleteq();
-			$d->table = 't_paymentextend';
-			$d->pks = ['PaymentId'];
-			$d->pk_values = [$PaymentId];
-			$d->build_query();
-			$aQuerys[] = $d;
-
-			$d = new deleteq();
-			$d->table = 't_paymentitems';
-			$d->pks = ['PaymentId'];
-			$d->pk_values = [$PaymentId];
-			$d->build_query();
-			$aQuerys[] = $d;
-
-			$d = new deleteq();
-			$d->table = 't_payment';
-			$d->pks = ['PaymentId'];
-			$d->pk_values = [$PaymentId];
-			$d->build_query();
-			$aQuerys[] = $d;
-
-			$res = exec_query($aQuerys, $UserId, $lan);
-			$success = ($res['msgType'] == 'success') ? 1 : 0;
-			$status = ($res['msgType'] == 'success') ? 200 : 500;
-
-			$returnData = [
-				"success" => $success,
-				"status" => $status,
-				"UserId" => $UserId,
-				"message" => $res['msg']
-			];
-		} catch (PDOException $e) {
-			$returnData = msg(0, 500, $e->getMessage());
-		}
-
-		return $returnData;
+	if ($PaymentId == '') {
+		return msg(0, 422, 'Invalid MR.');
 	}
-}
 
+	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	if ($check !== true) {
+		return $check;
+	}
 
-
-function getNextMRNumber()
-{
+	list($columns, $values) = allocationValues($data->rowData);
 
 	try {
-		$dbh = new Db();
+		$u = new updateq();
+		$u->table = 't_payment';
+		$u->columns = $columns;
+		$u->values = $values;
+		$u->pks = ['PaymentId'];
+		$u->pk_values = [$PaymentId];
+		$u->build_query();
 
-		$query3 = "SELECT CONCAT('MR-',LPAD((IFNULL(MAX(SUBSTRING_INDEX(MRNo, '-', -1)),0) + 1),6,'0')) AS NextMRNo FROM t_payment;";
-		$result3 = $dbh->query($query3);
-		$MRNo = $result3[0]['NextMRNo'];
-
-		$returnData = [
-			"success" => 1,
-			"status" => 200,
-			"message" => "",
-			"MRNo" => $MRNo
-		];
+		$returnData = mrExecResult([$u], $UserId, $lan, 'Data Updated Successfully');
+		$returnData["PaymentId"] = $PaymentId;
 	} catch (PDOException $e) {
 		$returnData = msg(0, 500, $e->getMessage());
 	}
@@ -690,28 +362,24 @@ function getNextMRNumber()
 	return $returnData;
 }
 
-
-
-function getNextPaymentExtendNumber($PaymentExtendTypeId, $RptPreFix)
+/** Saves the latest calculation and moves the MR to Collection Verification (step 7). */
+function approveData($data)
 {
-
-	try {
-		$dbh = new Db();
-
-		$query3 = "SELECT CONCAT('$RptPreFix-',LPAD((IFNULL(MAX(SUBSTRING_INDEX(RptNumber, '-', -1)),0) + 1),6,'0')) AS NextRptNumber
-		FROM t_paymentextend where PaymentExtendTypeId = $PaymentExtendTypeId;";
-		$result3 = $dbh->query($query3);
-		$NextRptNumber = $result3[0]['NextRptNumber'];
-
-		$returnData = [
-			"success" => 1,
-			"status" => 200,
-			"message" => "",
-			"NextRptNumber" => $NextRptNumber
-		];
-	} catch (PDOException $e) {
-		$returnData = msg(0, 500, $e->getMessage());
+	$PaymentId = isset($data->PaymentId) ? trim($data->PaymentId) : '';
+	if ($PaymentId == '' || !isset($data->rowData)) {
+		return msg(0, 422, 'Invalid MR.');
 	}
 
-	return $returnData;
+	list($columns, $values) = allocationValues($data->rowData);
+
+	$dbh = new Db();
+	$rows = $dbh->query("SELECT COUNT(1) AS Cnt FROM t_paymentitems WHERE PaymentId = :PaymentId;", ['PaymentId' => $PaymentId]);
+	$itemCount = is_array($rows) ? (int)$rows[0]['Cnt'] : 0;
+	$AdvanceAmount = $data->rowData->AdvanceAmount ? (float)$data->rowData->AdvanceAmount : 0;
+
+	if ($itemCount == 0 && $AdvanceAmount <= 0) {
+		return msg(0, 422, 'Please allocate at least one invoice before approving.');
+	}
+
+	return mrApproveStep($data, MR_STEP_THIS, $columns, $values);
 }
