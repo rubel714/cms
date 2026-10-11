@@ -7,8 +7,8 @@ export const ViewField = ({ label, value, wide, highlight }) => (
   </div>
 );
 
-/** Read-only MR header, plus collector and collection data once those steps are done. */
-const MRHeaderView = ({ row }) => {
+/** Read-only MR header. bankEditor replaces Bank and the fields after it when a step can change them. */
+const MRHeaderView = ({ row, bankEditor }) => {
   const customer = [row.CustomerCode, row.CustomerName].filter(Boolean).join(" - ");
 
   return (
@@ -18,20 +18,24 @@ const MRHeaderView = ({ row }) => {
         <ViewField label="Ref" value={row.RefNo} />
         <ViewField label="MR Issue Date" value={row.PaymentDate} />
         <ViewField label="Customer" value={customer} />
-        <ViewField label="Bank" value={row.BankName} />
-        <ViewField label="Branch Name" value={row.BankBranchName} />
-        <ViewField label="Cheque Number" value={row.ChequeNumber} />
-        <ViewField label="Cheque/ FDD Date" value={row.ChequeDate} />
-        <ViewField label="Payment Mode" value={row.PaymentModeName} />
-        <ViewField label="Currency" value={row.CurrencyName} />
-        <ViewField label="Payment Amount in FC" value={row.PaymentReceiveCurrencyAmount} />
-        <ViewField label="Exchange Rate" value={row.ExchangeRate} />
-        <ViewField label="Payment Amount in BDT" value={row.PaymentReceiveAmount} highlight />
-        <ViewField label="Collected By" value={row.CollectedMethod} />
-        <ViewField label="Collection Person Name" value={row.CollectionPersonName} />
-        <ViewField label="Collection Person Phone" value={row.CollectionPersonPhone} />
-        <ViewField label="Collection Address" value={row.CollectionAddress} />
-        <ViewField label="Remarks" value={row.Remarks} wide />
+        {bankEditor || (
+          <>
+            <ViewField label="Bank" value={row.BankName} />
+            <ViewField label="Branch Name" value={row.BankBranchName} />
+            <ViewField label="Cheque Number" value={row.ChequeNumber} />
+            <ViewField label="Cheque/ FDD Date" value={row.ChequeDate} />
+            <ViewField label="Payment Mode" value={row.PaymentModeName} />
+            <ViewField label="Currency" value={row.CurrencyName} />
+            <ViewField label="Payment Amount in FC" value={row.PaymentReceiveCurrencyAmount} />
+            <ViewField label="Exchange Rate" value={row.ExchangeRate} />
+            <ViewField label="Payment Amount in BDT" value={row.PaymentReceiveAmount} highlight />
+            <ViewField label="Collected By" value={row.CollectedMethod} />
+            <ViewField label="Collection Person Name" value={row.CollectionPersonName} />
+            <ViewField label="Collection Person Phone" value={row.CollectionPersonPhone} />
+            <ViewField label="Collection Address" value={row.CollectionAddress} />
+            <ViewField label="Remarks" value={row.Remarks} wide />
+          </>
+        )}
       </div>
 
       {row.CollectionStatusId && (

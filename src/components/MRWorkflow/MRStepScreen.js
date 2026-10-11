@@ -56,6 +56,7 @@ const MRStepScreen = (props) => {
     initApproveValues = () => ({}),
     renderApproveFields,
     validateApprove = () => ({}),
+    renderBankEditor,
   } = props;
 
   const UserInfo = LoginUserInfo();
@@ -114,6 +115,24 @@ const MRStepScreen = (props) => {
     return <Icon className={"table-edit-icon"} onClick={() => openDetail(rowData)} />;
   }
 
+  function saveBankFields() {
+    const params = {
+      action: "saveData",
+      lan: language(),
+      UserId: UserInfo.UserId,
+      PaymentId: currentRow.id,
+      rowData: currentRow,
+    };
+
+    apiCall.post(serverpage, { params }, apiOption()).then((res) => {
+      props.openNoticeModal({
+        isOpen: true,
+        msg: res.data.message,
+        msgtype: res.data.success,
+      });
+    });
+  }
+
   function openApprove() {
     setApproveValues(initApproveValues(currentRow));
     setApproveErrors({});
@@ -140,7 +159,7 @@ const MRStepScreen = (props) => {
       UserId: UserInfo.UserId,
       PaymentId: currentRow.id,
       Comments: comments,
-      ...(modalMode === "approve" ? approveValues : {}),
+      ...(modalMode === "approve" ? { ...approveValues, rowData: currentRow } : {}),
     };
 
     apiCall.post(serverpage, { params }, apiOption()).then((res) => {
@@ -180,6 +199,9 @@ const MRStepScreen = (props) => {
               <Button label={"Back to List"} class={"btnClose"} onClick={backToList} />
               {isCurrentStep && (
                 <>
+                  {renderBankEditor && (
+                    <Button label={"Save"} class={"btnSave"} disabled={!canAct} onClick={saveBankFields} />
+                  )}
                   <Button
                     label={"Reject"}
                     class={"btnReject"}
@@ -201,7 +223,10 @@ const MRStepScreen = (props) => {
               )}
             </div>
 
-            <MRHeaderView row={currentRow} />
+            <MRHeaderView
+              row={currentRow}
+              bankEditor={canAct && renderBankEditor ? renderBankEditor(currentRow, setCurrentRow) : null}
+            />
 
             {showAllocation && <MRAllocationView row={currentRow} items={items} />}
 
