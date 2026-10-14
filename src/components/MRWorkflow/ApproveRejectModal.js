@@ -12,7 +12,7 @@ const MODE_CONFIG = {
  * children: extra step fields, shown above the comment box.
  * onConfirm(comments) is called after validation; onClose() cancels.
  */
-const ApproveRejectModal = ({ mode, mrNo, onConfirm, onClose, children }) => {
+const ApproveRejectModal = ({ mode, mrNo, confirmLabel, onConfirm, onClose, children }) => {
   const config = MODE_CONFIG[mode];
   const [comments, setComments] = useState("");
   const [error, setError] = useState(false);
@@ -55,7 +55,7 @@ const ApproveRejectModal = ({ mode, mrNo, onConfirm, onClose, children }) => {
 
         <div className="modalItem">
           <Button label={"Cancel"} class={"btnClose"} onClick={onClose} />
-          <Button label={config.label} class={config.class} onClick={confirm} />
+          <Button label={confirmLabel || config.label} class={config.class} onClick={confirm} />
         </div>
       </div>
     </div>

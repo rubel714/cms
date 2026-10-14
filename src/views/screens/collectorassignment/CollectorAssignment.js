@@ -20,17 +20,18 @@ const selectedOption = (list, id) => {
   return list.find((item) => String(item.id ?? "") === String(id ?? "")) || list[0];
 };
 
-const DropDown = ({ label, list, value, onChange }) => (
+const DropDown = ({ label, list, value, onChange, disabled = false }) => (
   <div className="aiField">
     <label>{label}</label>
     <Autocomplete
+      disabled={disabled}
       disableClearable
       className="chosen_dropdown"
       options={list || []}
       getOptionLabel={(option) => (option && option.name) || ""}
       getOptionSelected={(option, selected) => String(option?.id ?? "") === String(selected?.id ?? "")}
       value={selectedOption(list, value)}
-      onChange={(event, valueobj) => onChange(valueobj ? valueobj.id : "")}
+      onChange={(event, valueobj) => onChange && onChange(valueobj ? valueobj.id : "")}
       renderInput={(params) => <TextField {...params} variant="standard" fullWidth />}
     />
   </div>
@@ -65,48 +66,28 @@ const BankFieldsEditor = ({ row, setRow }) => {
 
   return (
     <>
-      <DropDown label="Bank" list={BankList} value={row.BankId} onChange={(id) => setField("BankId", id)} />
+      <DropDown label="Bank" list={BankList} value={row.BankId} disabled />
       <div className="aiField">
         <label>Branch Name</label>
-        <input type="text" name="BankBranchName" value={row.BankBranchName || ""} onChange={onText} />
+        <input type="text" name="BankBranchName" value={row.BankBranchName || ""} disabled />
       </div>
       <div className="aiField">
         <label>Cheque Number</label>
-        <input type="text" name="ChequeNumber" value={row.ChequeNumber || ""} onChange={onText} />
+        <input type="text" name="ChequeNumber" value={row.ChequeNumber || ""} disabled />
       </div>
       <div className="aiField">
         <label>Cheque/ FDD Date</label>
-        <input
-          type="date"
-          name="ChequeDate"
-          value={(row.ChequeDate || "").toString().slice(0, 10)}
-          onChange={onText}
-        />
+        <input type="date" name="ChequeDate" value={(row.ChequeDate || "").toString().slice(0, 10)} disabled />
       </div>
-      <DropDown
-        label="Payment Mode"
-        list={PaymentModeList}
-        value={row.PaymentModeId}
-        onChange={(id) => setField("PaymentModeId", id)}
-      />
-      <DropDown
-        label="Currency"
-        list={CurrencyList}
-        value={row.CurrencyId}
-        onChange={(id) => setField("CurrencyId", id)}
-      />
+      <DropDown label="Payment Mode" list={PaymentModeList} value={row.PaymentModeId} disabled />
+      <DropDown label="Currency" list={CurrencyList} value={row.CurrencyId} disabled />
       <div className="aiField">
         <label>Payment Amount in FC</label>
-        <input
-          type="number"
-          name="PaymentReceiveCurrencyAmount"
-          value={row.PaymentReceiveCurrencyAmount}
-          onChange={onText}
-        />
+        <input type="number" name="PaymentReceiveCurrencyAmount" value={row.PaymentReceiveCurrencyAmount} disabled />
       </div>
       <div className="aiField">
         <label>Exchange Rate</label>
-        <input type="number" name="ExchangeRate" value={row.ExchangeRate} onChange={onText} />
+        <input type="number" name="ExchangeRate" value={row.ExchangeRate} disabled />
       </div>
       <div className="aiField aiFieldHighlight">
         <label>Payment Amount in BDT</label>

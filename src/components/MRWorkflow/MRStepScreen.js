@@ -12,7 +12,6 @@ import MRAllocationView from "./MRAllocationView";
 const baseColumns = [
   { field: "rownumber", label: "SL", align: "center", width: "2%" },
   { field: "MRNo", label: "MR", width: "6%", filter: true },
-  { field: "CurrentStep", label: "Current Step", width: "10%", filter: true },
   { field: "RefNo", label: "Ref", width: "5%", filter: true },
   { field: "PaymentDate", label: "MR Issue Date", width: "6%", filter: true },
   { field: "CustomerCode", label: "Customer Code", width: "7%", filter: true },
@@ -20,6 +19,8 @@ const baseColumns = [
   { field: "ChequeNumber", label: "Cheque Number", width: "7%", filter: true },
   { field: "BankName", label: "Bank Name", width: "8%", filter: true },
 ];
+
+const currentStepColumn = { field: "CurrentStep", label: "Current Step", width: "10%", filter: true };
 
 const amountColumn = {
   field: "PaymentReceiveAmount",
@@ -69,7 +70,7 @@ const MRStepScreen = (props) => {
   const [approveErrors, setApproveErrors] = useState({});
   const { data: dataList, ExecuteQuery } = ExecuteQueryHook();
 
-  const columnList = [...baseColumns, ...extraColumns, amountColumn, actionColumn];
+  const columnList = [...baseColumns, ...extraColumns, amountColumn, currentStepColumn, actionColumn];
   const isCurrentStep = String(currentRow.StepId) === String(stepId);
   const canAct = permissionType === 0 && isCurrentStep;
 
@@ -239,6 +240,7 @@ const MRStepScreen = (props) => {
         <ApproveRejectModal
           mode={modalMode}
           mrNo={currentRow.MRNo}
+          confirmLabel={modalMode === "approve" ? approveLabel : undefined}
           onConfirm={confirmModal}
           onClose={() => setModalMode(null)}
         >

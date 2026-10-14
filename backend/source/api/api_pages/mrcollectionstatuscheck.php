@@ -62,7 +62,6 @@ function approveData($data)
 {
 	$CollectionStatusId = isset($data->CollectionStatusId) ? trim($data->CollectionStatusId) : '';
 	$CollectionDate = isset($data->CollectionDate) ? trim($data->CollectionDate) : '';
-	$CollectedAmount = isset($data->CollectedAmount) && $data->CollectedAmount !== '' ? $data->CollectedAmount : 0;
 
 	if ($CollectionStatusId == '' || $CollectionDate == '') {
 		return msg(0, 422, 'Please enter the collection status and collection date.');
@@ -71,7 +70,7 @@ function approveData($data)
 	return mrApproveStep(
 		$data,
 		MR_STEP_THIS,
-		['CollectionStatusId', 'CollectionDate', 'CollectedAmount'],
-		[$CollectionStatusId, $CollectionDate, $CollectedAmount]
+		['CollectionStatusId', 'CollectionDate'],
+		[$CollectionStatusId, $CollectionDate]
 	);
 }

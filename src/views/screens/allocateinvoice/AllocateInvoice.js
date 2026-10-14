@@ -36,7 +36,6 @@ const AllocateInvoice = (props) => {
 
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "2%" },
-    { field: "CurrentStep", label: "Current Step", width: "8%", align: "left", visible: true, sort: false, filter: true },
     { field: "MRNo", label: "MR", width: "5%", align: "left", visible: true, sort: false, filter: true },
     { field: "RefNo", label: "Ref", width: "5%", align: "left", visible: true, sort: false, filter: true },
     { field: "PaymentDate", label: "MR Issue Date", width: "5%", align: "left", visible: true, sort: false, filter: true },
@@ -53,6 +52,7 @@ const AllocateInvoice = (props) => {
     { field: "VatAmount", label: "VAT Amount", width: "4%", align: "right", visible: true, sort: false, filter: true, type: "number" },
     { field: "AdvanceAmount", label: "Advance Amount", width: "4%", align: "right", visible: true, sort: false, filter: true, type: "number" },
     { field: "DueAmount", label: "Due Amount", width: "4%", align: "right", visible: true, sort: false, filter: true, type: "number" },
+    { field: "CurrentStep", label: "Current Step", width: "8%", align: "left", visible: true, sort: false, filter: true },
     { field: "custom", label: "Action", width: "5%", align: "center", visible: true, sort: false, filter: false },
   ];
 

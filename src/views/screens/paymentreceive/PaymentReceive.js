@@ -41,7 +41,6 @@ const PaymentReceive = (props) => {
 
   const columnList = [
     { field: "rownumber", label: "SL", align: "center", width: "2%" },
-    { field: "CurrentStep", label: "Current Step", width: "8%", align: "left", visible: true, sort: false, filter: true },
     {
       field: "MRNo",
       label: "MR",
@@ -132,6 +131,7 @@ const PaymentReceive = (props) => {
       filter: true,
       type: "number",
     },
+    { field: "CurrentStep", label: "Current Step", width: "8%", align: "left", visible: true, sort: false, filter: true },
     {
       field: "custom",
       label: "Action",

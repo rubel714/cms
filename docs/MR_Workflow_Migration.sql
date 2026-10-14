@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS t_collection_status (
 
 INSERT INTO t_collection_status (CollectionStatusId, CollectionStatusName) VALUES
 	(1, 'Collected'),
-	(2, 'Partially Collected'),
 	(3, 'Not Collected')
 ON DUPLICATE KEY UPDATE CollectionStatusName = VALUES(CollectionStatusName);
 

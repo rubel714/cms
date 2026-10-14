@@ -49,13 +49,6 @@ const MRCollectionStatusCheck = (props) => {
         value={(values.CollectionDate || "").toString().slice(0, 10)}
         onChange={(e) => setValue("CollectionDate", e.target.value)}
       />
-
-      <label>Collected Amount</label>
-      <input
-        type="number"
-        value={values.CollectedAmount}
-        onChange={(e) => setValue("CollectedAmount", e.target.value)}
-      />
     </div>
   );
 
@@ -72,11 +65,11 @@ const MRCollectionStatusCheck = (props) => {
       serverpage={serverpage}
       title="MR Collection Status Check"
       stepId={5}
+      approveLabel="Set Status"
       extraColumns={extraColumns}
       initApproveValues={(row) => ({
         CollectionStatusId: row.CollectionStatusId || "",
         CollectionDate: row.CollectionDate || moment().format("YYYY-MM-DD"),
-        CollectedAmount: row.CollectedAmount ?? "",
       })}
       renderApproveFields={renderApproveFields}
       validateApprove={validateApprove}

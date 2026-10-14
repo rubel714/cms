@@ -43,6 +43,7 @@ function getCollectionStatusList()
 
 		$query = "SELECT CollectionStatusId id, CollectionStatusName `name`
 			FROM t_collection_status
+			WHERE CollectionStatusName IN ('Collected', 'Not Collected')
 			ORDER BY CollectionStatusId;";
 
 		$returnData = [
@@ -62,17 +63,15 @@ function approveData($data)
 {
 	$CollectionStatusId = isset($data->CollectionStatusId) ? trim($data->CollectionStatusId) : '';
 	$CollectionDate = isset($data->CollectionDate) ? trim($data->CollectionDate) : '';
-	$CollectedAmount = isset($data->CollectedAmount) && $data->CollectedAmount !== '' ? $data->CollectedAmount : 0;
-	$CollectionNote = isset($data->CollectionNote) && trim($data->CollectionNote) !== '' ? trim($data->CollectionNote) : null;
 
-	if ($CollectionStatusId == '' || $CollectionDate == '') {
-		return msg(0, 422, 'Please enter the collection status and collection date.');
+	if ($CollectionStatusId == '') {
+		return msg(0, 422, 'Please enter the collection status.');
 	}
 
 	return mrApproveStep(
 		$data,
 		MR_STEP_THIS,
-		['CollectionStatusId', 'CollectionDate', 'CollectedAmount', 'CollectionNote'],
-		[$CollectionStatusId, $CollectionDate, $CollectedAmount, $CollectionNote]
+		['CollectionStatusId', 'CollectionDate'],
+		[$CollectionStatusId, $CollectionDate === '' ? null : $CollectionDate]
 	);
 }

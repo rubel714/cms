@@ -44,8 +44,6 @@ const MRHeaderView = ({ row, bankEditor }) => {
           <div className="allocateInvoiceForm">
             <ViewField label="Collection Status" value={row.CollectionStatusName} />
             <ViewField label="Collection Date" value={row.CollectionDate} />
-            <ViewField label="Collected Amount" value={row.CollectedAmount} />
-            <ViewField label="Collection Note" value={row.CollectionNote} wide />
           </div>
         </div>
       )}
