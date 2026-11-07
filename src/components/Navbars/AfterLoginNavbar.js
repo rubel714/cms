@@ -341,6 +341,17 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
+                    {menuShowPermision("allocateinvoice") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("allocateinvoice")}
+                        >
+                          Allocate Invoice
+                        </a>
+                      </li>
+                    )}
+
                     {menuShowPermision("collectorassignment") === 1 && (
                       <li>
                         <a
@@ -374,16 +385,7 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
-                    {menuShowPermision("allocateinvoice") === 1 && (
-                      <li>
-                        <a
-                          href="javascript:void(0)"
-                          onClick={() => props.history.push("allocateinvoice")}
-                        >
-                          Allocate Invoice
-                        </a>
-                      </li>
-                    )}
+
 
                     {menuShowPermision("collectionverification") === 1 && (
                       <li>

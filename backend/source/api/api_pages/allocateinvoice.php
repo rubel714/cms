@@ -12,7 +12,7 @@ if (isset($data->action)) {
 switch ($task) {
 
 	case "getDataList":
-		$returnData = mrGetStepDataList(MR_STEP_THIS);
+		$returnData = mrGetAllocationDataList();
 		break;
 
 	case "getUnpaidInvoices":
@@ -40,7 +40,7 @@ switch ($task) {
 		break;
 
 	case "rejectData":
-		$returnData = mrRejectStep($data, MR_STEP_THIS);
+		$returnData = mrRejectStep($data, MR_STEP_THIS, 'mrCheckAllocationOpen');
 		break;
 
 	case "getApprovalLog":
@@ -68,7 +68,7 @@ function deletePaymentItem($data)
 		return $returnData = msg(0, 422, 'Invalid payment item.');
 	}
 
-	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	$check = mrCheckAllocationOpen($PaymentId);
 	if ($check !== true) {
 		return $check;
 	}
@@ -204,7 +204,7 @@ function addInvoicesToPayment($data)
 		return $returnData = msg(0, 422, 'Please select at least one invoice.');
 	}
 
-	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	$check = mrCheckAllocationOpen($PaymentId);
 	if ($check !== true) {
 		return $check;
 	}
@@ -337,7 +337,7 @@ function dataAddEdit($data)
 		return msg(0, 422, 'Invalid MR.');
 	}
 
-	$check = mrCheckStep($PaymentId, MR_STEP_THIS);
+	$check = mrCheckAllocationOpen($PaymentId);
 	if ($check !== true) {
 		return $check;
 	}
@@ -362,7 +362,7 @@ function dataAddEdit($data)
 	return $returnData;
 }
 
-/** Saves the latest calculation and moves the MR to Collection Verification (step 7). */
+/** Saves the latest calculation and marks F done. Opens G only if E is already done. */
 function approveData($data)
 {
 	$PaymentId = isset($data->PaymentId) ? trim($data->PaymentId) : '';
@@ -381,5 +381,5 @@ function approveData($data)
 		return msg(0, 422, 'Please allocate at least one invoice before approving.');
 	}
 
-	return mrApproveStep($data, MR_STEP_THIS, $columns, $values);
+	return mrApproveAllocation($data, $columns, $values);
 }

@@ -16,7 +16,7 @@ switch ($task) {
 		break;
 
 	case "approveData":
-		$returnData = mrApproveStep($data, MR_STEP_THIS);
+		$returnData = mrApproveStep($data, MR_STEP_THIS, ['AllocationStepId'], [MR_STEP_ALLOCATE_INVOICE]);
 		break;
 
 	case "rejectData":

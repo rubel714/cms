@@ -23,7 +23,11 @@ const AllocateInvoice = (props) => {
   const { useState } = React;
   const [bFirst, setBFirst] = useState(true);
   const [currentRow, setCurrentRow] = useState([]);
-  const isCurrentStep = String(currentRow.StepId) === "6";
+  const isAllocationOpen = (row) =>
+    String(row.AllocationStepId) === "6" &&
+    String(row.StepId) !== "8" &&
+    String(row.StepId) !== "99";
+  const isCurrentStep = isAllocationOpen(currentRow);
   const canEdit = permissionType === 0 && isCurrentStep;
   const [listedittoggle, setListedittoggle] = useState(true); //true=show list panel, false=show edit panel
   const { data: dataList, ExecuteQuery } = ExecuteQueryHook(); //Fetch data
@@ -122,7 +126,7 @@ const AllocateInvoice = (props) => {
 
   /** Action from table row buttons*/
   function actioncontrol(rowData) {
-    const Icon = String(rowData.StepId) === "6" ? Edit : Visibility;
+    const Icon = isAllocationOpen(rowData) ? Edit : Visibility;
     return (
       <Icon
         className={"table-edit-icon"}

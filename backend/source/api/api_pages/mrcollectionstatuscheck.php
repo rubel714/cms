@@ -60,6 +60,7 @@ function getCollectionStatusList()
 
 function approveData($data)
 {
+	$PaymentId = isset($data->PaymentId) ? trim($data->PaymentId) : '';
 	$CollectionStatusId = isset($data->CollectionStatusId) ? trim($data->CollectionStatusId) : '';
 	$CollectionDate = isset($data->CollectionDate) ? trim($data->CollectionDate) : '';
 
@@ -71,6 +72,9 @@ function approveData($data)
 		$data,
 		MR_STEP_THIS,
 		['CollectionStatusId', 'CollectionDate'],
-		[$CollectionStatusId, $CollectionDate]
+		[$CollectionStatusId, $CollectionDate],
+		[],
+		MR_STEP_ALLOCATE_INVOICE,
+		$PaymentId === '' ? [] : [mrJoinGIfReadyQuery($PaymentId)]
 	);
 }

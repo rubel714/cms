@@ -2,11 +2,15 @@
 
 /**
  * Shared helpers for the MR (t_payment) multi-step workflow.
- * Steps: 1 Payment Receive, 2 MR Verification, 3 Collector Assignment, 4 MR Collection Status,
- * 5 MR Collection Status Check, 6 Allocate Invoice, 7 Collection Verification, 8 Completed, 99 Rejected.
+ * Collection track (StepId): 1 Payment Receive, 2 MR Verification, 3 Collector Assignment,
+ * 4 MR Collection Status, 5 MR Collection Status Check, 6 = E done waiting for F,
+ * 7 Collection Verification, 8 Completed, 99 Rejected.
+ * Allocation track (AllocationStepId): 0 not open, 6 F is open, 7 F approved.
+ * After B, C→D→E and F run in parallel. G opens only when both E and F are done.
  */
 
 const MR_STEP_PAYMENT_RECEIVE = 1;
+const MR_STEP_ALLOCATE_INVOICE = 6;
 const MR_STEP_COLLECTION_VERIFICATION = 7;
 const MR_STEP_COMPLETED = 8;
 const MR_STEP_REJECTED = 99;
@@ -16,17 +20,12 @@ function mrNextStep($stepId)
 	return $stepId >= MR_STEP_COLLECTION_VERIFICATION ? MR_STEP_COMPLETED : $stepId + 1;
 }
 
-function mrGetStepDataList($stepId)
+function mrPaymentListFromSql()
 {
-	try {
-		$dbh = new Db();
-		$stepId = (int)$stepId;
-
-		// Current step, every later step (passed, read-only), and rejected MRs that reached this step.
-		$query = "SELECT a.PaymentId AS id, st.StepName AS CurrentStep,
+	return "SELECT a.PaymentId AS id, st.StepName AS CurrentStep,
 			DATE_FORMAT(a.PaymentDate, '%Y-%m-%d') as PaymentDate,
 			a.CustomerId, b.CustomerCode, b.CustomerName, a.CustomerGroupId, a.BankId, d.BankName,
-			a.Remarks, a.StatusId, a.StepId, a.MRNo, a.RefNo, a.ChequeNumber, a.ChequeDate, a.BankBranchName,
+			a.Remarks, a.StatusId, a.StepId, a.AllocationStepId, a.MRNo, a.RefNo, a.ChequeNumber, a.ChequeDate, a.BankBranchName,
 			a.PaymentModeId, pm.PaymentModeName, a.CurrencyId, cur.CurrencyName,
 			a.PaymentReceiveCurrencyAmount, a.ExchangeRate, a.PaymentReceiveAmount,
 			a.CollectedMethodId, cm.CollectedMethod, a.CollectionAddress, a.CollectionPersonName, a.CollectionPersonPhone,
@@ -44,7 +43,17 @@ function mrGetStepDataList($stepId)
 		LEFT JOIN t_collectedmethod cm ON a.CollectedMethodId = cm.CollectedMethodId
 		LEFT JOIN t_users cu ON a.CollectorUserId = cu.UserId
 		LEFT JOIN t_collection_status cs ON a.CollectionStatusId = cs.CollectionStatusId
-		LEFT JOIN t_payment_step st ON a.StepId = st.StepId
+		LEFT JOIN t_payment_step st ON a.StepId = st.StepId";
+}
+
+function mrGetStepDataList($stepId)
+{
+	try {
+		$dbh = new Db();
+		$stepId = (int)$stepId;
+
+		// Current step, every later step (passed, read-only), and rejected MRs that reached this step.
+		$query = mrPaymentListFromSql() . "
 		WHERE a.StepId = $stepId
 			OR (a.StepId > $stepId AND a.StepId <> 99)
 			OR (a.StepId = 99 AND EXISTS (
@@ -52,6 +61,44 @@ function mrGetStepDataList($stepId)
 				WHERE l.PaymentId = a.PaymentId AND l.StepId = $stepId
 			))
 		ORDER BY CASE WHEN a.StepId = $stepId THEN 0 ELSE 1 END, a.PaymentDate DESC, a.MRNo DESC;";
+
+		$resultdatalist = $dbh->query($query);
+
+		$returnData = [
+			"success" => 1,
+			"status" => 200,
+			"message" => "",
+			"datalist" => $resultdatalist
+		];
+	} catch (PDOException $e) {
+		$returnData = msg(0, 500, $e->getMessage());
+	}
+
+	return $returnData;
+}
+
+/** List for Allocate Invoice: open after B, independent of the C→D→E collection track. */
+function mrGetAllocationDataList()
+{
+	try {
+		$dbh = new Db();
+		$open = MR_STEP_ALLOCATE_INVOICE;
+		$done = MR_STEP_COLLECTION_VERIFICATION;
+		$completed = MR_STEP_COMPLETED;
+		$rejected = MR_STEP_REJECTED;
+
+		$query = mrPaymentListFromSql() . "
+		WHERE (a.AllocationStepId = $open AND a.StepId NOT IN ($completed, $rejected))
+			OR a.AllocationStepId = $done
+			OR (a.StepId = $rejected AND (
+				a.AllocationStepId IN ($open, $done)
+				OR EXISTS (
+					SELECT 1 FROM t_payment_approval_log l
+					WHERE l.PaymentId = a.PaymentId AND l.StepId = $open
+				)
+			))
+		ORDER BY CASE WHEN a.AllocationStepId = $open AND a.StepId NOT IN ($completed, $rejected) THEN 0 ELSE 1 END,
+			a.PaymentDate DESC, a.MRNo DESC;";
 
 		$resultdatalist = $dbh->query($query);
 
@@ -147,6 +194,56 @@ function mrCheckStep($PaymentId, $stepId)
 	return true;
 }
 
+/** Returns true when Allocate Invoice (F) is still open on this MR. */
+function mrCheckAllocationOpen($PaymentId)
+{
+	$dbh = new Db();
+	$rows = $dbh->query(
+		"SELECT StepId, AllocationStepId FROM t_payment WHERE PaymentId = :PaymentId;",
+		['PaymentId' => $PaymentId]
+	);
+
+	if (!is_array($rows) || count($rows) == 0) {
+		return msg(0, 404, 'MR not found.');
+	}
+
+	$stepId = (int)$rows[0]['StepId'];
+	$allocationStepId = (int)$rows[0]['AllocationStepId'];
+	if ($allocationStepId !== MR_STEP_ALLOCATE_INVOICE || $stepId === MR_STEP_COMPLETED || $stepId === MR_STEP_REJECTED) {
+		return msg(0, 409, 'This MR has already been processed. Please refresh the list.');
+	}
+
+	return true;
+}
+
+/**
+ * Opens G only when collection is waiting at step 6 (E done) and F is already approved (AllocationStepId = 7).
+ * Uses distinct bind names so SET StepId and WHERE StepId do not collide.
+ */
+function mrJoinGIfReadyQuery($PaymentId)
+{
+	$u = new updateq();
+	$u->table = 't_payment';
+	$u->columns = ['StepId'];
+	$u->values = [MR_STEP_COLLECTION_VERIFICATION];
+	$u->pks = ['PaymentId'];
+	$u->pk_values = [$PaymentId];
+	$u->select = "SELECT * FROM t_payment WHERE PaymentId = :PaymentId";
+	$u->wh_params = ['PaymentId' => $PaymentId];
+	$u->query = "UPDATE t_payment
+		SET StepId = :NextStepId
+		WHERE PaymentId = :PaymentId
+			AND StepId = :WaitStepId
+			AND AllocationStepId = :DoneAllocationStepId";
+	$u->params = [
+		'NextStepId' => MR_STEP_COLLECTION_VERIFICATION,
+		'PaymentId' => $PaymentId,
+		'WaitStepId' => MR_STEP_ALLOCATE_INVOICE,
+		'DoneAllocationStepId' => MR_STEP_COLLECTION_VERIFICATION,
+	];
+	return $u;
+}
+
 function mrLogQuery($PaymentId, $stepId, $action, $comments, $UserId)
 {
 	$q = new insertq();
@@ -176,8 +273,9 @@ function mrExecResult($aQuerys, $UserId, $lan, $successMessage)
  * Moves the MR from $stepId to the next step in one transaction.
  * $extraCols/$extraVals are written to t_payment together with the new StepId.
  * $extraQuerys run first in the same transaction (used by the final posting step).
+ * $afterQuerys run after the StepId update (used to open G when both tracks are done).
  */
-function mrApproveStep($data, $stepId, $extraCols = [], $extraVals = [], $extraQuerys = [])
+function mrApproveStep($data, $stepId, $extraCols = [], $extraVals = [], $extraQuerys = [], $nextStepId = null, $afterQuerys = [])
 {
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return msg(0, 404, 'Page Not Found!');
@@ -203,11 +301,15 @@ function mrApproveStep($data, $stepId, $extraCols = [], $extraVals = [], $extraQ
 		$u = new updateq();
 		$u->table = 't_payment';
 		$u->columns = array_merge($extraCols, ['StepId']);
-		$u->values = array_merge($extraVals, [mrNextStep($stepId)]);
+		$u->values = array_merge($extraVals, [$nextStepId !== null ? $nextStepId : mrNextStep($stepId)]);
 		$u->pks = ['PaymentId'];
 		$u->pk_values = [$PaymentId];
 		$u->build_query();
 		$aQuerys[] = $u;
+
+		foreach ($afterQuerys as $afterQuery) {
+			$aQuerys[] = $afterQuery;
+		}
 
 		$aQuerys[] = mrLogQuery($PaymentId, $stepId, 'Approve', $Comments, $UserId);
 
@@ -217,8 +319,52 @@ function mrApproveStep($data, $stepId, $extraCols = [], $extraVals = [], $extraQ
 	}
 }
 
+/**
+ * Approves Allocate Invoice without moving the collection StepId, unless E is already done.
+ * Sets AllocationStepId = 7, then opens G when StepId is already 6.
+ */
+function mrApproveAllocation($data, $extraCols = [], $extraVals = [])
+{
+	if ($_SERVER["REQUEST_METHOD"] != "POST") {
+		return msg(0, 404, 'Page Not Found!');
+	}
+
+	$lan = trim($data->lan);
+	$UserId = trim($data->UserId);
+	$PaymentId = isset($data->PaymentId) ? trim($data->PaymentId) : '';
+	$Comments = isset($data->Comments) ? trim($data->Comments) : '';
+
+	if ($PaymentId == '') {
+		return msg(0, 422, 'Invalid MR.');
+	}
+
+	$check = mrCheckAllocationOpen($PaymentId);
+	if ($check !== true) {
+		return $check;
+	}
+
+	try {
+		$aQuerys = array();
+
+		$u = new updateq();
+		$u->table = 't_payment';
+		$u->columns = array_merge($extraCols, ['AllocationStepId']);
+		$u->values = array_merge($extraVals, [MR_STEP_COLLECTION_VERIFICATION]);
+		$u->pks = ['PaymentId'];
+		$u->pk_values = [$PaymentId];
+		$u->build_query();
+		$aQuerys[] = $u;
+		$aQuerys[] = mrJoinGIfReadyQuery($PaymentId);
+		$aQuerys[] = mrLogQuery($PaymentId, MR_STEP_ALLOCATE_INVOICE, 'Approve', $Comments, $UserId);
+
+		return mrExecResult($aQuerys, $UserId, $lan, 'MR approved successfully.');
+	} catch (PDOException $e) {
+		return msg(0, 500, $e->getMessage());
+	}
+}
+
 /** Closes the MR (StepId 99) and releases any allocated invoice/extend items. */
-function mrRejectStep($data, $stepId)
+function mrRejectStep($data, $stepId, $checkFn = null)
 {
 	if ($_SERVER["REQUEST_METHOD"] != "POST") {
 		return msg(0, 404, 'Page Not Found!');
@@ -236,7 +382,7 @@ function mrRejectStep($data, $stepId)
 		return msg(0, 422, 'Comments are required to reject.');
 	}
 
-	$check = mrCheckStep($PaymentId, $stepId);
+	$check = is_callable($checkFn) ? $checkFn($PaymentId) : mrCheckStep($PaymentId, $stepId);
 	if ($check !== true) {
 		return $check;
 	}
