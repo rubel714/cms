@@ -116,7 +116,7 @@ $PaymentDate = "";
 $CustomerCode = "";
 $PaymentReceiveAmount = 0;//TK
 $TotalBaseAmount = 0;//TK
-$TotalTransactionAmount = 0;//USD
+$TotalTransactionAmount = '';//USD
 $CustomerName = "";
 $AmountInWords = "";
 $ChequeNumber = "";
@@ -154,188 +154,115 @@ if (!is_dir($OutputFileDirectory)) {
     mkdir($OutputFileDirectory, 0777, true);
 }
 
-class MYPDF extends TCPDF
+function mr_line($pdf, $x, $y, $labelW, $valueW, $label, $value, $h)
 {
-    public function Header()
-    {
-        global $MRNo;
-
-        // Logo
-        $image_file = '../../image/appmenu/Intertek_Logo.png';
-        $this->Image($image_file, 5, 5, 30, 10, 'PNG', '', '', false, 150, '', false, false, 1, false, false, false);
-        // Set font
-        $this->SetFont('helvetica', 'B', 10);
-
-        $this->SetFont('helvetica', 'B', 10);
-        $this->SetXY(80, 5); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Money Receipt', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetFont('helvetica', 'B', 8);
-        $this->SetXY(80, 15); // adjust X and Y as needed
-        $this->Cell(0, 0,  $MRNo, 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetFont('helvetica', 'B', 8);
-        $this->SetXY(80, 25); // adjust X and Y as needed
-        $this->Cell(21, 6, 'Customer Copy', 1, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-
-        // Move to the right side
-        $this->SetFont('helvetica', 'B', 8);
-        $this->SetXY(160, 5); // adjust X and Y as needed
-        $this->Cell(0, 0, 'ITS Labtest Bangladesh Ltd.', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetFont('helvetica', 'B', 7);
-        $this->SetXY(160, 10); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Phoenix Tower, 2nd & 3rd Floors', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetXY(160, 15); // adjust X and Y as needed
-        $this->Cell(0, 0, '407, Tejgoan Industrial Area', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetXY(160, 20); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Dhaka-1208, Bangladesh,', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetXY(160, 25); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Phone: +8809666776669', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-
-        $this->SetXY(160, 30); // adjust X and Y as needed
-        $this->Cell(0, 0, 'Fax: +88029125866', 0, 'L', false, 0, '', '', true, 0, false, true, 0, 'T', true);
-    }
-
-    // Page footer
-    public function Footer()
-    {
-        // $this->SetFont('helvetica', 'R', 8);
-        // // $this->SetFooterMargin(30); // or any value you need
-        // $this->SetY(-30);
-        // $Text = 'The results reflect our findings at time and place of inspection. This report does not relieve sellers/manufacturers from their contractual liabilities or prejudice buyers right for compensation for any apparent and/or hidden defects not detected during our random inspection or occurring thereafter This report does not evidence shipment.';
-        // $this->MultiCell(0, 0, $Text, 0, 'L', false, 1, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetY(-19);
-        // $Text = 'ITS Labtest Bangladesh Ltd., Haidar Tower, House # 668, Choydana, Ward # 34, Gazipur City Corporation, Gazipur-1704, Bangladesh';
-        // $this->MultiCell(0, 0, $Text, 0, 'C', false, 1, '', '', true, 0, false, true, 0, 'T', true);
-
-        // $this->SetY(-15);
-        // $Text = 'Tel: +88 0966 677 6669, Web: www.intertek.com';
-        // $this->MultiCell(0, 0, $Text, 0, 'C', false, 1, '', '', true, 0, false, true, 0, 'T', true);
-    }
+    $pdf->SetXY($x, $y);
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->Cell($labelW, $h, $label, 0, 0, 'L');
+    $pdf->SetFont('helvetica', 'B', 9);
+    $pdf->Cell($valueW, $h, ': ' . $value, 0, 0, 'L');
 }
 
+$logoFile = dirname(__FILE__) . '/../../image/appmenu/Intertek_Logo.png';
+$markFile = dirname(__FILE__) . '/../../image/appmenu/Intertek_Logo_Only.png';
 
-
-$pdf = new MyPDF();
-$pdf->SetMargins(5, 25, 5);
-$pdf->SetAutoPageBreak(true, 5);
-$pdf->SetFont('helvetica', 'R', 9); //Global font size of this pdf
+$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
+$pdf->SetMargins(8, 8, 8);
+$pdf->SetAutoPageBreak(false, 0);
+$pdf->SetTitle('Money Receipt ' . $MRNo);
 $pdf->AddPage();
+$pdf->SetTextColor(0, 0, 0);
 
-$pdf->ln(10); // Line break 
+// Same watermark as before, behind the fields.
+if (is_file($markFile)) {
+    $pdf->SetAlpha(0.15);
+    $pdf->Image($markFile, 68, 34, 74, 62, 'PNG', '', '', false, 300, '', false, false, 0, false, false, false);
+    $pdf->SetAlpha(1);
+}
 
-// Add watermark
-$pdf->SetAlpha(0.15); // Set transparency (15%)
-$pdf->Image('../../image/appmenu/Intertek_Logo_Only.png', 60, 30, 70, 60, 'PNG', '', '', false, 300, '', false, false, 1, false, false, false);
-$pdf->SetAlpha(1); // Reset to full opacity
+if (is_file($logoFile)) {
+    $pdf->Image($logoFile, 8, 5, 34, 0, 'PNG', '', '', false, 300, '', false, false, 0, false, false, false);
+}
 
-// Column widths
-$labelW = 30;
-$valueW = 90;
-
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Ref No', 0, 0, 'L');
+$pdf->SetFont('helvetica', 'B', 11);
+$pdf->SetXY(55, 5);
+$pdf->Cell(100, 5, 'Money Receipt', 0, 0, 'C');
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $RefNo, 0, 0, 'L');
+$pdf->SetXY(55, 11);
+$pdf->Cell(100, 4, $MRNo, 0, 0, 'C');
+$pdf->SetFont('helvetica', 'B', 8);
+$pdf->SetXY(88, 16.5);
+$pdf->Cell(34, 5.5, 'Customer Copy', 1, 0, 'C', false, '', 0, false, 'T', 'M');
 
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Date', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $PaymentDate, 0, 1, 'L');
+$addressX = 142;
+$addressW = 60;
+$pdf->SetFont('helvetica', 'B', 8);
+$pdf->SetXY($addressX, 5);
+$pdf->Cell($addressW, 3.5, 'ITS Labtest Bangladesh Ltd.', 0, 0, 'L');
+$pdf->SetFont('helvetica', 'B', 7);
+$addressLines = array(
+    'Phoenix Tower, 2nd & 3rd Floors',
+    '407, Tejgoan Industrial Area',
+    'Dhaka-1208, Bangladesh,',
+    'Phone: +8809666776669',
+    'Fax: +88029125866',
+);
+$addressY = 9;
+foreach ($addressLines as $addressLine) {
+    $pdf->SetXY($addressX, $addressY);
+    $pdf->Cell($addressW, 3.3, $addressLine, 0, 0, 'L');
+    $addressY += 3.3;
+}
 
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Customer`s Code', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $CustomerCode, 0, 0, 'L');
-
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Sum of taka', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . number_format($PaymentReceiveAmount, 2), 0, 1, 'L');
-
-// Row
-$pdf->Cell($labelW, 8, '', 0, 0, 'L');
-$pdf->Cell($valueW, 8, '', 0, 0, 'L');
-
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Sum of USD', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $TotalTransactionAmount, 0, 1, 'L');
-
-// $pdf->ln(2); // Line break
-
+$left = 8;
 $labelW = 42;
-$valueW = 90;
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Received with thanks from', 0, 0, 'L');
+$valueW = 64;
+$rightX = 116;
+$labelW2 = 30;
+$valueW2 = 56;
+$rowH = 6;
+$y = 30;
+
+mr_line($pdf, $left, $y, $labelW, $valueW, 'Ref No', $RefNo, $rowH);
+mr_line($pdf, $rightX, $y, $labelW2, $valueW2, 'Date', $PaymentDate, $rowH);
+
+$y += $rowH;
+mr_line($pdf, $left, $y, $labelW, $valueW, 'Customer`s Code', $CustomerCode, $rowH);
+mr_line($pdf, $rightX, $y, $labelW2, $valueW2, 'Sum of taka', number_format((float) $PaymentReceiveAmount, 2), $rowH);
+
+$y += $rowH;
+mr_line($pdf, $rightX, $y, $labelW2, $valueW2, 'Sum of USD', $TotalTransactionAmount, $rowH);
+
+$y += $rowH + 1.5;
+mr_line($pdf, $left, $y, $labelW, 140, 'Received with thanks from', $CustomerName, $rowH);
+
+$y += $rowH;
+mr_line($pdf, $left, $y, $labelW, 140, 'In words', strtoupper($AmountInWords), $rowH);
+
+$y += $rowH;
+mr_line($pdf, $left, $y, $labelW, $valueW, 'By Cash/Cheque', $ChequeNumber, $rowH);
+mr_line($pdf, $rightX, $y, $labelW2, $valueW2, 'Cheque Date', $ChequeDate, $rowH);
+
+$y += $rowH;
+mr_line($pdf, $left, $y, $labelW, $valueW, 'Bank', $BankName, $rowH);
+mr_line($pdf, $rightX, $y, $labelW2, $valueW2, 'Branch', $BankBranchName, $rowH);
+
+$y += $rowH + 3;
+$pdf->SetFont('helvetica', '', 9);
+$pdf->SetXY($left, $y);
+$pdf->Cell(70, $rowH, 'Subject to Realization', 0, 0, 'L');
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $CustomerName, 0, 1, 'L');
+$pdf->SetXY(78, $y);
+$pdf->Cell(90, $rowH, 'For ITS Labtest Bangladesh Ltd.', 0, 0, 'C');
 
-// Column widths
-$labelW = 30;
-$valueW = 90;
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'In words', 0, 0, 'L');
+$y += 22;
 $pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . strtoupper($AmountInWords), 0, 1, 'L');
-
-
-// Column widths
-$labelW = 30;
-$valueW = 90;
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'By Cash/Cheque', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $ChequeNumber, 0, 0, 'L');
-
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Cheque Date', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $ChequeDate, 0, 1, 'L');
-
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Bank', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $BankName, 0, 0, 'L');
-
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Branch', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, ': ' . $BankBranchName, 0, 1, 'L');
-
-$pdf->ln(5); // Line break
-
-// Column widths
-$labelW = 80;
-$valueW = 90;
-// Row
-$pdf->SetFont('helvetica', 'R', 9);
-$pdf->Cell($labelW, 8, 'Subject to Realization', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, 'For ITS Labtest Bangladesh Ltd.', 0, 1, 'L');
-
-$pdf->ln(15); // Line break
-
-// Column widths
-$labelW = 150;
-$valueW = 90;
-// Row
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($labelW, 8, 'Received By', 0, 0, 'L');
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($valueW, 8, 'Authorized By', 0, 1, 'L');
+$pdf->SetXY($left, $y);
+$pdf->Cell(50, $rowH, 'Received By', 0, 0, 'L');
+$pdf->SetXY(150, $y);
+$pdf->Cell(52, $rowH, 'Authorized By', 0, 0, 'L');
 
 
 $CheckListFileName = $MRNo . '_' . date("Y_m_d_H_i_s") . '_checklist.pdf';
