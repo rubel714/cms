@@ -380,7 +380,7 @@ function AfterLoginNavbar(props) {
                           href="javascript:void(0)"
                           onClick={() => props.history.push("mrcollectionstatuscheck")}
                         >
-                          MR Collection Status Check
+                          MR Collection Declare
                         </a>
                       </li>
                     )}

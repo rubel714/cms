@@ -530,6 +530,25 @@ const PaymentReceive = (props) => {
   const isReadOnly =
     permissionType !== 0 || (currentRow.StepId != null && String(currentRow.StepId) !== "1");
 
+  const canPrintMoneyReceipt =
+    !!currentRow.id &&
+    Number(currentRow.StepId) >= 3 &&
+    Number(currentRow.StepId) !== 99;
+
+  const openMoneyReceipt = () => {
+    if (!canPrintMoneyReceipt) {
+      return;
+    }
+
+    window.open(
+      process.env.REACT_APP_API_URL +
+        "report/GenerateMoneyReceipt.php?PaymentId=" +
+        currentRow.id +
+        "&TimeStamp=" +
+        Date.now()
+    );
+  };
+
   return (
     <>
       <div class="bodyContainer">
@@ -565,6 +584,12 @@ const PaymentReceive = (props) => {
                 label={"Back to List"}
                 class={"btnClose"}
                 onClick={hideModal}
+              />
+              <Button
+                label={"Money Receive"}
+                class={"btnPDF"}
+                disabled={!canPrintMoneyReceipt}
+                onClick={openMoneyReceipt}
               />
               <Button
                 label={currentRow.id ? "Update" : "Save"}
