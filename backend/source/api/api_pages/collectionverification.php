@@ -55,9 +55,10 @@ function getDataSingle($data)
 }
 
 /**
- * Final approval = posting. In one transaction:
+ * Posting. In one transaction:
  * extend rows (AIT/VAT/Advance/Due), invoice IsPaid, used extend rows IsFinished,
- * MR totals, StatusId = 5 (Post), StepId = 8 (Completed) and the log row.
+ * MR totals, StatusId = 5 (Post), StepId = 8 (Transaction Audit) and the log row.
+ * The new extend rows can be picked in Allocate Invoice only after Transaction Audit approves.
  */
 function approveData($data)
 {

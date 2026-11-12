@@ -37,6 +37,7 @@ import MRCollectionStatus from "views/screens/mrcollectionstatus/index.js";
 import MRCollectionStatusCheck from "views/screens/mrcollectionstatuscheck/index.js";
 import AllocateInvoice from "views/screens/allocateinvoice/index.js";
 import CollectionVerification from "views/screens/collectionverification/index.js";
+import TransactionAudit from "views/screens/transactionaudit/index.js";
 
 import BillGenerate from "views/screens/billgenerate/index.js";
 // import Machine from "views/screens/machine/index.js";
@@ -107,6 +108,7 @@ ReactDOM.render(
             <Route path="/mrcollectionstatus" render={(props) => <MRCollectionStatus {...props} />} />
             <Route path="/allocateinvoice" render={(props) => <AllocateInvoice {...props} />} />
             <Route path="/collectionverification" render={(props) => <CollectionVerification {...props} />} />
+            <Route path="/transactionaudit" render={(props) => <TransactionAudit {...props} />} />
           
           
           

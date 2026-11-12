@@ -1,19 +1,21 @@
-# MR Workflow: How It Works Now (A to G)
+# MR Workflow: How It Works Now (A to H)
 
 Reference for the Money Receipt (`t_payment`) multi-step workflow as it is implemented in the code today.
-`MR_Workflow_Plan.md` is the original design, which was a straight A-to-G chain. The code has since changed: after Step B, the collection track (C to E) and Allocate Invoice (F) run **in parallel**, and Step G opens only when both are done.
+`MR_Workflow_Plan.md` is the original design, which was a straight A-to-G chain. The code has since changed:
+- After Step B, the collection track (C to E) and Allocate Invoice (F) run **in parallel**, and Step G opens only when both are done.
+- A final step, **H. Transaction Audit**, follows the posting in G. The extend rows that G posts can be reused only after H approves. An H reject rolls back the posting and sends the MR back to G.
 
 ## Tables and columns
 
 - `t_payment.StepId`: the position on the collection track (see the step IDs below).
 - `t_payment.AllocationStepId`: the Allocate Invoice track. `0` means not open, `6` means F is open, and `7` means F is approved. Added by `docs/MR_Workflow_Parallel_Tracks.sql`.
-- `t_payment.StatusId`: `1` (Draft) until G is approved, then `5` (Post). Reports that filter on `StatusId = 5` therefore count only posted MRs.
-- `t_payment_step`: the step names (1 to 7, plus 8 Completed and 99 Rejected).
+- `t_payment.StatusId`: `1` (Draft) until G is approved, then `5` (Post). An H reject sets it back to `1`. Reports that filter on `StatusId = 5` therefore count MRs that are posted, including those still waiting at H.
+- `t_payment_step`: the step names (1 to 8, plus 9 Completed and 99 Rejected).
 - `t_collection_status`: `1` Collected and `3` Not Collected.
 - `t_payment_approval_log`: one row per Submit, Approve, or Reject (`PaymentId`, `StepId`, `Action`, `Comments`, `UserId`, `CreateTs`).
 - `t_paymentitems`: the invoice items (`InvoiceItemId`) and extend rows (`PaymentExtendId`) allocated to an MR.
-- `t_paymentextend`: AIT, VAT, Advance, and Due rows, created only when G posts the MR.
-- Migrations: `docs/MR_Workflow_Migration.sql` and `docs/MR_Workflow_Parallel_Tracks.sql`. Both are run manually.
+- `t_paymentextend`: AIT, VAT, Advance, and Due rows, created only when G posts the MR. They can be picked in F only once their MR is Completed (`StepId = 9`).
+- Migrations, run manually in this order: `docs/MR_Workflow_Migration.sql`, `docs/MR_Workflow_Parallel_Tracks.sql`, `docs/MR_Workflow_Transaction_Audit.sql`.
 
 ### StepId values (collection track)
 
@@ -24,7 +26,8 @@ Reference for the Money Receipt (`t_payment`) multi-step workflow as it is imple
 - `5` MR Collection Status Check (E)
 - `6` E is done and the MR is waiting for F. This reuses the Allocate Invoice step number.
 - `7` Collection Verification (G)
-- `8` Completed
+- `8` Transaction Audit (H)
+- `9` Completed. Before `MR_Workflow_Transaction_Audit.sql`, Completed was `8`, and that script moves those MRs to `9`.
 - `99` Rejected
 
 ## Flow
@@ -40,7 +43,9 @@ flowchart LR
     F -->|"Approve: AllocationStepId 7"| joinG{"Both done?"}
     waitF --> joinG
     joinG -->|yes| G["G Collection Verification (7)"]
-    G -->|"Approve and Post"| doneNode["Completed (8)"]
+    G -->|"Approve and Post"| H["H Transaction Audit (8)"]
+    H -->|Approve| doneNode["Completed (9)"]
+    H -->|"Reject: rollback posting"| G
     B -->|Reject| rejNode["Rejected (99)"]
     C -->|Reject| rejNode
     D -->|Reject| rejNode
@@ -58,7 +63,7 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
   - MRs at any later step, view only.
   - Rejected MRs that have a log row for this step.
 - `mrGetAllocationDataList()` builds the list for F from `AllocationStepId` instead of `StepId`.
-- `mrGetPaymentItems($PaymentId)` returns the allocated extend rows and invoice items. Used by F and G.
+- `mrGetPaymentItems($PaymentId)` returns the allocated extend rows and invoice items. Used by F, G, and H.
 - `mrCheckStep($PaymentId, $stepId)` returns "already processed" when the MR is no longer at the step. This guards against double clicks and two users acting at once.
 - `mrCheckAllocationOpen($PaymentId)` checks that F is still open: `AllocationStepId = 6` and the MR is neither completed nor rejected.
 - `mrApproveStep($data, $stepId, $extraCols, $extraVals, $extraQuerys, $nextStepId, $afterQuerys)` runs one transaction:
@@ -67,7 +72,7 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
   3. the `$afterQuerys`
   4. an "Approve" log row
 
-  The default next step comes from `mrNextStep` (step + 1, and 8 after step 7).
+  The default next step comes from `mrNextStep` (step + 1, so 7 goes to 8 and 8 goes to 9 Completed).
 - `mrApproveAllocation(...)` is used by F. It sets `AllocationStepId = 7`, runs the join-to-G query, and writes the log row.
 - `mrRejectStep($data, $stepId, $checkFn)` requires a comment. It deletes the MR's `t_paymentitems` rows so those invoices and extend rows become free again, sets `StepId = 99`, and writes a "Reject" log row.
 - `mrLogQuery` and `mrExecResult` are helpers that write the log insert and run the query batch through `exec_query`.
@@ -82,7 +87,7 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
 - `ApproveRejectModal.js`: the comment box, which is required for Reject. It can also hold extra fields for the step.
 - `ApprovalHistory.js`: the log table.
 - `MRHeaderView.js`: the read-only MR header card. It can embed the bank editor.
-- `MRAllocationView.js`: the read-only table of allocated items and the calculation, used by G.
+- `MRAllocationView.js`: the read-only table of allocated items and the calculation, used by G and H.
 
 ## Steps
 
@@ -124,7 +129,7 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
 ### F. Allocate Invoice (AllocationStepId 6, parallel with C to E)
 - Screen: `allocateinvoice/AllocateInvoice.js` and `AllocateInvoiceAddModal.js` (custom screen). The buttons are Save, Reject, Approve, and Add Invoice. They are editable only while `AllocationStepId = 6` and the MR is neither completed nor rejected.
 - API: `allocateinvoice.php`. The list comes from `mrGetAllocationDataList`.
-- `getUnpaidInvoices` lists the customer's unfinished extend rows, then invoice items that are unpaid and not allocated (`IsPaid = 0`, no `t_paymentitems` row, `AdjFlag` null or `Approved`). It can be filtered by bill number or date range.
+- `getUnpaidInvoices` lists the customer's unfinished, unallocated extend rows whose MR is Completed (`StepId = 9`, so not rows still waiting at H), then invoice items that are unpaid and not allocated (`IsPaid = 0`, no `t_paymentitems` row, `AdjFlag` null or `Approved`). It can be filtered by bill number or date range.
 - `addInvoicesToPayment` and `deletePaymentItem` add and remove rows in `t_paymentitems`. Duplicates are skipped.
 - `dataAddEdit` (Save) stores only the calculation fields: Remarks, Rebate, CN, AIT, VAT, Advance, and Due (percent and amount).
 - `approveData` saves the calculation and sets `AllocationStepId = 7`, and moves the MR to G if E is already done. It needs at least one allocated item or an Advance amount greater than 0.
@@ -139,11 +144,25 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
   2. It sets `t_invoiceitems.IsPaid = 1` for every allocated invoice item.
   3. It sets `t_paymentextend.IsFinished = 1` for every allocated extend row (earlier advances or dues that this MR consumes).
   4. It sets `TotalBaseAmount` and `TotalTransactionAmount` to the sums over the allocated **invoice items only**.
-  5. It sets `StatusId = 5`, `PostUserId` to the current user, and `StepId = 8`.
+  5. It sets `StatusId = 5`, `PostUserId` to the current user, and `StepId = 8` (Transaction Audit).
   6. It writes an "Approve" log row.
 - Reject deletes the `t_paymentitems` rows and sets `StepId = 99`. Nothing has been posted yet, so nothing else needs undoing.
 
-### Completed (8) and Rejected (99)
+### H. Transaction Audit (StepId 8)
+- Screen: `transactionaudit/TransactionAudit.js`, built on `MRStepScreen` with `showAllocation`. It has the same list columns and detail view as G, and the buttons are Approve and Reject.
+- API: `transactionaudit.php`.
+- Approve calls `mrApproveStep`, which sets `StepId = 9` (Completed) and writes the log row. From then on, the extend rows posted by G can be picked in F.
+- Reject requires a comment and rolls back the G posting in one transaction:
+  1. It deletes this MR's own `t_paymentextend` rows (`WHERE PaymentId = <this MR>`).
+  2. It sets `t_invoiceitems.IsPaid = 0` for the allocated invoice items.
+  3. It sets `t_paymentextend.IsFinished = 0` for the extend rows from earlier MRs that this MR used.
+  4. It sets `StatusId = 1`, `PostUserId = NULL`, and `StepId = 7`, which sends the MR back to G.
+  5. It writes a "Reject" log row at step 8.
+
+  The `t_paymentitems` rows are kept, so the invoices stay allocated. The totals are not reset, because G recalculates them when it approves again.
+- Safety check: the reject is refused if any of this MR's extend rows is already allocated to another MR. This should not happen, because F only offers extend rows from Completed MRs.
+
+### Completed (9) and Rejected (99)
 - Completed and rejected MRs stay visible as view-only rows in the lists of the steps they passed. They can no longer be acted on anywhere.
 - When an MR is rejected, its allocated invoices and extend rows become free again for other MRs.
 
@@ -152,7 +171,7 @@ Whichever of E and F finishes second opens G. Both use `mrJoinGIfReadyQuery`, wh
 - Routes: `src/index.js`.
 - Navbar items: `src/components/Navbars/AfterLoginNavbar.js`. Each item is wrapped in `menuShowPermision("<menukey>")`.
 - Menus: `t_menu` rows under `moneyreceipt` (144). Access is granted through `t_role_menu_map` or the Role to Menu Permission screen.
-- Menu keys and API pages: `paymentreceive`, `mrverification`, `collectorassignment`, `mrcollectionstatus`, `mrcollectionstatuscheck`, `allocateinvoice`, `collectionverification`.
+- Menu keys and API pages: `paymentreceive`, `mrverification`, `collectorassignment`, `mrcollectionstatus`, `mrcollectionstatuscheck`, `allocateinvoice`, `collectionverification`, `transactionaudit`.
 
 ## Known quirks
 

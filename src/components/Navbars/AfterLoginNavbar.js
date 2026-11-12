@@ -398,6 +398,17 @@ function AfterLoginNavbar(props) {
                       </li>
                     )}
 
+                    {menuShowPermision("transactionaudit") === 1 && (
+                      <li>
+                        <a
+                          href="javascript:void(0)"
+                          onClick={() => props.history.push("transactionaudit")}
+                        >
+                          Transaction Audit
+                        </a>
+                      </li>
+                    )}
+
 
                   </ul>
                 </li>

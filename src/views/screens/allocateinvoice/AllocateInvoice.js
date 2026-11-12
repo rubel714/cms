@@ -25,7 +25,7 @@ const AllocateInvoice = (props) => {
   const [currentRow, setCurrentRow] = useState([]);
   const isAllocationOpen = (row) =>
     String(row.AllocationStepId) === "6" &&
-    String(row.StepId) !== "8" &&
+    String(row.StepId) !== "9" &&
     String(row.StepId) !== "99";
   const isCurrentStep = isAllocationOpen(currentRow);
   const canEdit = permissionType === 0 && isCurrentStep;

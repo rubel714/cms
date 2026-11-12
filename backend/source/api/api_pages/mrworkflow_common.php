@@ -4,20 +4,22 @@
  * Shared helpers for the MR (t_payment) multi-step workflow.
  * Collection track (StepId): 1 Payment Receive, 2 MR Verification, 3 Collector Assignment,
  * 4 MR Collection Status, 5 MR Collection Status Check, 6 = E done waiting for F,
- * 7 Collection Verification, 8 Completed, 99 Rejected.
+ * 7 Collection Verification (posting), 8 Transaction Audit, 9 Completed, 99 Rejected.
  * Allocation track (AllocationStepId): 0 not open, 6 F is open, 7 F approved.
  * After B, C→D→E and F run in parallel. G opens only when both E and F are done.
+ * Extend rows posted by G can be picked in F only after H approves (StepId 9).
  */
 
 const MR_STEP_PAYMENT_RECEIVE = 1;
 const MR_STEP_ALLOCATE_INVOICE = 6;
 const MR_STEP_COLLECTION_VERIFICATION = 7;
-const MR_STEP_COMPLETED = 8;
+const MR_STEP_TRANSACTION_AUDIT = 8;
+const MR_STEP_COMPLETED = 9;
 const MR_STEP_REJECTED = 99;
 
 function mrNextStep($stepId)
 {
-	return $stepId >= MR_STEP_COLLECTION_VERIFICATION ? MR_STEP_COMPLETED : $stepId + 1;
+	return $stepId >= MR_STEP_TRANSACTION_AUDIT ? MR_STEP_COMPLETED : $stepId + 1;
 }
 
 function mrPaymentListFromSql()

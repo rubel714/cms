@@ -146,6 +146,7 @@ function getUnpaidInvoices($data)
 					INNER JOIN t_payment_extend_type o ON m.PaymentExtendTypeId=o.PaymentExtendTypeId
 					LEFT JOIN t_paymentitems p ON m.PaymentExtendId=p.PaymentExtendId
 					WHERE n.CustomerId = $CustomerId
+					AND n.StepId = " . MR_STEP_COMPLETED . "
 					AND m.IsFinished = 0
 					AND p.PaymentExtendId IS NULL
 
